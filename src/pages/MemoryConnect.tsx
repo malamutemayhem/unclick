@@ -124,6 +124,7 @@ export default function MemoryConnectPage() {
   const [checkError, setCheckError] = useState<string>("");
 
   const [claudeMdCopied, setClaudeMdCopied] = useState(false);
+  const [workerCopied, setWorkerCopied] = useState(false);
 
   useEffect(() => {
     try {
@@ -142,6 +143,19 @@ export default function MemoryConnectPage() {
     const key = apiKey ? maskKey(apiKey) : "YOUR_API_KEY";
     return `claude mcp add --transport http unclick ${MCP_URL} --header "Authorization: Bearer ${key}"`;
   }, [apiKey]);
+
+  // Headless / CI / cloud-worker path: a static key carried in the connection
+  // itself (in the URL). Unlike the interactive login, it needs no human to
+  // re-authorize, so the session reconnects on its own after an idle drop. This
+  // is the path that keeps unattended workers from going dark.
+  const workerUrl = useMemo(
+    () => `${MCP_URL}?key=${apiKey || "YOUR_API_KEY"}`,
+    [apiKey],
+  );
+  const workerUrlDisplay = useMemo(
+    () => `${MCP_URL}?key=${apiKey ? maskKey(apiKey) : "YOUR_API_KEY"}`,
+    [apiKey],
+  );
 
   const copy = async (text: string, onCopied: () => void) => {
     try {
@@ -170,6 +184,13 @@ export default function MemoryConnectPage() {
     copy(CLAUDE_MD_SNIPPET, () => {
       setClaudeMdCopied(true);
       setTimeout(() => setClaudeMdCopied(false), 3000);
+    });
+  };
+
+  const handleWorkerCopy = () => {
+    copy(workerUrl, () => {
+      setWorkerCopied(true);
+      setTimeout(() => setWorkerCopied(false), 3000);
     });
   };
 
@@ -483,6 +504,57 @@ export default function MemoryConnectPage() {
                 })}
               </div>
             )}
+          </section>
+        </FadeIn>
+
+        {/* Headless / CI / cloud workers: static-key path that survives idle */}
+        <FadeIn delay={0.22}>
+          <section className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-6">
+            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-primary">
+              <Terminal className="h-3.5 w-3.5" />
+              Cloud, CI, or headless agent?
+            </div>
+            <h2 className="mt-2 text-base font-semibold text-heading">
+              Use the static-key URL so the session reconnects itself
+            </h2>
+            <p className="mt-2 text-sm text-body">
+              An interactive login can't be re-shown in a headless worker (no human, no popup), so those
+              sessions go dark when the connection idles out. This URL carries the key with it, so it
+              re-authorizes on its own. No login, no babysitting.
+            </p>
+
+            <div className="mt-4 overflow-x-auto rounded-lg border border-border/40 bg-background/80 p-4">
+              <code className="block whitespace-pre-wrap font-mono text-xs text-heading sm:text-sm">
+                {workerUrlDisplay}
+              </code>
+            </div>
+
+            <Button
+              onClick={handleWorkerCopy}
+              disabled={!apiKey}
+              className="mt-4 w-full bg-primary text-black font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+              size="lg"
+            >
+              {workerCopied ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-2 h-4 w-4" /> Copy worker URL
+                </>
+              )}
+            </Button>
+
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-200">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-semibold">Heads up:</span> this URL contains your key, so treat it
+                like a password. Rotating your key retires this URL, so generate a fresh one after a
+                rotation. For unattended workers, a dedicated worker key you can revoke on its own is
+                coming soon.
+              </span>
+            </div>
           </section>
         </FadeIn>
 
