@@ -451,7 +451,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Require the resolved caller lane to match the row's lane so a caller
         // can only read their own server rows.
         const rowLane = String(row.lane_hash ?? "");
-        if (!serverSecret || !rowLane || (lane && lane !== rowLane)) {
+        if (!serverSecret || !rowLane || lane !== rowLane) {
           return res.status(500).json({ error: "Failed to decrypt credentials." });
         }
         const plaintext = decryptForAccount(serverSecret, rowLane, encryptedCredentialFromRow(row));
