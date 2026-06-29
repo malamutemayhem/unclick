@@ -57,6 +57,11 @@ type CredentialStatusSource =
 
 const STALE_CREDENTIAL_TEST_DAYS = 30;
 
+// Recheck horizon: a stored credential whose last live proof is older than
+// this (or that has no proof at all) is reported with stale/needs_recheck so
+// the UI can prompt a reconnect, instead of trusting old proof indefinitely.
+const RECHECK_AFTER_HOURS = 72;
+
 type CredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
 type CredentialHealth = "healthy" | "untested" | "pending" | "failing" | "stale";
 
@@ -112,6 +117,17 @@ function credentialHealth(row: CredentialStatusRow): CredentialHealth {
   return ageHours >= STALE_CREDENTIAL_TEST_DAYS * 24 ? "stale" : "healthy";
 }
 
+// True when the stored proof is missing or older than the recheck horizon.
+// This is what makes a "connected/healthy" badge honest: it tells the UI the
+// live integration has not been confirmed recently, so it should prompt a
+// recheck or reconnect rather than trusting the stored proof outright.
+function credentialNeedsRecheck(row: CredentialStatusRow, now = Date.now()): boolean {
+  if (row.status === "pending") return false;
+  const ageHours = hoursSinceIso(row.last_tested_at, now);
+  if (ageHours === null) return true;
+  return ageHours >= RECHECK_AFTER_HOURS;
+}
+
 function credentialConnectionState(row: CredentialStatusRow): CredentialConnectionState {
   const health = credentialHealth(row);
   return health === "healthy" ? "connected" : health;
@@ -121,9 +137,35 @@ function credentialIsConnected(row: CredentialStatusRow): boolean {
   return credentialConnectionState(row) === "connected";
 }
 
+// Additive status signal layered on top of the stored-proof fields. `connected`
+// continues to reflect stored proof; `stale`/`needs_recheck`/`health`/`verified`
+// surface whether that proof is fresh enough to be trusted right now.
+function credentialStatusSignal(row: CredentialStatusRow, now = Date.now()): {
+  health: CredentialHealth;
+  verified: boolean;
+  stale: boolean;
+  needs_recheck: boolean;
+} {
+  const baseHealth = credentialHealth(row);
+  const needsRecheck = credentialNeedsRecheck(row, now);
+  // Only downgrade a row that would otherwise read as healthy. Genuinely
+  // untested / failing / pending rows keep their own (already honest) health.
+  const stale = needsRecheck && baseHealth === "healthy";
+  const health: CredentialHealth = stale ? "stale" : baseHealth;
+  return {
+    health,
+    verified: health === "healthy",
+    stale: health === "stale",
+    needs_recheck: needsRecheck,
+  };
+}
+
 function credentialStatusMessage(row: CredentialStatusRow): string {
   const state = credentialConnectionState(row);
   if (state === "connected") {
+    if (credentialNeedsRecheck(row)) {
+      return `${row.platform} credential has stored connection proof from ${row.source}, but it is more than ${RECHECK_AFTER_HOURS}h old; recheck or reconnect before trusting it.`;
+    }
     return `${row.platform} credential has recorded connection proof from ${row.source}.`;
   }
   if (state === "stale") {
@@ -656,8 +698,7 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
   }
 
   const result = rows.map((r) => {
-    const health = credentialHealth(r);
-    const verified = health === "healthy";
+    const signal = credentialStatusSignal(r);
     return {
       platform:       r.platform,
       label:          r.label,
@@ -669,8 +710,10 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
       updated_at:     r.updated_at,
       source:         r.source,
       status:         r.status ?? null,
-      health,
-      verified,
+      health:         signal.health,
+      verified:       signal.verified,
+      stale:          signal.stale,
+      needs_recheck:  signal.needs_recheck,
       connection_state: credentialConnectionState(r),
       connected:      credentialIsConnected(r),
     };
@@ -782,14 +825,16 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
       const statuses = new Map(statusRows.map((row) => [row.platform, row]));
       const platformResults = platforms.map((p) => {
         const statusRow = statuses.get(String(p.id));
-        const health = statusRow ? credentialHealth(statusRow) : "untested";
+        const signal = statusRow ? credentialStatusSignal(statusRow) : null;
         return {
           ...p,
           id: String(p.id ?? ""),
           connected: statusRow ? credentialIsConnected(statusRow) : false,
           credential_saved: Boolean(statusRow),
-          health: statusRow ? health : "missing",
-          verified: statusRow ? health === "healthy" : false,
+          health: signal ? signal.health : "missing",
+          verified: signal ? signal.verified : false,
+          stale: signal ? signal.stale : false,
+          needs_recheck: signal ? signal.needs_recheck : false,
           last_tested_age_hours: statusRow ? hoursSinceIso(statusRow.last_tested_at) : null,
           connection_state: statusRow ? credentialConnectionState(statusRow) : "missing",
           connected_source: statusRow?.source ?? null,
