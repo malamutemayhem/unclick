@@ -25,7 +25,7 @@ function sbHeaders(serviceKey: string): Record<string, string> {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
   res.setHeader("Cache-Control", "private, no-store");
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -96,6 +96,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(r.status).json({ error: "Failed to save AI key.", detail });
     }
     return res.status(200).json({ success: true, platform, label });
+  }
+
+  // -- DELETE: remove one of this account's AI provider keys -----------------
+  if (req.method === "DELETE") {
+    const id = String((req.query?.id ?? "")).trim();
+    if (!id) return res.status(400).json({ error: "id is required." });
+
+    // Scope the delete to this account's lane and server-scheme rows only, so a
+    // caller can never delete another account's row or a non-AI credential.
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(id)}` +
+        `&lane_hash=eq.${encodeURIComponent(lane)}&enc_scheme=eq.server`,
+      { method: "DELETE", headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" } },
+    );
+    if (!r.ok) {
+      const detail = (await r.text().catch(() => "")).slice(0, 200);
+      return res.status(r.status).json({ error: "Failed to delete AI key.", detail });
+    }
+    return res.status(200).json({ success: true });
   }
 
   return res.status(405).json({ error: "Method not allowed." });
