@@ -1,4 +1,5 @@
 import { relativeTime } from "@/lib/relativeTime";
+import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import {
   credentialHealth,
   maskValue,
@@ -363,6 +364,8 @@ export default function AdminSeatsApi() {
   return (
     <div className="space-y-6">
       <PageHeader onAdd={() => setAddOpen(true)} />
+
+      {!readLocalApiKey() && <CacheKeyPrompt />}
 
       <section className="grid gap-3 sm:grid-cols-3">
         <SummaryCard label="Active providers" value={String(providerCount)} />
