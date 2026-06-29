@@ -20,8 +20,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from "ai";
 import { resolveApiChatModel } from "./lib/chat-transport.js";
-import { sha256hex, readProviderKey, type EncryptedCredential } from "./lib/chat-crypto.js";
+import { sha256hex, readProviderKey, readProviderKeyForAccount, type EncryptedCredential } from "./lib/chat-crypto.js";
 import { decideChatProviderCall } from "./lib/chat-spend.js";
+import { resolveAccountLane } from "./lib/account-lane.js";
 
 const MAX_STEPS = 5;
 
@@ -89,6 +90,30 @@ async function fetchVaultRow(
   return rows && rows.length > 0 ? rows[0] : null;
 }
 
+// Account-scoped (server-scheme) provider key row: lane-scoped and decryptable
+// with the server secret, so it survives master-key rotation and needs only a
+// logged-in session.
+async function fetchServerVaultRow(
+  supabaseUrl: string,
+  serviceKey: string,
+  laneHash: string,
+  slug: string,
+): Promise<EncryptedCredential | null> {
+  const url =
+    `${supabaseUrl}/rest/v1/user_credentials` +
+    `?lane_hash=eq.${encodeURIComponent(laneHash)}` +
+    `&enc_scheme=eq.server` +
+    `&platform_slug=eq.${encodeURIComponent(slug)}` +
+    `&select=encryption_iv,encryption_tag,encrypted_data,encryption_salt` +
+    `&order=label.asc.nullsfirst&limit=1`;
+  const r = await fetch(url, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+  });
+  if (!r.ok) return null;
+  const rows = (await r.json()) as EncryptedCredential[] | null;
+  return rows && rows.length > 0 ? rows[0] : null;
+}
+
 // Best-effort: record the assistant turn so the Orchestrator feed and the
 // per-model token meter have data. Never breaks the stream on failure.
 async function persistAssistantTurn(opts: {
@@ -144,22 +169,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Server not configured." });
   }
 
-  const apiKey = extractApiKey(req.headers.authorization);
-  if (!apiKey) return res.status(401).json({ error: "Authorization bearer key required." });
-
   const parsed = validateChatRequest(req.body);
   if ("error" in parsed) return res.status(400).json({ error: parsed.error });
 
-  const apiKeyHash = sha256hex(apiKey);
+  // Resolve the caller to their STABLE account lane from either a logged-in
+  // session JWT or a uc_/agt_ key. AI provider keys are account-scoped, so a
+  // logged-in session is enough and master-key rotation has no effect.
+  const lane = await resolveAccountLane(req.headers.authorization, supabaseUrl, serviceKey);
+  if (!lane) return res.status(401).json({ error: "Sign in to chat." });
+  const apiKeyHash = lane;
 
-  // Read and decrypt the provider key for this tenant + provider. A wrong
-  // key or missing row simply yields no key; the spend gate then blocks.
+  // Read and decrypt the provider key. Prefer the account-scoped (server-scheme)
+  // row, which survives rotation and needs only a session. Fall back to a legacy
+  // master-key-encrypted row when the caller sent a uc_/agt_ key.
+  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET;
   let providerKey: string | null = null;
-  try {
-    const row = await fetchVaultRow(supabaseUrl, serviceKey, apiKeyHash, parsed.slug);
-    if (row) providerKey = readProviderKey(apiKey, row);
-  } catch {
-    providerKey = null;
+  if (aiSecret) {
+    try {
+      const row = await fetchServerVaultRow(supabaseUrl, serviceKey, lane, parsed.slug);
+      if (row) providerKey = readProviderKeyForAccount(aiSecret, lane, row);
+    } catch {
+      providerKey = null;
+    }
+  }
+  if (!providerKey) {
+    const apiKey = extractApiKey(req.headers.authorization);
+    if (apiKey) {
+      try {
+        const row = await fetchVaultRow(supabaseUrl, serviceKey, sha256hex(apiKey), parsed.slug);
+        if (row) providerKey = readProviderKey(apiKey, row);
+      } catch {
+        providerKey = null;
+      }
+    }
   }
 
   const decision = decideChatProviderCall({

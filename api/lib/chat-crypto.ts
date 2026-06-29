@@ -149,3 +149,33 @@ export function readProviderKey(
   }
   return null;
 }
+
+// ─── Server scheme (AI provider keys) ───────────────────────────────────────
+//
+// AI provider keys (OpenRouter, Anthropic, ...) for the website chat are
+// encrypted with a stable SERVER secret bound to the account lane, NOT the
+// rotating master api key. This keeps them readable on a logged-in session
+// alone and completely untouched by master-key rotation - the lane and the
+// secret both stay constant. Same AES-256-GCM / PBKDF2 primitive as above;
+// only the secret fed in differs (server_secret:lane_hash). Rows written this
+// way carry enc_scheme = 'server'.
+function serverSchemePassword(serverSecret: string, laneHash: string): string {
+  return `${serverSecret}:${laneHash}`;
+}
+
+export function encryptForAccount(
+  serverSecret: string,
+  laneHash: string,
+  plaintext: string,
+): EncryptedCredential {
+  return encryptCredential(serverSchemePassword(serverSecret, laneHash), plaintext);
+}
+
+export function readProviderKeyForAccount(
+  serverSecret: string,
+  laneHash: string,
+  row: EncryptedCredential,
+  field = "api_key",
+): string | null {
+  return readProviderKey(serverSchemePassword(serverSecret, laneHash), row, field);
+}

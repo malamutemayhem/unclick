@@ -10,7 +10,6 @@ import {
   CHAT_PROVIDERS,
   CHAT_API_ENDPOINT,
   findChatProvider,
-  getChatApiKey,
   estimateTokens,
 } from "@/components/admin/chatTransportConfig";
 
@@ -60,7 +59,11 @@ function loadSeats(): AiSeat[] {
 export default function AdminChatPage() {
   const { user, session } = useSession();
   const accessToken = session?.access_token ?? null;
-  const apiKey = getChatApiKey();
+  // Chat authenticates with the logged-in session: AI provider keys are
+  // account-scoped + server-encrypted, so no cached UnClick key is needed and
+  // master-key rotation has no effect. The chat endpoint resolves the session
+  // to the account lane (see api/chat.ts + api/lib/account-lane.ts).
+  const apiKey = accessToken;
 
   const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);

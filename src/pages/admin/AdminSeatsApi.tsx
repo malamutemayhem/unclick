@@ -1,5 +1,4 @@
 import { relativeTime } from "@/lib/relativeTime";
-import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import {
   credentialHealth,
   maskValue,
@@ -364,8 +363,6 @@ export default function AdminSeatsApi() {
   return (
     <div className="space-y-6">
       <PageHeader onAdd={() => setAddOpen(true)} />
-
-      {!readLocalApiKey() && <CacheKeyPrompt />}
 
       <section className="grid gap-3 sm:grid-cols-3">
         <SummaryCard label="Active providers" value={String(providerCount)} />
@@ -758,11 +755,6 @@ function AddProviderModal({
   const provider = providerFor(providerSlug) ?? AI_PROVIDER_CATALOG[0];
 
   async function save() {
-    const localApiKey = readLocalApiKey();
-    if (!localApiKey) {
-      setError("No UnClick API key is cached in this browser. Re-issue it from You first.");
-      return;
-    }
     if (!secret.trim()) {
       setError("API key is required.");
       return;
@@ -770,14 +762,15 @@ function AddProviderModal({
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/backstagepass?action=add", {
+      // Account-scoped, login-authed save: no cached UnClick key needed, and the
+      // key survives master-key rotation (see api/ai-provider-key.ts).
+      const response = await fetch("/api/ai-provider-key", {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
           platform: providerSlug,
           label: label.trim() || null,
-          api_key: localApiKey,
-          values: { api_key: secret.trim() },
+          api_key: secret.trim(),
         }),
       });
       const body = await response.json().catch(() => ({}));
