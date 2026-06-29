@@ -27,6 +27,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSession } from "@/lib/auth";
+import { ServerKeysTable, type ServerProviderKey } from "@/components/admin/ServerKeysTable";
 
 
 interface Credential {
@@ -68,20 +69,6 @@ interface AuditEntry {
   success: boolean;
   metadata: Record<string, unknown>;
   created_at: string;
-}
-
-// Account-scoped AI provider key (enc_scheme='server'): saved by login, encrypted
-// with a server secret, and unaffected by master-key rotation. Listed and deleted
-// through /api/ai-provider-key, not the BackstagePass surface.
-interface ServerProviderKey {
-  id: string;
-  platform_slug: string;
-  label: string | null;
-  is_valid: boolean | null;
-  last_tested_at: string | null;
-  last_used_at: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 const AI_PROVIDER_CATALOG = [
@@ -167,6 +154,7 @@ export default function AdminSeatsApi() {
   const [loading, setLoading] = useState(Boolean(session));
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [addPrefill, setAddPrefill] = useState<{ provider: string; label: string | null } | null>(null);
   const [revealError, setRevealError] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, Record<string, string>>>({});
   const [revealedAt, setRevealedAt] = useState<Record<string, number>>({});
@@ -402,10 +390,15 @@ export default function AdminSeatsApi() {
     }
   }
 
+  function openAdd(prefill: { provider: string; label: string | null } | null) {
+    setAddPrefill(prefill);
+    setAddOpen(true);
+  }
+
   if (!accessToken) {
     return (
       <div className="space-y-6">
-        <PageHeader onAdd={() => setAddOpen(true)} disableAdd />
+        <PageHeader onAdd={() => openAdd(null)} disableAdd />
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <KeyRound className="mx-auto h-8 w-8 text-[#333]" />
           <p className="mt-3 text-sm text-[#888]">Sign in to manage API providers.</p>
@@ -416,7 +409,7 @@ export default function AdminSeatsApi() {
 
   return (
     <div className="space-y-6">
-      <PageHeader onAdd={() => setAddOpen(true)} />
+      <PageHeader onAdd={() => openAdd(null)} />
 
       <section className="grid gap-3 sm:grid-cols-3">
         <SummaryCard label="Active providers" value={String(providerCount)} />
@@ -441,14 +434,16 @@ export default function AdminSeatsApi() {
           <span className="text-sm">Loading API providers...</span>
         </div>
       ) : aiCredentials.length === 0 && serverKeys.length === 0 ? (
-        <EmptyState onAdd={() => setAddOpen(true)} />
+        <EmptyState onAdd={() => openAdd(null)} />
       ) : (
         <div className="space-y-6">
           {serverKeys.length > 0 && (
-            <ServerKeysSection
+            <ServerKeysTable
               serverKeys={serverKeys}
+              accessToken={accessToken}
               deleting={deletingServerKey}
               onDelete={(id) => void deleteServerKey(id)}
+              onEdit={(provider, label) => openAdd({ provider, label })}
               onRefresh={() => void fetchCredentials()}
             />
           )}
@@ -501,9 +496,15 @@ export default function AdminSeatsApi() {
       {addOpen && (
         <AddProviderModal
           authHeader={authHeader}
-          onClose={() => setAddOpen(false)}
+          initialProvider={addPrefill?.provider}
+          initialLabel={addPrefill?.label ?? undefined}
+          onClose={() => {
+            setAddOpen(false);
+            setAddPrefill(null);
+          }}
           onSaved={() => {
             setAddOpen(false);
+            setAddPrefill(null);
             void fetchCredentials();
           }}
         />
@@ -546,9 +547,10 @@ function PageHeader({ onAdd, disableAdd = false }: { onAdd: () => void; disableA
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">API compute</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-white">API Models</h1>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-[#888]">
-          AI provider keys, connection health, safe reveal, rotation, and audit history.
+          Your AI provider keys, encrypted to your account and unaffected by key rotation. Connect
+          once and every seat can use them.
         </p>
       </div>
       <button
@@ -578,7 +580,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <div className="rounded-xl border border-dashed border-white/[0.08] bg-white/[0.03] p-8 text-center">
       <KeyRound className="mx-auto h-8 w-8 text-[#333]" />
       <p className="mt-3 text-sm text-[#888]">No AI provider API keys yet</p>
-      <p className="mt-1 text-xs text-[#555]">Non-AI Passport credentials stay hidden from this tier view.</p>
+      <p className="mt-1 text-xs text-[#555]">Add a provider key and every seat can run on it.</p>
       <button
         type="button"
         onClick={onAdd}
@@ -593,121 +595,6 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 
 function displayName(credential: Credential): string {
   return credential.connector?.name ?? providerFor(credential.platform)?.name ?? credential.platform;
-}
-
-// Account-scoped AI provider keys (server-scheme). These survive key rotation and
-// need only a login, so they get a dedicated section with a simple delete.
-function ServerKeysSection({
-  serverKeys,
-  deleting,
-  onDelete,
-  onRefresh,
-}: {
-  serverKeys: ServerProviderKey[];
-  deleting: Record<string, boolean>;
-  onDelete: (id: string) => void;
-  onRefresh: () => void;
-}) {
-  return (
-    <section className="space-y-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-white">AI provider keys</h2>
-          <p className="mt-0.5 text-xs text-[#666]">
-            Saved to your account, encrypted server-side, and unaffected by key rotation. To replace
-            one, add it again with the same provider and label.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="inline-flex w-fit items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-[#aaa] transition-colors hover:border-[#61C1C4]/40 hover:text-white"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </button>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        {serverKeys.map((item) => (
-          <ServerKeyRow
-            key={item.id}
-            item={item}
-            deleting={Boolean(deleting[item.id])}
-            onDelete={() => onDelete(item.id)}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ServerKeyRow({
-  item,
-  deleting,
-  onDelete,
-}: {
-  item: ServerProviderKey;
-  deleting: boolean;
-  onDelete: () => void;
-}) {
-  const [confirming, setConfirming] = useState(false);
-  const name = providerFor(item.platform_slug)?.name ?? item.platform_slug;
-  return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-[#61C1C4]" />
-            <span className="truncate text-sm font-semibold text-white">{name}</span>
-            {item.label && <span className="truncate text-xs text-[#666]">/ {item.label}</span>}
-          </div>
-          <p className="mt-1 text-[11px] text-[#666]">
-            Added {timeAgo(item.created_at)}
-            {item.last_used_at ? ` - last used ${timeAgo(item.last_used_at)}` : ""}
-          </p>
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-green-500/20 bg-green-500/10 px-2 py-1 text-[10px] font-medium text-green-400">
-          <CheckCircle2 className="h-3 w-3" />
-          Connected
-        </span>
-      </div>
-
-      <div className="mt-3 flex items-center justify-end gap-2">
-        {confirming ? (
-          <>
-            <span className="mr-auto text-[11px] text-[#888]">Delete this key?</span>
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={deleting}
-              className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
-            >
-              {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-              Yes, delete
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              disabled={deleting}
-              className="rounded-md border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[#aaa] transition-colors hover:text-white disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setConfirming(true)}
-            className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2.5 py-1.5 text-[11px] font-medium text-[#aaa] transition-colors hover:border-red-500/40 hover:text-red-400"
-          >
-            <Trash2 className="h-3 w-3" />
-            Delete
-          </button>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function CredentialCard({
@@ -927,19 +814,24 @@ function ModalShell({
 
 function AddProviderModal({
   authHeader,
+  initialProvider,
+  initialLabel,
   onClose,
   onSaved,
 }: {
   authHeader: Record<string, string>;
+  initialProvider?: string;
+  initialLabel?: string;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [providerSlug, setProviderSlug] = useState(AI_PROVIDER_CATALOG[0].slug);
-  const [label, setLabel] = useState("");
+  const [providerSlug, setProviderSlug] = useState(initialProvider ?? AI_PROVIDER_CATALOG[0].slug);
+  const [label, setLabel] = useState(initialLabel ?? "");
   const [secret, setSecret] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const provider = providerFor(providerSlug) ?? AI_PROVIDER_CATALOG[0];
+  const replacing = Boolean(initialProvider);
 
   async function save() {
     if (!secret.trim()) {
@@ -971,14 +863,15 @@ function AddProviderModal({
   }
 
   return (
-    <ModalShell title="Add AI provider" onClose={onClose}>
+    <ModalShell title={replacing ? `Replace ${provider.name} key` : "Add AI provider"} onClose={onClose}>
       <div className="space-y-3">
         <label className="block">
           <span className="mb-1 block text-[11px] text-[#888]">Provider</span>
           <select
             value={providerSlug}
             onChange={(event) => setProviderSlug(event.target.value)}
-            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white focus:border-[#E2B93B]/40 focus:outline-none"
+            disabled={replacing}
+            className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white focus:border-[#E2B93B]/40 focus:outline-none disabled:opacity-60"
           >
             {AI_PROVIDER_CATALOG.map((item) => (
               <option key={item.slug} value={item.slug}>{item.name}</option>
@@ -987,7 +880,7 @@ function AddProviderModal({
         </label>
 
         <p className="rounded-lg border border-white/[0.05] bg-white/[0.03] p-3 text-xs leading-5 text-[#888]">
-          {provider.desc}. Stored in Passport with the same encrypted BackstagePass flow.
+          {provider.desc}. Encrypted to your account; usable by every seat and unaffected by key rotation.
         </p>
 
         <label className="block">
@@ -1011,15 +904,6 @@ function AddProviderModal({
           />
         </label>
 
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to={`/connect/${provider.slug}`}
-            className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] transition-colors hover:text-white"
-          >
-            Open connect flow
-          </Link>
-        </div>
-
         {error && <p className="text-[11px] text-red-400">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg border border-white/[0.06] px-3 py-2 text-xs text-[#888] hover:text-white">
@@ -1031,7 +915,7 @@ function AddProviderModal({
             disabled={busy}
             className="rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
           >
-            {busy ? "Adding..." : "Add provider"}
+            {busy ? "Saving..." : replacing ? "Replace key" : "Add provider"}
           </button>
         </div>
       </div>
