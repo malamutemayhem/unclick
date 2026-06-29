@@ -76,19 +76,20 @@ async function resolveApiKeyHash(
   const user = (await userRes.json().catch(() => ({}))) as { id?: string };
   if (!user.id) return null;
 
+  // public.api_keys stores the SHA-256 key_hash (no plaintext column). Select
+  // key_hash only - selecting a non-existent column 400s the whole request.
   const qUrl =
     `${supabaseUrl}/rest/v1/api_keys` +
     `?user_id=eq.${encodeURIComponent(user.id)}` +
-    `&select=key_hash,api_key&limit=1`;
+    `&is_active=eq.true&select=key_hash&limit=1`;
   const resp = await fetch(qUrl, { headers: supabaseHeaders(serviceRoleKey) });
   if (!resp.ok) return null;
   const rows = (await resp.json().catch(() => [])) as Array<{
     key_hash?: string | null;
-    api_key?:  string | null;
   }>;
   const row = rows[0];
-  if (!row) return null;
-  return row.key_hash ?? (row.api_key ? sha256hex(row.api_key) : null);
+  if (!row?.key_hash) return null;
+  return row.key_hash;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
