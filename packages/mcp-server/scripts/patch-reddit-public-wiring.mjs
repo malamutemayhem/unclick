@@ -16,13 +16,17 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const wiringPath = path.resolve(here, "../src/tool-wiring.ts");
 const handlersPath = path.resolve(here, "../src/additional-handlers.ts");
+const toolsPath = path.resolve(here, "../src/additional-tools.ts");
+// post-split, ADDITIONAL_TOOLS lives in additional-tools.ts and the imports +
+// ADDITIONAL_HANDLERS in additional-handlers.ts; pre-split both are tool-wiring.ts.
+const toolsSchemaPath = fs.existsSync(toolsPath) ? toolsPath : wiringPath;
 const importsAndHandlersPath = fs.existsSync(handlersPath) ? handlersPath : wiringPath;
 
 const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
 
-// ─── tool-wiring.ts: the Reddit tool schema block (lives in ADDITIONAL_TOOLS) ───
+// ─── the Reddit tool schema block (lives in ADDITIONAL_TOOLS) ───
 {
-  let source = read(wiringPath);
+  let source = read(toolsSchemaPath);
   const original = source;
 
   const redditToolsStart = source.indexOf(`  {
@@ -174,8 +178,8 @@ const read = (p) => fs.readFileSync(p, "utf8").replace(/\r\n/g, "\n");
   }
 
   if (source !== original) {
-    fs.writeFileSync(wiringPath, source);
-    console.log("Patched Reddit tool schema in tool-wiring.ts.");
+    fs.writeFileSync(toolsSchemaPath, source);
+    console.log(`Patched Reddit tool schema in ${path.basename(toolsSchemaPath)}.`);
   }
 }
 

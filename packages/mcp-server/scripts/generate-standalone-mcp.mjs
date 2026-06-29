@@ -23,7 +23,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readWiring, readHandlers, section, toolDefsFor, handlersFor } from "./wiring-model.mjs";
+import { readTools, readHandlers, section, toolDefsFor, handlersFor } from "./wiring-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG = path.resolve(__dirname, "..");          // packages/mcp-server
@@ -92,9 +92,9 @@ const CONFIG = {
 // Section slicing and the per-connector tool/handler extraction live in
 // wiring-model.mjs so every generator parses tool-wiring.ts the same way.
 
-const wiring = readWiring(SRC);
+const toolsSource = readTools(SRC);
 const handlersSource = readHandlers(SRC);
-const toolsBody = section(wiring, "export const ADDITIONAL_TOOLS", "[");
+const toolsBody = section(toolsSource, "export const ADDITIONAL_TOOLS", "[");
 const handlersBody = section(handlersSource, "export const ADDITIONAL_HANDLERS", "{");
 
 // ─── Emit a standalone package ─────────────────────────────────────────────────

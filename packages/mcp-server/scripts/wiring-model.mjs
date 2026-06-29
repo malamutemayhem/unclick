@@ -34,6 +34,16 @@ export function readHandlers(srcDir) {
   return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
 }
 
+/**
+ * Read additional-tools.ts (the ADDITIONAL_TOOLS catalogue, split out of
+ * tool-wiring.ts in Stage 3). Falls back to tool-wiring.ts when the split file
+ * is absent, so this module also works against the pre-split layout.
+ */
+export function readTools(srcDir) {
+  const split = path.join(srcDir, "additional-tools.ts");
+  return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
+}
+
 // ─── Section slicing ───────────────────────────────────────────────────────
 // Slice the body of an exported literal (ADDITIONAL_TOOLS = [ ... ] or
 // ADDITIONAL_HANDLERS = { ... }) by scanning from its marker to the section's

@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { readWiring, loadWiringBlocks } from "./wiring-model.mjs";
+import { readTools, loadWiringBlocks } from "./wiring-model.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(__dirname, "../src");
@@ -131,7 +131,7 @@ function grade(s) {
 
 // ─── Run ─────────────────────────────────────────────────────────────────────
 
-const wiring = loadWiringBlocks(readWiring(SRC));
+const wiring = loadWiringBlocks(readTools(SRC));
 const website = loadWebsiteTools();
 
 const testFiles = new Set();

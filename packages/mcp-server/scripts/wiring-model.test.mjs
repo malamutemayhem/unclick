@@ -6,14 +6,14 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
 import {
-  readWiring, readHandlers, section, parseImportCategories, parseToolIndex,
+  readTools, readHandlers, section, parseImportCategories, parseToolIndex,
   toolDefsFor, handlersFor, loadWiringBlocks,
 } from "./wiring-model.mjs";
 
 const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../src");
-const wiring = readWiring(SRC);
+const toolsSrc = readTools(SRC);       // additional-tools.ts post-split, tool-wiring.ts before
 const handlersSrc = readHandlers(SRC); // additional-handlers.ts post-split, tool-wiring.ts before
-const toolsBody = section(wiring, "export const ADDITIONAL_TOOLS", "[");
+const toolsBody = section(toolsSrc, "export const ADDITIONAL_TOOLS", "[");
 const handlersBody = section(handlersSrc, "export const ADDITIONAL_HANDLERS", "{");
 
 test("section slices non-empty ADDITIONAL_TOOLS / ADDITIONAL_HANDLERS bodies", () => {
@@ -30,7 +30,7 @@ test("section slices non-empty ADDITIONAL_TOOLS / ADDITIONAL_HANDLERS bodies", (
 });
 
 test("section throws on a missing marker", () => {
-  assert.throws(() => section(wiring, "export const NOPE_NOT_HERE", "["), /marker not found/);
+  assert.throws(() => section(toolsSrc, "export const NOPE_NOT_HERE", "["), /marker not found/);
 });
 
 test("parseImportCategories maps slugs to non-empty categories", () => {
@@ -44,7 +44,7 @@ test("parseImportCategories maps slugs to non-empty categories", () => {
 });
 
 test("parseToolIndex returns sorted, well-formed, non-empty entries", () => {
-  const index = parseToolIndex(wiring, handlersSrc);
+  const index = parseToolIndex(toolsSrc, handlersSrc);
   assert.ok(index.length > 100, `expected >100 apps, got ${index.length}`);
   for (let i = 1; i < index.length; i++) {
     assert.ok(index[i - 1].app.localeCompare(index[i].app) <= 0, "index not sorted by app");
@@ -79,7 +79,7 @@ test("toolDefsFor / handlersFor are consistent for a sampled real slug", () => {
 });
 
 test("loadWiringBlocks returns coherent per-file blocks", () => {
-  const blocks = loadWiringBlocks(wiring);
+  const blocks = loadWiringBlocks(toolsSrc);
   const files = Object.keys(blocks);
   assert.ok(files.length > 50, `expected many blocks, got ${files.length}`);
   for (const file of files) {
