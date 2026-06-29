@@ -39,8 +39,9 @@ async function laneForKeyHash(
 }
 
 // lane_hash for the signed-in user (session path): freshest active key wins,
-// matching every other resolver in the app.
-async function laneForUserId(
+// matching every other resolver in the app. Exported so shared-room flows can
+// resolve a target human's lane from their auth.users id the same way.
+export async function laneForUserId(
   supabaseUrl: string, serviceKey: string, userId: string,
 ): Promise<string | null> {
   const rows = await sb(
@@ -79,4 +80,45 @@ export async function resolveAccountLane(
   const user = (await userRes.json().catch(() => null)) as { id?: string } | null;
   if (!user?.id) return null;
   return laneForUserId(supabaseUrl, serviceKey, user.id);
+}
+
+// auth.users id for the api_keys row matching this key hash (agent path).
+async function userIdForKeyHash(
+  supabaseUrl: string, serviceKey: string, keyHash: string,
+): Promise<string | null> {
+  const rows = await sb(
+    `${supabaseUrl}/rest/v1/api_keys?key_hash=eq.${encodeURIComponent(keyHash)}` +
+    `&select=user_id&limit=1`,
+    serviceKey,
+  ) as Array<{ user_id?: string | null }> | null;
+  const id = Array.isArray(rows) ? rows[0]?.user_id : null;
+  return id || null;
+}
+
+/**
+ * Resolve the Authorization header to the caller's auth.users id (NOT their
+ * lane). Mirrors resolveAccountLane's two auth forms. Shared-room flows need
+ * the user id to look up an accepted Circle link between caller and target.
+ * Returns null when the caller cannot be resolved.
+ */
+export async function resolveCallerUserId(
+  authHeader: string | undefined,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<string | null> {
+  const token = (authHeader ?? "").replace(/^Bearer\s+/i, "").trim();
+  if (!token) return null;
+
+  // Agent path: raw api key -> hash -> user_id.
+  if (token.startsWith("uc_") || token.startsWith("agt_")) {
+    return userIdForKeyHash(supabaseUrl, serviceKey, sha256hex(token));
+  }
+
+  // Session path: verify the JWT via Supabase Auth, then take the user id.
+  const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${token}` },
+  });
+  if (!userRes.ok) return null;
+  const user = (await userRes.json().catch(() => null)) as { id?: string } | null;
+  return user?.id || null;
 }
