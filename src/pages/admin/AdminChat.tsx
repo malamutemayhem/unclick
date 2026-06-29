@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useSession } from "@/lib/auth";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
+import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import type { HumanMember } from "@/components/admin/chatMembers";
 import {
   CHAT_PROVIDERS,
@@ -36,15 +37,32 @@ function newSeat(slug: string, model: string, taken: string[]): AiSeat {
   return { id: crypto.randomUUID(), slug, model, label, handle: makeHandle(label, taken) };
 }
 
+const SEATS_STORAGE_KEY = "unclick_chat_seats";
+
+// Load saved seats. Seed one default seat ONLY on the very first visit (no
+// stored value yet) - after that the stored list wins, so a seat the user
+// removed stays removed instead of being re-seeded on every reload.
+function loadSeats(): AiSeat[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(SEATS_STORAGE_KEY);
+    if (raw === null) {
+      const p = CHAT_PROVIDERS[0];
+      return [newSeat(p.slug, p.models[0].value, [])];
+    }
+    const parsed = JSON.parse(raw) as AiSeat[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function AdminChatPage() {
   const { user, session } = useSession();
   const accessToken = session?.access_token ?? null;
   const apiKey = getChatApiKey();
 
-  const [seats, setSeats] = useState<AiSeat[]>(() => {
-    const p = CHAT_PROVIDERS[0];
-    return [newSeat(p.slug, p.models[0].value, [])];
-  });
+  const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
   const [input, setInput] = useState("");
   const [seatByMsg, setSeatByMsg] = useState<Record<string, string>>({});
@@ -71,6 +89,12 @@ export default function AdminChatPage() {
       return changed ? next : prev;
     });
   }, [messages]);
+
+  // Persist seats so a removed seat stays removed across reloads.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem(SEATS_STORAGE_KEY, JSON.stringify(seats)); } catch { /* ignore */ }
+  }, [seats]);
 
   function addSeat(slug: string, model: string) {
     setSeats((prev) => [...prev, newSeat(slug, model, prev.map((s) => s.handle))]);
@@ -141,11 +165,7 @@ export default function AdminChatPage() {
         <div className="shrink-0 text-xs text-muted-foreground">~{totalTokens} tokens (est)</div>
       </header>
 
-      {!apiKey && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-body">
-          No UnClick key found in this browser. Open the admin from your dashboard so your key is set, then reload.
-        </div>
-      )}
+      {!apiKey && <CacheKeyPrompt />}
 
       <div className="flex flex-col gap-4 md:flex-row-reverse md:items-start">
         <ChatMemberRail
