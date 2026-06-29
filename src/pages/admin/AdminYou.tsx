@@ -10,6 +10,7 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
+import WorkerKeysCard from "@/components/admin/WorkerKeysCard";
 import {
   User,
   Mail,
@@ -30,6 +31,7 @@ import {
   Download,
   Upload,
   Database,
+  Bot,
 } from "lucide-react";
 
 // Mask a saved connection secret: first 4 chars + 8 bullets + last 4.
@@ -855,6 +857,7 @@ export default function AdminYou() {
     { id: "you-profile", label: "Profile", hint: "Identity and time", icon: User },
     { id: "you-preferences", label: "AI Style", hint: "Tone and length", icon: Sparkles },
     { id: "you-api-key", label: "API Key", hint: "Access and setup", icon: KeyRound },
+    { id: "you-worker-keys", label: "Worker Keys", hint: "Headless agents", icon: Bot },
     { id: "you-my-data", label: "My Data", hint: "Export and import", icon: Database },
   ];
 
@@ -1197,6 +1200,9 @@ export default function AdminYou() {
               </div>
             )}
           </div>
+
+          {/* Worker Keys card */}
+          <WorkerKeysCard />
 
           {/* AI Style card */}
           <div id="you-preferences" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
