@@ -4737,10 +4737,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Only the PRIMARY (non-worker) key counts as the account's api key.
+        // Worker keys (tier="worker") are separate agt_ rows managed via
+        // /api/worker-keys; excluding them keeps this single-key lookup correct
+        // for accounts that have minted worker keys.
         const existing = (await supabase
           .from("api_keys")
           .select("id, key_prefix, tier")
           .eq("user_id", user.id)
+          .neq("tier", "worker")
+          .order("created_at", { ascending: true })
+          .limit(1)
           .maybeSingle()).data as { id: string; key_prefix: string | null; tier: string | null } | null;
 
         if (existing) {
@@ -4780,10 +4787,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Reset the PRIMARY (non-worker) key only. Worker keys (agt_, managed
+        // via /api/worker-keys) are never rotated by this action, and excluding
+        // them keeps this lookup single-valued for accounts that have minted
+        // worker keys.
         const existing = (await supabase
           .from("api_keys")
           .select("id, tier")
           .eq("user_id", user.id)
+          .neq("tier", "worker")
+          .order("created_at", { ascending: true })
+          .limit(1)
           .maybeSingle()).data as { id: string; tier: string | null } | null;
 
         if (!existing) return res.status(404).json({ error: "No API key to reset" });
@@ -4843,16 +4857,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        const keyRow = (await supabase
+        // An account may have several api_keys rows: one primary uc_ key plus
+        // any number of worker (agt_) keys, which all share the same memory and
+        // connections under the PRIMARY key hash. Fetch them all: use the
+        // primary hash for the api_key_hash-scoped data deletion, and remove
+        // every row (primary + workers) at cleanup so no key survives the
+        // account. Using maybeSingle() here would throw once worker keys exist.
+        const keyRows = ((await supabase
           .from("api_keys")
-          .select("key_hash")
-          .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash?: string | null } | null;
-        const apiKeyHash = keyRow?.key_hash ?? null;
+          .select("key_hash, tier")
+          .eq("user_id", user.id)).data ?? []) as Array<{ key_hash: string; tier: string | null }>;
+        const allKeyHashes = keyRows.map((r) => r.key_hash).filter(Boolean);
+        const primaryRow = keyRows.find((r) => r.tier !== "worker") ?? keyRows[0] ?? null;
+        const apiKeyHash = primaryRow?.key_hash ?? null;
 
         // Idempotency: if a previous deletion removed the api_keys link
         // already, return a benign response without re-attempting.
-        if (!keyRow && !apiKeyHash) {
+        if (allKeyHashes.length === 0) {
           const { error: idempotentAuthErr } = await supabase.auth.admin.deleteUser(user.id);
           if (idempotentAuthErr && idempotentAuthErr.message?.toLowerCase().includes("not found")) {
             return res.status(200).json({ success: true, already_deleted: true });
@@ -4958,11 +4979,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        // api_keys.user_id has ON DELETE SET NULL so the row survives
-        // auth deletion. Clean it up now that the cascade is done.
-        if (apiKeyHash) {
+        // api_keys.user_id has ON DELETE SET NULL so the rows survive
+        // auth deletion. Clean up every key (primary + workers) now that the
+        // cascade is done, addressing them by hash since user_id is now null.
+        if (allKeyHashes.length > 0) {
           try {
-            await supabase.from("api_keys").delete().eq("key_hash", apiKeyHash);
+            await supabase.from("api_keys").delete().in("key_hash", allKeyHashes);
           } catch { /* best effort */ }
         }
 

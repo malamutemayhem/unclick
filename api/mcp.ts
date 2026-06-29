@@ -90,6 +90,23 @@ function getSupabaseEnv(): { url: string; key: string } | null {
 }
 
 /**
+ * Decide the tenancy a matched api_key resolves to. A worker key (tier
+ * "worker", agt_*) borrows the account's primary (non-worker) key hash so it
+ * shares the account's memory and connections; if the account has no primary
+ * key the worker stays on its own hash (isolated). Every other key resolves to
+ * its own hash. Pure so the security-critical choice can be unit tested.
+ */
+export function resolveWorkerTenancy(
+  matched: { key_hash_self: string; tier: string | null },
+  primary: { key_hash: string; tier: string | null } | null,
+): { tenancyHash: string; tenancyTier: string } {
+  if (matched.tier === "worker" && primary?.key_hash) {
+    return { tenancyHash: primary.key_hash, tenancyTier: primary.tier ?? "free" };
+  }
+  return { tenancyHash: matched.key_hash_self, tenancyTier: matched.tier ?? "free" };
+}
+
+/**
  * Look up an inbound api_key in the api_keys table. Returns the tenancy
  * context if the key is active, or null otherwise. The Supabase service-role
  * client is created on demand so the validator no-ops gracefully when env is
@@ -112,6 +129,33 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
 
   if (error || !data || data.is_active === false) return null;
 
+  // Worker keys (tier="worker", agt_*) are headless agent credentials minted
+  // under a user account via /api/worker-keys. They carry no tenancy of their
+  // own: instead they borrow the account's PRIMARY (non-worker) key hash so the
+  // worker shares the same memory and platform connections as the human's main
+  // uc_ key. This is what lets a CI / cloud agent recall, act, and push as the
+  // account. If the account has no primary key (edge case), the worker falls
+  // back to its own hash so it still authenticates, with an isolated tenancy.
+  let tenancyHash = apiKeyHash;
+  let tenancyTier = data.tier ?? "free";
+  if (data.tier === "worker" && data.user_id) {
+    const { data: primary } = await supabase
+      .from("api_keys")
+      .select("key_hash, tier")
+      .eq("user_id", data.user_id)
+      .neq("tier", "worker")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const resolved = resolveWorkerTenancy(
+      { key_hash_self: apiKeyHash, tier: data.tier },
+      primary ?? null,
+    );
+    tenancyHash = resolved.tenancyHash;
+    tenancyTier = resolved.tenancyTier;
+  }
+
   let accountEmail: string | null = null;
   if (data.user_id) {
     try {
@@ -131,8 +175,8 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     .then(() => {});
 
   return {
-    api_key_hash: apiKeyHash,
-    tier: effectiveMemoryTier(data.tier ?? "free", accountEmail),
+    api_key_hash: tenancyHash,
+    tier: effectiveMemoryTier(tenancyTier, accountEmail),
     user_id: data.user_id ?? null,
     account_email: accountEmail,
     memory_quota_exempt: memoryQuotaExempt,
