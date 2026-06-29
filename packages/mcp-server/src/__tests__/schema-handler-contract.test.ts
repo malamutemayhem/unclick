@@ -26,6 +26,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "../tool-wiring.js";
+import { readHandlers } from "../../scripts/wiring-model.mjs";
 
 // A truthy, numeric- and string-coercible sentinel so simple validations
 // (`if (!args.x)`, `Number(args.x)`, `args.x.trim()`) pass and the handler
@@ -65,11 +66,9 @@ const SRC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 // parser below builds its importMap + handlerFn from that file; pre-split it
 // reads tool-wiring.ts. (ADDITIONAL_TOOLS/ADDITIONAL_HANDLERS are still imported
 // at runtime from ../tool-wiring.js above, which re-exports the handlers.)
-const splitSrc = path.join(SRC_DIR, "additional-handlers.ts");
-const wiringSrc = fs.readFileSync(
-  fs.existsSync(splitSrc) ? splitSrc : path.join(SRC_DIR, "tool-wiring.ts"),
-  "utf8",
-);
+// Post-3b the catalogue lives in src/wiring/<slug>.ts; wiring-model reconstructs
+// the connector imports + ADDITIONAL_HANDLERS map text the static fallback parses.
+const wiringSrc = readHandlers(SRC_DIR);
 
 // fnName -> source file (from `import { ... } from "./x.js"`)
 const importMap: Record<string, string> = {};

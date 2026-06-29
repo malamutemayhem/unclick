@@ -1,0 +1,4745 @@
+{
+  "toolMarker": "export const ADDITIONAL_TOOLS = [",
+  "toolSegments": [
+    {
+      "lit": "\n"
+    },
+    {
+      "slug": "bgg"
+    },
+    {
+      "slug": "rawg"
+    },
+    {
+      "slug": "riot"
+    },
+    {
+      "slug": "bungie"
+    },
+    {
+      "slug": "supercell"
+    },
+    {
+      "slug": "lego"
+    },
+    {
+      "slug": "untappd"
+    },
+    {
+      "slug": "pandascore"
+    },
+    {
+      "slug": "amber"
+    },
+    {
+      "slug": "willyweather"
+    },
+    {
+      "slug": "domain"
+    },
+    {
+      "slug": "trove"
+    },
+    {
+      "slug": "australiapost"
+    },
+    {
+      "slug": "sendle"
+    },
+    {
+      "slug": "ipaustralia"
+    },
+    {
+      "slug": "tab"
+    },
+    {
+      "slug": "thelott"
+    },
+    {
+      "slug": "abn"
+    },
+    {
+      "slug": "ptv"
+    },
+    {
+      "slug": "nvd"
+    },
+    {
+      "slug": "hunter"
+    },
+    {
+      "slug": "haveibeenpwned"
+    },
+    {
+      "slug": "virustotal"
+    },
+    {
+      "slug": "abuseipdb"
+    },
+    {
+      "slug": "urlscan"
+    },
+    {
+      "slug": "shodan"
+    },
+    {
+      "slug": "resend"
+    },
+    {
+      "slug": "vercel"
+    },
+    {
+      "slug": "supabase"
+    },
+    {
+      "slug": "toggl"
+    },
+    {
+      "slug": "email"
+    },
+    {
+      "slug": "usgs"
+    },
+    {
+      "slug": "openaq"
+    },
+    {
+      "slug": "openfoodfacts"
+    },
+    {
+      "slug": "ebird"
+    },
+    {
+      "slug": "carboninterface"
+    },
+    {
+      "slug": "toilets"
+    },
+    {
+      "slug": "calculator"
+    },
+    {
+      "slug": "unit-converter"
+    },
+    {
+      "slug": "datetime"
+    },
+    {
+      "slug": "text"
+    },
+    {
+      "slug": "meal"
+    },
+    {
+      "slug": "espn"
+    },
+    {
+      "slug": "sleeper"
+    },
+    {
+      "slug": "deezer"
+    },
+    {
+      "slug": "color"
+    },
+    {
+      "slug": "random"
+    },
+    {
+      "slug": "notion"
+    },
+    {
+      "slug": "readwise"
+    },
+    {
+      "slug": "raindrop"
+    },
+    {
+      "slug": "clockify"
+    },
+    {
+      "slug": "splitwise"
+    },
+    {
+      "slug": "instapaper"
+    },
+    {
+      "slug": "monica"
+    },
+    {
+      "slug": "feedly"
+    },
+    {
+      "slug": "hackernews"
+    },
+    {
+      "slug": "openf1"
+    },
+    {
+      "slug": "tmdb"
+    },
+    {
+      "slug": "trivia"
+    },
+    {
+      "slug": "pokeapi"
+    },
+    {
+      "slug": "cocktail"
+    },
+    {
+      "slug": "dictionary"
+    },
+    {
+      "slug": "joke"
+    },
+    {
+      "slug": "holidays"
+    },
+    {
+      "slug": "dogceo"
+    },
+    {
+      "slug": "rickandmorty"
+    },
+    {
+      "slug": "xkcd"
+    },
+    {
+      "slug": "brewery"
+    },
+    {
+      "slug": "jikan"
+    },
+    {
+      "slug": "chucknorris"
+    },
+    {
+      "slug": "catfacts"
+    },
+    {
+      "slug": "swapi"
+    },
+    {
+      "slug": "dnd5e"
+    },
+    {
+      "slug": "deckofcards"
+    },
+    {
+      "slug": "adviceslip"
+    },
+    {
+      "slug": "agify"
+    },
+    {
+      "slug": "quotable"
+    },
+    {
+      "slug": "bored"
+    },
+    {
+      "slug": "superhero"
+    },
+    {
+      "slug": "opennotify"
+    },
+    {
+      "slug": "tarot"
+    },
+    {
+      "slug": "aoe2"
+    },
+    {
+      "slug": "affirmation"
+    },
+    {
+      "slug": "jsonplaceholder"
+    },
+    {
+      "slug": "picsum"
+    },
+    {
+      "slug": "bible"
+    },
+    {
+      "slug": "frankfurter"
+    },
+    {
+      "slug": "zenquotes"
+    },
+    {
+      "slug": "kanye"
+    },
+    {
+      "slug": "dadjoke"
+    },
+    {
+      "slug": "uselessfacts"
+    },
+    {
+      "slug": "randomfox"
+    },
+    {
+      "slug": "httpbin"
+    },
+    {
+      "slug": "reqres"
+    },
+    {
+      "slug": "corporatebs"
+    },
+    {
+      "slug": "worldtime"
+    },
+    {
+      "slug": "sunrisesunset"
+    },
+    {
+      "slug": "zippopotamus"
+    },
+    {
+      "slug": "yesno"
+    },
+    {
+      "slug": "evilinsult"
+    },
+    {
+      "slug": "dogapi"
+    },
+    {
+      "slug": "catapi"
+    },
+    {
+      "slug": "spaceflight"
+    },
+    {
+      "slug": "archiveorg"
+    },
+    {
+      "slug": "ipify"
+    },
+    {
+      "slug": "exchangerate2"
+    },
+    {
+      "slug": "makeup"
+    },
+    {
+      "slug": "github-emoji"
+    },
+    {
+      "slug": "metmuseum"
+    },
+    {
+      "slug": "lorem"
+    },
+    {
+      "slug": "placekitten"
+    },
+    {
+      "slug": "shibe"
+    },
+    {
+      "slug": "cataas"
+    },
+    {
+      "slug": "punkapi"
+    },
+    {
+      "slug": "colormind"
+    },
+    {
+      "slug": "dummyjson"
+    },
+    {
+      "slug": "excuser"
+    },
+    {
+      "slug": "dogfacts"
+    },
+    {
+      "slug": "amiibo"
+    },
+    {
+      "slug": "dummyimage"
+    },
+    {
+      "slug": "ipinfo"
+    },
+    {
+      "slug": "ghibli"
+    },
+    {
+      "slug": "finalspace"
+    },
+    {
+      "slug": "mcsrvstat"
+    },
+    {
+      "slug": "disneyapi"
+    },
+    {
+      "slug": "harrypotter"
+    },
+    {
+      "slug": "emojihub"
+    },
+    {
+      "slug": "avatarapi"
+    },
+    {
+      "slug": "robohash"
+    },
+    {
+      "slug": "countryflag"
+    },
+    {
+      "slug": "mediawiki"
+    },
+    {
+      "slug": "urlhaus"
+    },
+    {
+      "slug": "tvmaze"
+    },
+    {
+      "slug": "freetogame"
+    },
+    {
+      "slug": "cheapshark"
+    },
+    {
+      "slug": "iseven"
+    },
+    {
+      "slug": "randomuser"
+    },
+    {
+      "slug": "digimon"
+    },
+    {
+      "slug": "breakingbad"
+    },
+    {
+      "slug": "tacofancy"
+    },
+    {
+      "slug": "publicapis"
+    },
+    {
+      "slug": "animechan"
+    },
+    {
+      "slug": "coinpaprika"
+    },
+    {
+      "slug": "openfda"
+    },
+    {
+      "slug": "funtranslations"
+    },
+    {
+      "slug": "datamuse"
+    },
+    {
+      "slug": "worldbank"
+    },
+    {
+      "slug": "lyrics"
+    },
+    {
+      "slug": "urbandictionary"
+    },
+    {
+      "slug": "nobelprize"
+    },
+    {
+      "slug": "universities"
+    },
+    {
+      "slug": "fakestoreapi"
+    },
+    {
+      "slug": "mtg"
+    },
+    {
+      "slug": "domainsdb"
+    },
+    {
+      "slug": "pokemontcg"
+    },
+    {
+      "slug": "spacex"
+    },
+    {
+      "slug": "genderize"
+    },
+    {
+      "slug": "nationalize"
+    },
+    {
+      "slug": "qrserver"
+    },
+    {
+      "slug": "solarsystem"
+    },
+    {
+      "slug": "pubchem"
+    },
+    {
+      "slug": "openmeteo-marine"
+    },
+    {
+      "slug": "opentriviadb"
+    },
+    {
+      "slug": "ipaddrinfo"
+    },
+    {
+      "slug": "diceware"
+    },
+    {
+      "slug": "colornames"
+    },
+    {
+      "slug": "mhwdb"
+    },
+    {
+      "slug": "exchangerate3"
+    },
+    {
+      "slug": "jisho"
+    },
+    {
+      "slug": "colr"
+    },
+    {
+      "slug": "gameoflife"
+    },
+    {
+      "slug": "fruityvice"
+    },
+    {
+      "slug": "opendota"
+    },
+    {
+      "slug": "artic"
+    },
+    {
+      "slug": "imgflip"
+    },
+    {
+      "slug": "foodish"
+    },
+    {
+      "slug": "acnhapi"
+    },
+    {
+      "slug": "httpcat"
+    },
+    {
+      "slug": "poetrydb"
+    },
+    {
+      "slug": "citybikes"
+    },
+    {
+      "slug": "wheretheiss"
+    },
+    {
+      "slug": "coinlore"
+    },
+    {
+      "slug": "openmeteo-airquality"
+    },
+    {
+      "slug": "officialjoke"
+    },
+    {
+      "slug": "multiavatar"
+    },
+    {
+      "slug": "openmeteo-flood"
+    },
+    {
+      "slug": "diseasesh"
+    },
+    {
+      "slug": "fishwatch"
+    },
+    {
+      "slug": "newton"
+    },
+    {
+      "slug": "placebear"
+    },
+    {
+      "slug": "countryis"
+    },
+    {
+      "slug": "openmeteo-historical"
+    },
+    {
+      "slug": "ukpolice"
+    },
+    {
+      "slug": "memegen"
+    },
+    {
+      "slug": "timeapi"
+    },
+    {
+      "slug": "postcodes"
+    },
+    {
+      "slug": "openmeteo-climate"
+    },
+    {
+      "slug": "gbif"
+    },
+    {
+      "slug": "crossref"
+    },
+    {
+      "slug": "nominatim"
+    },
+    {
+      "slug": "coincap"
+    },
+    {
+      "slug": "open-elevation"
+    },
+    {
+      "slug": "itis"
+    },
+    {
+      "slug": "arxiv"
+    },
+    {
+      "slug": "openalex"
+    },
+    {
+      "slug": "dblp"
+    },
+    {
+      "slug": "wikidata"
+    },
+    {
+      "slug": "randomduck"
+    },
+    {
+      "slug": "httpdog"
+    },
+    {
+      "slug": "opensky"
+    },
+    {
+      "slug": "cvecircl"
+    },
+    {
+      "slug": "vatcomply"
+    },
+    {
+      "slug": "thecolorapi"
+    },
+    {
+      "slug": "placehold"
+    },
+    {
+      "slug": "languagetool"
+    },
+    {
+      "slug": "bgpview"
+    },
+    {
+      "slug": "mymemory"
+    },
+    {
+      "slug": "openchargemap"
+    },
+    {
+      "slug": "crates"
+    },
+    {
+      "slug": "npm-registry"
+    },
+    {
+      "slug": "pypi"
+    },
+    {
+      "slug": "rdap"
+    },
+    {
+      "slug": "iban"
+    },
+    {
+      "slug": "stackexchange"
+    },
+    {
+      "slug": "ripe"
+    },
+    {
+      "slug": "gutendex"
+    },
+    {
+      "slug": "dohdns"
+    },
+    {
+      "slug": "nhtsa"
+    },
+    {
+      "slug": "geojs"
+    },
+    {
+      "slug": "isup"
+    },
+    {
+      "slug": "wayback"
+    },
+    {
+      "slug": "oeis"
+    },
+    {
+      "slug": "upcitemdb"
+    },
+    {
+      "slug": "fakerapi"
+    },
+    {
+      "slug": "openfigi"
+    },
+    {
+      "slug": "libretranslate"
+    },
+    {
+      "slug": "europeana"
+    },
+    {
+      "slug": "flyover"
+    },
+    {
+      "slug": "jsoncrack"
+    },
+    {
+      "slug": "abstract-holidays"
+    },
+    {
+      "slug": "cocktaildb2"
+    },
+    {
+      "slug": "regexr"
+    },
+    {
+      "slug": "hashgen"
+    },
+    {
+      "slug": "base64"
+    },
+    {
+      "slug": "urlencode"
+    },
+    {
+      "slug": "crontab"
+    },
+    {
+      "slug": "jwt"
+    },
+    {
+      "slug": "markdown"
+    },
+    {
+      "slug": "cidr"
+    },
+    {
+      "slug": "semver"
+    },
+    {
+      "slug": "colorconvert"
+    },
+    {
+      "slug": "epoch"
+    },
+    {
+      "slug": "difftext"
+    },
+    {
+      "slug": "passwordgen"
+    },
+    {
+      "slug": "slug"
+    },
+    {
+      "slug": "lorem2"
+    },
+    {
+      "slug": "csvparse"
+    },
+    {
+      "slug": "wordcount"
+    },
+    {
+      "slug": "jsonformat"
+    },
+    {
+      "slug": "htmlstrip"
+    },
+    {
+      "slug": "uuidgen"
+    },
+    {
+      "slug": "charcount"
+    },
+    {
+      "slug": "ipvalidate"
+    },
+    {
+      "slug": "stringcase"
+    },
+    {
+      "slug": "aspectratio"
+    },
+    {
+      "slug": "percentage"
+    },
+    {
+      "slug": "roman"
+    },
+    {
+      "slug": "morse"
+    },
+    {
+      "slug": "binaryconv"
+    },
+    {
+      "slug": "levenshtein"
+    },
+    {
+      "slug": "loremname"
+    },
+    {
+      "slug": "textstats"
+    },
+    {
+      "slug": "timezone"
+    },
+    {
+      "slug": "colorblend"
+    },
+    {
+      "slug": "fibonacci"
+    },
+    {
+      "slug": "primecheck"
+    },
+    {
+      "slug": "sortlines"
+    },
+    {
+      "slug": "countdowncalc"
+    },
+    {
+      "slug": "unitpressure"
+    },
+    {
+      "slug": "emojilookup"
+    },
+    {
+      "slug": "natoalphabet"
+    },
+    {
+      "slug": "bitwise"
+    },
+    {
+      "slug": "gcdlcm"
+    },
+    {
+      "slug": "tempconvert"
+    },
+    {
+      "slug": "statistics"
+    },
+    {
+      "slug": "textwrap"
+    },
+    {
+      "slug": "braille"
+    },
+    {
+      "slug": "piglatin"
+    },
+    {
+      "slug": "rot13"
+    },
+    {
+      "slug": "reversetext"
+    },
+    {
+      "slug": "palindrome"
+    },
+    {
+      "slug": "acronymgen"
+    },
+    {
+      "slug": "wordfreq"
+    },
+    {
+      "slug": "markdowntable"
+    },
+    {
+      "slug": "runlength"
+    },
+    {
+      "slug": "luhn"
+    },
+    {
+      "slug": "charcodes"
+    },
+    {
+      "slug": "soundex"
+    },
+    {
+      "slug": "frequency"
+    },
+    {
+      "slug": "entropy"
+    },
+    {
+      "slug": "ngram"
+    },
+    {
+      "slug": "camelsnake"
+    },
+    {
+      "slug": "metaphone"
+    },
+    {
+      "slug": "tfidf"
+    },
+    {
+      "slug": "readability"
+    },
+    {
+      "slug": "tokencount"
+    },
+    {
+      "slug": "crc32"
+    },
+    {
+      "slug": "jaccard"
+    },
+    {
+      "slug": "hamming"
+    },
+    {
+      "slug": "cosinesim"
+    },
+    {
+      "slug": "damerau"
+    },
+    {
+      "slug": "markov"
+    },
+    {
+      "slug": "vigenere"
+    },
+    {
+      "slug": "atbash"
+    },
+    {
+      "slug": "railfence"
+    },
+    {
+      "slug": "phonetic"
+    },
+    {
+      "slug": "matrix"
+    },
+    {
+      "slug": "setops"
+    },
+    {
+      "slug": "collatz"
+    },
+    {
+      "slug": "pascaltri"
+    },
+    {
+      "slug": "histogram"
+    },
+    {
+      "slug": "regression"
+    },
+    {
+      "slug": "baseconvert"
+    },
+    {
+      "slug": "gcd"
+    },
+    {
+      "slug": "permutation"
+    },
+    {
+      "slug": "combination"
+    },
+    {
+      "slug": "proportion"
+    },
+    {
+      "slug": "quadratic"
+    },
+    {
+      "slug": "primefactor"
+    },
+    {
+      "slug": "zscore"
+    },
+    {
+      "slug": "angleconv"
+    },
+    {
+      "slug": "polygon"
+    },
+    {
+      "slug": "sigmoid"
+    },
+    {
+      "slug": "interpolate"
+    },
+    {
+      "slug": "modpow"
+    },
+    {
+      "slug": "ratiosimplify"
+    },
+    {
+      "slug": "binomprob"
+    },
+    {
+      "slug": "normaldistr"
+    },
+    {
+      "slug": "trianglesolve"
+    },
+    {
+      "slug": "standardform"
+    },
+    {
+      "slug": "complexnum"
+    },
+    {
+      "slug": "wavelength"
+    },
+    {
+      "slug": "midpoint"
+    },
+    {
+      "slug": "slopeintercept"
+    },
+    {
+      "slug": "logbase"
+    },
+    {
+      "slug": "nthroot"
+    },
+    {
+      "slug": "areacalc"
+    },
+    {
+      "slug": "dotproduct"
+    },
+    {
+      "slug": "crossproduct"
+    },
+    {
+      "slug": "weightedmean"
+    },
+    {
+      "slug": "variancecalc"
+    },
+    {
+      "slug": "poisson"
+    },
+    {
+      "slug": "expgrowth"
+    },
+    {
+      "slug": "geomseries"
+    },
+    {
+      "slug": "harmonicseries"
+    },
+    {
+      "slug": "piapprox"
+    },
+    {
+      "slug": "taylor"
+    },
+    {
+      "slug": "lcs"
+    },
+    {
+      "slug": "toposort"
+    },
+    {
+      "slug": "convexhull"
+    },
+    {
+      "slug": "knapsack"
+    },
+    {
+      "slug": "spline"
+    },
+    {
+      "slug": "dijkstra"
+    },
+    {
+      "slug": "matrixdecomp"
+    },
+    {
+      "slug": "linearsolve"
+    },
+    {
+      "slug": "numdiff"
+    },
+    {
+      "slug": "numintegrate"
+    },
+    {
+      "slug": "fft"
+    },
+    {
+      "slug": "bezier"
+    },
+    {
+      "slug": "rootfind"
+    },
+    {
+      "slug": "matinverse"
+    },
+    {
+      "slug": "ode"
+    },
+    {
+      "slug": "polynomial"
+    },
+    {
+      "slug": "hypothesis"
+    },
+    {
+      "slug": "huffman"
+    },
+    {
+      "slug": "correlation"
+    },
+    {
+      "slug": "bitcount"
+    },
+    {
+      "slug": "runstats"
+    },
+    {
+      "slug": "graph"
+    },
+    {
+      "slug": "convolution"
+    },
+    {
+      "slug": "rle2"
+    },
+    {
+      "slug": "descriptive"
+    },
+    {
+      "slug": "bfs"
+    },
+    {
+      "slug": "montecarlo"
+    },
+    {
+      "slug": "dfs"
+    },
+    {
+      "slug": "percentile"
+    },
+    {
+      "slug": "mst"
+    },
+    {
+      "slug": "pagerank"
+    },
+    {
+      "slug": "astar"
+    },
+    {
+      "slug": "simplex"
+    },
+    {
+      "slug": "hungarian"
+    },
+    {
+      "slug": "kmeans"
+    },
+    {
+      "slug": "bellmanford"
+    },
+    {
+      "slug": "floydwarshall"
+    },
+    {
+      "slug": "reservoir"
+    },
+    {
+      "slug": "bloomfilter"
+    },
+    {
+      "slug": "poweriter"
+    },
+    {
+      "slug": "tsp"
+    },
+    {
+      "slug": "lrucache"
+    },
+    {
+      "slug": "unionfind"
+    },
+    {
+      "slug": "tarjan"
+    },
+    {
+      "slug": "catalan"
+    },
+    {
+      "slug": "rabinkarp"
+    },
+    {
+      "slug": "sieve"
+    },
+    {
+      "slug": "suffixarray"
+    },
+    {
+      "slug": "matchain"
+    },
+    {
+      "slug": "fenwick"
+    },
+    {
+      "slug": "segtree"
+    },
+    {
+      "slug": "kmp"
+    },
+    {
+      "slug": "ahocorasick"
+    },
+    {
+      "slug": "zalgo"
+    },
+    {
+      "slug": "trie"
+    },
+    {
+      "slug": "skiplist"
+    },
+    {
+      "slug": "manacher"
+    },
+    {
+      "slug": "countingsort"
+    },
+    {
+      "slug": "radixsort"
+    },
+    {
+      "slug": "treap"
+    },
+    {
+      "slug": "lis"
+    },
+    {
+      "slug": "kosaraju"
+    },
+    {
+      "slug": "bucketsort"
+    },
+    {
+      "slug": "edmondskarp"
+    },
+    {
+      "slug": "avltree"
+    },
+    {
+      "slug": "bipartite"
+    },
+    {
+      "slug": "eulerpath"
+    },
+    {
+      "slug": "sparsetable"
+    },
+    {
+      "slug": "millerrabin"
+    },
+    {
+      "slug": "rbtree"
+    },
+    {
+      "slug": "heapsort"
+    },
+    {
+      "slug": "crt"
+    },
+    {
+      "slug": "graphcolor"
+    },
+    {
+      "slug": "extgcd"
+    },
+    {
+      "slug": "eulertotient"
+    },
+    {
+      "slug": "hopcroftcarp"
+    },
+    {
+      "slug": "intervalmerge"
+    },
+    {
+      "slug": "ternarysearch"
+    },
+    {
+      "slug": "shellsort"
+    },
+    {
+      "slug": "matexp"
+    },
+    {
+      "slug": "segmentintersect"
+    },
+    {
+      "slug": "minvertexcover"
+    },
+    {
+      "slug": "suffixauto"
+    },
+    {
+      "slug": "gabow"
+    },
+    {
+      "slug": "babygiant"
+    },
+    {
+      "slug": "centroid"
+    },
+    {
+      "slug": "wavelet"
+    },
+    {
+      "slug": "dinic"
+    },
+    {
+      "slug": "lca"
+    },
+    {
+      "slug": "maxindepset"
+    },
+    {
+      "slug": "twosat"
+    },
+    {
+      "slug": "hld"
+    },
+    {
+      "slug": "mincostflow"
+    },
+    {
+      "slug": "persistarray"
+    },
+    {
+      "slug": "suffixtree"
+    },
+    {
+      "slug": "linkcut"
+    },
+    {
+      "slug": "condensation"
+    },
+    {
+      "slug": "mosalgo"
+    },
+    {
+      "slug": "cartesiantree"
+    },
+    {
+      "slug": "sternbrocot"
+    },
+    {
+      "slug": "chromatic"
+    },
+    {
+      "slug": "eulertour"
+    },
+    {
+      "slug": "gausselim"
+    },
+    {
+      "slug": "eertree"
+    },
+    {
+      "slug": "pollardrho"
+    },
+    {
+      "slug": "ntt"
+    },
+    {
+      "slug": "josephus"
+    },
+    {
+      "slug": "berlekamp"
+    },
+    {
+      "slug": "sos"
+    },
+    {
+      "slug": "xorbase"
+    },
+    {
+      "slug": "moebius"
+    },
+    {
+      "slug": "zfunction"
+    },
+    {
+      "slug": "chineseremainder"
+    },
+    {
+      "slug": "lucas"
+    },
+    {
+      "slug": "duval"
+    },
+    {
+      "slug": "goertzel"
+    },
+    {
+      "slug": "bwt"
+    },
+    {
+      "slug": "ackermann"
+    },
+    {
+      "slug": "debruijn"
+    },
+    {
+      "slug": "shunting"
+    },
+    {
+      "slug": "fenwickrange"
+    },
+    {
+      "slug": "bitmask"
+    },
+    {
+      "slug": "graycode"
+    },
+    {
+      "slug": "catmullrom"
+    },
+    {
+      "slug": "rlencode"
+    },
+    {
+      "slug": "topocount"
+    },
+    {
+      "slug": "booth"
+    },
+    {
+      "slug": "prefixfn"
+    },
+    {
+      "slug": "matrank"
+    },
+    {
+      "slug": "fenwick2d"
+    },
+    {
+      "slug": "contfrac"
+    },
+    {
+      "slug": "lcprefix"
+    },
+    {
+      "slug": "lehmer"
+    },
+    {
+      "slug": "digitdp"
+    },
+    {
+      "slug": "coinchange"
+    },
+    {
+      "slug": "editdist"
+    },
+    {
+      "slug": "powerset"
+    },
+    {
+      "slug": "necklace"
+    },
+    {
+      "slug": "derangement"
+    },
+    {
+      "slug": "kmpautomaton"
+    },
+    {
+      "slug": "rmqsparse"
+    },
+    {
+      "slug": "partition"
+    },
+    {
+      "slug": "stirling"
+    },
+    {
+      "slug": "waveletfn"
+    },
+    {
+      "slug": "convexhull3d"
+    },
+    {
+      "slug": "bezierclip"
+    },
+    {
+      "slug": "nasa"
+    },
+    {
+      "slug": "openmeteo"
+    },
+    {
+      "slug": "radiobrowser"
+    },
+    {
+      "slug": "gdelt"
+    },
+    {
+      "slug": "numbers"
+    },
+    {
+      "slug": "omdb"
+    },
+    {
+      "slug": "openlibrary"
+    },
+    {
+      "slug": "musicbrainz"
+    },
+    {
+      "slug": "genius"
+    },
+    {
+      "slug": "ticketmaster"
+    },
+    {
+      "slug": "seatgeek"
+    },
+    {
+      "slug": "eventbrite"
+    },
+    {
+      "slug": "foursquare"
+    },
+    {
+      "slug": "lastfm"
+    },
+    {
+      "slug": "discogs"
+    },
+    {
+      "slug": "setlistfm"
+    },
+    {
+      "slug": "bandsintown"
+    },
+    {
+      "slug": "podcastindex"
+    },
+    {
+      "slug": "lichess"
+    },
+    {
+      "slug": "chessdotcom"
+    },
+    {
+      "slug": "fpl"
+    },
+    {
+      "slug": "guardian"
+    },
+    {
+      "slug": "newsapi"
+    },
+    {
+      "slug": "alphavantage"
+    },
+    {
+      "slug": "coingecko"
+    },
+    {
+      "slug": "coinmarketcap"
+    },
+    {
+      "slug": "openexchangerates"
+    },
+    {
+      "slug": "wise"
+    },
+    {
+      "slug": "ipapi"
+    },
+    {
+      "slug": "restcountries"
+    },
+    {
+      "slug": "tomorrowio"
+    },
+    {
+      "slug": "twitch"
+    },
+    {
+      "slug": "reddit"
+    },
+    {
+      "slug": "mastodon"
+    },
+    {
+      "slug": "bluesky"
+    },
+    {
+      "slug": "discord"
+    },
+    {
+      "slug": "slack"
+    },
+    {
+      "slug": "telegram"
+    },
+    {
+      "slug": "line"
+    },
+    {
+      "slug": "figma"
+    },
+    {
+      "slug": "amazon"
+    },
+    {
+      "slug": "shopify"
+    },
+    {
+      "slug": "yelp"
+    },
+    {
+      "slug": "xero"
+    },
+    {
+      "slug": "ebay"
+    },
+    {
+      "slug": "etsy"
+    },
+    {
+      "slug": "stripe"
+    },
+    {
+      "slug": "paypal"
+    },
+    {
+      "slug": "square"
+    },
+    {
+      "slug": "quickbooks"
+    },
+    {
+      "slug": "plaid"
+    },
+    {
+      "slug": "woocommerce"
+    },
+    {
+      "slug": "csuite"
+    },
+    {
+      "slug": "qc"
+    },
+    {
+      "slug": "vault"
+    },
+    {
+      "slug": "keychain"
+    },
+    {
+      "slug": "github"
+    },
+    {
+      "slug": "gitlab"
+    },
+    {
+      "slug": "clickup"
+    },
+    {
+      "slug": "linear"
+    },
+    {
+      "slug": "airtable"
+    },
+    {
+      "slug": "trello"
+    },
+    {
+      "slug": "sentry"
+    },
+    {
+      "slug": "postman"
+    },
+    {
+      "slug": "twilio"
+    },
+    {
+      "slug": "pushover"
+    },
+    {
+      "slug": "whatsapp"
+    },
+    {
+      "slug": "youtube"
+    },
+    {
+      "slug": "spotify"
+    },
+    {
+      "slug": "higgsfield"
+    },
+    {
+      "slug": "heygen"
+    },
+    {
+      "slug": "runway"
+    },
+    {
+      "slug": "pika"
+    },
+    {
+      "slug": "mailchimp"
+    },
+    {
+      "slug": "sendgrid"
+    },
+    {
+      "slug": "mapbox"
+    },
+    {
+      "slug": "algolia"
+    },
+    {
+      "slug": "pinecone"
+    },
+    {
+      "slug": "mixpanel"
+    },
+    {
+      "slug": "datadog"
+    },
+    {
+      "slug": "hubspot"
+    },
+    {
+      "slug": "jira"
+    },
+    {
+      "slug": "jobsmith"
+    },
+    {
+      "slug": "contentful"
+    },
+    {
+      "slug": "webflow"
+    },
+    {
+      "slug": "digitalocean"
+    },
+    {
+      "slug": "klaviyo"
+    },
+    {
+      "slug": "todoist"
+    },
+    {
+      "slug": "pipedrive"
+    },
+    {
+      "slug": "confluence"
+    },
+    {
+      "slug": "unsplash"
+    },
+    {
+      "slug": "giphy"
+    },
+    {
+      "slug": "miro"
+    },
+    {
+      "slug": "shortcut"
+    },
+    {
+      "slug": "wikipedia"
+    },
+    {
+      "lit": "\n  // ── coda-tool.ts ──────────────────────────────────────────────────────────────\n  { name: \"coda_list_docs\", description: \"List your Coda docs.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_token: { type: \"string\", description: \"Coda API token\" },\n    query: { type: \"string\", description: \"Filter docs by name\" },\n    limit: { type: \"number\", description: \"Docs to return (max 100, default 25)\" },\n  }, required: [\"api_token\"] } },\n  { name: \"coda_list_tables\", description: \"List the tables in a Coda doc.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_token: { type: \"string\", description: \"Coda API token\" },\n    doc_id: { type: \"string\", description: \"Coda doc id\" },\n  }, required: [\"api_token\", \"doc_id\"] } },\n  { name: \"coda_list_rows\", description: \"List rows in a Coda table.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_token: { type: \"string\", description: \"Coda API token\" },\n    doc_id: { type: \"string\", description: \"Coda doc id\" },\n    table_id: { type: \"string\", description: \"Coda table id or name\" },\n    limit: { type: \"number\", description: \"Rows to return (max 200, default 25)\" },\n  }, required: [\"api_token\", \"doc_id\", \"table_id\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── brevo-tool.ts ─────────────────────────────────────────────────────────────\n  { name: \"brevo_list_contacts\", description: \"List Brevo contacts.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_key: { type: \"string\", description: \"Brevo API key\" },\n    limit: { type: \"number\", description: \"Contacts to return (max 1000, default 50)\" },\n    offset: { type: \"number\", description: \"Pagination offset\" },\n  }, required: [\"api_key\"] } },\n  { name: \"brevo_list_campaigns\", description: \"List Brevo email campaigns.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_key: { type: \"string\", description: \"Brevo API key\" },\n    status: { type: \"string\", description: \"Filter by status (sent, draft, queued, ...)\" },\n    limit: { type: \"number\", description: \"Campaigns to return (max 100, default 25)\" },\n  }, required: [\"api_key\"] } },\n  { name: \"brevo_get_account\", description: \"Get the Brevo account profile and plan.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_key: { type: \"string\", description: \"Brevo API key\" },\n  }, required: [\"api_key\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── uptimerobot-tool.ts ───────────────────────────────────────────────────────\n  { name: \"uptimerobot_get_monitors\", description: \"List UptimeRobot monitors (signals when any are DOWN).\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_key: { type: \"string\", description: \"UptimeRobot API key\" },\n    search: { type: \"string\", description: \"Filter monitors by name or URL\" },\n  }, required: [\"api_key\"] } },\n  { name: \"uptimerobot_get_account\", description: \"Get UptimeRobot account details and limits.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    api_key: { type: \"string\", description: \"UptimeRobot API key\" },\n  }, required: [\"api_key\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── dropbox-tool.ts ───────────────────────────────────────────────────────────\n  { name: \"dropbox_list_folder\", description: \"List files and folders in a Dropbox path (empty path = root).\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Dropbox access token\" },\n    path: { type: \"string\", description: \"Folder path (empty string for root)\" },\n    limit: { type: \"number\", description: \"Entries to return (max 2000, default 100)\" },\n  } } },\n  { name: \"dropbox_search\", description: \"Search Dropbox for files and folders by name.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Dropbox access token\" },\n    query: { type: \"string\", description: \"File or folder name to search for\" },\n    limit: { type: \"number\", description: \"Results to return (max 1000, default 25)\" },\n  }, required: [\"query\"] } },\n  { name: \"dropbox_get_account\", description: \"Get the current Dropbox account profile.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Dropbox access token\" },\n  } } },\n"
+    },
+    {
+      "lit": "\n  // ── gmail-tool.ts ─────────────────────────────────────────────────────────────\n  { name: \"gmail_search\", description: \"Search Gmail messages in the connected mailbox.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Gmail access token\" },\n    query: { type: \"string\", description: \"Gmail search query, such as from:alice newer_than:7d\" },\n    limit: { type: \"number\", description: \"Messages to return (max 100, default 10)\" },\n    page_token: { type: \"string\", description: \"Gmail page token from a previous response\" },\n  } } },\n  { name: \"gmail_read\", description: \"Read a Gmail message by id.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Gmail access token\" },\n    message_id: { type: \"string\", description: \"Gmail message id\" },\n    format: { type: \"string\", enum: [\"minimal\", \"metadata\", \"full\", \"raw\"], description: \"Gmail response format (default metadata)\" },\n  }, required: [\"message_id\"] } },\n  { name: \"gmail_send\", description: \"Send a plain-text Gmail message.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Gmail access token\" },\n    to: { type: \"string\", description: \"Recipient email address\" },\n    subject: { type: \"string\", description: \"Email subject\" },\n    body: { type: \"string\", description: \"Plain-text email body\" },\n    from: { type: \"string\", description: \"Optional From header (defaults to me)\" },\n  }, required: [\"to\", \"subject\", \"body\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── google-drive-tool.ts ──────────────────────────────────────────────────────\n  { name: \"drive_search\", description: \"Search or list Google Drive files in the connected account.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Google Drive access token\" },\n    query: { type: \"string\", description: \"File-name search text\" },\n    q: { type: \"string\", description: \"Advanced Drive query string\" },\n    limit: { type: \"number\", description: \"Files to return (max 100, default 20)\" },\n    page_token: { type: \"string\", description: \"Drive page token from a previous response\" },\n  } } },\n  { name: \"drive_read\", description: \"Read Google Drive file metadata and a safe text preview when available.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"Google Drive access token\" },\n    file_id: { type: \"string\", description: \"Google Drive file id\" },\n  }, required: [\"file_id\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── onedrive-tool.ts ──────────────────────────────────────────────────────────\n  { name: \"onedrive_list\", description: \"List files and folders from OneDrive.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"OneDrive access token\" },\n    folder_id: { type: \"string\", description: \"Folder item id (omit for root)\" },\n    limit: { type: \"number\", description: \"Items to return (max 200, default 50)\" },\n  } } },\n  { name: \"onedrive_search\", description: \"Search OneDrive files and folders by name.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"OneDrive access token\" },\n    query: { type: \"string\", description: \"File or folder name to search for\" },\n    limit: { type: \"number\", description: \"Items to return (max 100, default 25)\" },\n  }, required: [\"query\"] } },\n  { name: \"onedrive_read\", description: \"Read OneDrive file metadata and a safe text preview when available.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    access_token: { type: \"string\", description: \"OneDrive access token\" },\n    item_id: { type: \"string\", description: \"OneDrive item id\" },\n  }, required: [\"item_id\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── bitbucket-tool.ts ─────────────────────────────────────────────────────────\n  { name: \"bitbucket_list_repos\", description: \"List Bitbucket repositories in a workspace.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    username: { type: \"string\", description: \"Bitbucket username\" },\n    app_password: { type: \"string\", description: \"Bitbucket app password\" },\n    workspace: { type: \"string\", description: \"Workspace id\" },\n    limit: { type: \"number\", description: \"Repos to return (max 100, default 25)\" },\n  }, required: [\"username\", \"app_password\", \"workspace\"] } },\n  { name: \"bitbucket_get_repo\", description: \"Get a single Bitbucket repository.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    username: { type: \"string\", description: \"Bitbucket username\" },\n    app_password: { type: \"string\", description: \"Bitbucket app password\" },\n    workspace: { type: \"string\", description: \"Workspace id\" },\n    repo: { type: \"string\", description: \"Repository slug\" },\n  }, required: [\"username\", \"app_password\", \"workspace\", \"repo\"] } },\n  { name: \"bitbucket_list_pull_requests\", description: \"List pull requests for a Bitbucket repository.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    username: { type: \"string\", description: \"Bitbucket username\" },\n    app_password: { type: \"string\", description: \"Bitbucket app password\" },\n    workspace: { type: \"string\", description: \"Workspace id\" },\n    repo: { type: \"string\", description: \"Repository slug\" },\n    state: { type: \"string\", enum: [\"OPEN\", \"MERGED\", \"DECLINED\", \"SUPERSEDED\"], description: \"Filter by PR state\" },\n    limit: { type: \"number\", description: \"PRs to return (max 50, default 25)\" },\n  }, required: [\"username\", \"app_password\", \"workspace\", \"repo\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── cloudinary-tool.ts ────────────────────────────────────────────────────────\n  { name: \"cloudinary_list_resources\", description: \"List Cloudinary media resources.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    cloud_name: { type: \"string\", description: \"Cloudinary cloud name\" },\n    api_key: { type: \"string\", description: \"Cloudinary API key\" },\n    api_secret: { type: \"string\", description: \"Cloudinary API secret\" },\n    resource_type: { type: \"string\", description: \"image (default), video, or raw\" },\n    prefix: { type: \"string\", description: \"Filter by public_id prefix / folder\" },\n    limit: { type: \"number\", description: \"Resources to return (max 100, default 25)\" },\n  }, required: [\"cloud_name\", \"api_key\", \"api_secret\"] } },\n  { name: \"cloudinary_get_usage\", description: \"Get Cloudinary usage and quota.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    cloud_name: { type: \"string\", description: \"Cloudinary cloud name\" },\n    api_key: { type: \"string\", description: \"Cloudinary API key\" },\n    api_secret: { type: \"string\", description: \"Cloudinary API secret\" },\n  }, required: [\"cloud_name\", \"api_key\", \"api_secret\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── wordpress-tool.ts ─────────────────────────────────────────────────────────\n  { name: \"wordpress_list_posts\", description: \"List WordPress posts, optionally by search term.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"WordPress site URL\" },\n    username: { type: \"string\", description: \"WordPress username\" },\n    app_password: { type: \"string\", description: \"WordPress application password\" },\n    search: { type: \"string\", description: \"Search term\" },\n    status: { type: \"string\", description: \"Filter by status (publish, draft, ...)\" },\n    limit: { type: \"number\", description: \"Posts to return (max 100, default 10)\" },\n  }, required: [\"site_url\", \"username\", \"app_password\"] } },\n  { name: \"wordpress_get_post\", description: \"Get a single WordPress post by id.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"WordPress site URL\" },\n    username: { type: \"string\", description: \"WordPress username\" },\n    app_password: { type: \"string\", description: \"WordPress application password\" },\n    post_id: { type: \"string\", description: \"Post id\" },\n  }, required: [\"site_url\", \"username\", \"app_password\", \"post_id\"] } },\n  { name: \"wordpress_list_pages\", description: \"List WordPress pages.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"WordPress site URL\" },\n    username: { type: \"string\", description: \"WordPress username\" },\n    app_password: { type: \"string\", description: \"WordPress application password\" },\n    search: { type: \"string\", description: \"Search term\" },\n    limit: { type: \"number\", description: \"Pages to return (max 100, default 10)\" },\n  }, required: [\"site_url\", \"username\", \"app_password\"] } },\n"
+    },
+    {
+      "lit": "\n  // ── ghost-tool.ts ─────────────────────────────────────────────────────────────\n  { name: \"ghost_list_posts\", description: \"List published Ghost posts.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"Ghost site URL\" },\n    content_key: { type: \"string\", description: \"Ghost Content API key\" },\n    filter: { type: \"string\", description: \"Ghost filter (e.g. tag:news)\" },\n    limit: { type: \"number\", description: \"Posts to return (max 100, default 15)\" },\n  }, required: [\"site_url\", \"content_key\"] } },\n  { name: \"ghost_list_pages\", description: \"List Ghost pages.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"Ghost site URL\" },\n    content_key: { type: \"string\", description: \"Ghost Content API key\" },\n    limit: { type: \"number\", description: \"Pages to return (max 100, default 15)\" },\n  }, required: [\"site_url\", \"content_key\"] } },\n  { name: \"ghost_list_tags\", description: \"List Ghost tags.\", inputSchema: { type: \"object\" as const, additionalProperties: false, properties: {\n    site_url: { type: \"string\", description: \"Ghost site URL\" },\n    content_key: { type: \"string\", description: \"Ghost Content API key\" },\n    limit: { type: \"number\", description: \"Tags to return (max 100, default 50)\" },\n  }, required: [\"site_url\", \"content_key\"] } },\n"
+    },
+    {
+      "slug": "zendesk"
+    },
+    {
+      "slug": "intercom"
+    },
+    {
+      "slug": "typeform"
+    },
+    {
+      "slug": "calcom"
+    },
+    {
+      "slug": "posthog"
+    },
+    {
+      "slug": "netlify"
+    },
+    {
+      "slug": "deepl"
+    },
+    {
+      "slug": "assemblyai"
+    },
+    {
+      "slug": "groq"
+    },
+    {
+      "slug": "nudgeonly"
+    },
+    {
+      "slug": "igniteonly"
+    },
+    {
+      "slug": "pushonly"
+    },
+    {
+      "slug": "kling"
+    },
+    {
+      "slug": "pagerduty"
+    },
+    {
+      "slug": "circleci"
+    },
+    {
+      "slug": "segment"
+    },
+    {
+      "slug": "postmark"
+    },
+    {
+      "slug": "gumroad"
+    },
+    {
+      "slug": "togetherai"
+    },
+    {
+      "slug": "elevenlabs"
+    },
+    {
+      "slug": "replicate"
+    },
+    {
+      "slug": "stability"
+    },
+    {
+      "slug": "openai"
+    },
+    {
+      "slug": "anthropic"
+    },
+    {
+      "slug": "asana"
+    },
+    {
+      "slug": "monday"
+    },
+    {
+      "slug": "calendly"
+    },
+    {
+      "slug": "pinterest"
+    },
+    {
+      "slug": "tiktok"
+    },
+    {
+      "slug": "steam"
+    },
+    {
+      "slug": "igdb"
+    },
+    {
+      "slug": "speedrun"
+    },
+    {
+      "slug": "exchangerate"
+    },
+    {
+      "slug": "neon"
+    },
+    {
+      "slug": "upstash"
+    },
+    {
+      "slug": "turso"
+    },
+    {
+      "slug": "render"
+    },
+    {
+      "slug": "flyio"
+    },
+    {
+      "slug": "mistral"
+    },
+    {
+      "slug": "cohere"
+    },
+    {
+      "slug": "perplexity"
+    },
+    {
+      "slug": "lemonsqueezy"
+    },
+    {
+      "slug": "convertkit"
+    },
+    {
+      "slug": "testpass"
+    },
+    {
+      "slug": "legalpass"
+    }
+  ],
+  "toolsTail": "] as const;\r",
+  "toolOrder": [
+    "bgg",
+    "rawg",
+    "riot",
+    "bungie",
+    "supercell",
+    "lego",
+    "untappd",
+    "pandascore",
+    "amber",
+    "willyweather",
+    "domain",
+    "trove",
+    "australiapost",
+    "sendle",
+    "ipaustralia",
+    "tab",
+    "thelott",
+    "abn",
+    "ptv",
+    "nvd",
+    "hunter",
+    "haveibeenpwned",
+    "virustotal",
+    "abuseipdb",
+    "urlscan",
+    "shodan",
+    "resend",
+    "vercel",
+    "supabase",
+    "toggl",
+    "email",
+    "usgs",
+    "openaq",
+    "openfoodfacts",
+    "ebird",
+    "carboninterface",
+    "toilets",
+    "calculator",
+    "unit-converter",
+    "datetime",
+    "text",
+    "meal",
+    "espn",
+    "sleeper",
+    "deezer",
+    "color",
+    "random",
+    "notion",
+    "readwise",
+    "raindrop",
+    "clockify",
+    "splitwise",
+    "instapaper",
+    "monica",
+    "feedly",
+    "hackernews",
+    "openf1",
+    "tmdb",
+    "trivia",
+    "pokeapi",
+    "cocktail",
+    "dictionary",
+    "joke",
+    "holidays",
+    "dogceo",
+    "rickandmorty",
+    "xkcd",
+    "brewery",
+    "jikan",
+    "chucknorris",
+    "catfacts",
+    "swapi",
+    "dnd5e",
+    "deckofcards",
+    "adviceslip",
+    "agify",
+    "quotable",
+    "bored",
+    "superhero",
+    "opennotify",
+    "tarot",
+    "aoe2",
+    "affirmation",
+    "jsonplaceholder",
+    "picsum",
+    "bible",
+    "frankfurter",
+    "zenquotes",
+    "kanye",
+    "dadjoke",
+    "uselessfacts",
+    "randomfox",
+    "httpbin",
+    "reqres",
+    "corporatebs",
+    "worldtime",
+    "sunrisesunset",
+    "zippopotamus",
+    "yesno",
+    "evilinsult",
+    "dogapi",
+    "catapi",
+    "spaceflight",
+    "archiveorg",
+    "ipify",
+    "exchangerate2",
+    "makeup",
+    "github-emoji",
+    "metmuseum",
+    "lorem",
+    "placekitten",
+    "shibe",
+    "cataas",
+    "punkapi",
+    "colormind",
+    "dummyjson",
+    "excuser",
+    "dogfacts",
+    "amiibo",
+    "dummyimage",
+    "ipinfo",
+    "ghibli",
+    "finalspace",
+    "mcsrvstat",
+    "disneyapi",
+    "harrypotter",
+    "emojihub",
+    "avatarapi",
+    "robohash",
+    "countryflag",
+    "mediawiki",
+    "urlhaus",
+    "tvmaze",
+    "freetogame",
+    "cheapshark",
+    "iseven",
+    "randomuser",
+    "digimon",
+    "breakingbad",
+    "tacofancy",
+    "publicapis",
+    "animechan",
+    "coinpaprika",
+    "openfda",
+    "funtranslations",
+    "datamuse",
+    "worldbank",
+    "lyrics",
+    "urbandictionary",
+    "nobelprize",
+    "universities",
+    "fakestoreapi",
+    "mtg",
+    "domainsdb",
+    "pokemontcg",
+    "spacex",
+    "genderize",
+    "nationalize",
+    "qrserver",
+    "solarsystem",
+    "pubchem",
+    "openmeteo-marine",
+    "opentriviadb",
+    "ipaddrinfo",
+    "diceware",
+    "colornames",
+    "mhwdb",
+    "exchangerate3",
+    "jisho",
+    "colr",
+    "gameoflife",
+    "fruityvice",
+    "opendota",
+    "artic",
+    "imgflip",
+    "foodish",
+    "acnhapi",
+    "httpcat",
+    "poetrydb",
+    "citybikes",
+    "wheretheiss",
+    "coinlore",
+    "openmeteo-airquality",
+    "officialjoke",
+    "multiavatar",
+    "openmeteo-flood",
+    "diseasesh",
+    "fishwatch",
+    "newton",
+    "placebear",
+    "countryis",
+    "openmeteo-historical",
+    "ukpolice",
+    "memegen",
+    "timeapi",
+    "postcodes",
+    "openmeteo-climate",
+    "gbif",
+    "crossref",
+    "nominatim",
+    "coincap",
+    "open-elevation",
+    "itis",
+    "arxiv",
+    "openalex",
+    "dblp",
+    "wikidata",
+    "randomduck",
+    "httpdog",
+    "opensky",
+    "cvecircl",
+    "vatcomply",
+    "thecolorapi",
+    "placehold",
+    "languagetool",
+    "bgpview",
+    "mymemory",
+    "openchargemap",
+    "crates",
+    "npm-registry",
+    "pypi",
+    "rdap",
+    "iban",
+    "stackexchange",
+    "ripe",
+    "gutendex",
+    "dohdns",
+    "nhtsa",
+    "geojs",
+    "isup",
+    "wayback",
+    "oeis",
+    "upcitemdb",
+    "fakerapi",
+    "openfigi",
+    "libretranslate",
+    "europeana",
+    "flyover",
+    "jsoncrack",
+    "abstract-holidays",
+    "cocktaildb2",
+    "regexr",
+    "hashgen",
+    "base64",
+    "urlencode",
+    "crontab",
+    "jwt",
+    "markdown",
+    "cidr",
+    "semver",
+    "colorconvert",
+    "epoch",
+    "difftext",
+    "passwordgen",
+    "slug",
+    "lorem2",
+    "csvparse",
+    "wordcount",
+    "jsonformat",
+    "htmlstrip",
+    "uuidgen",
+    "charcount",
+    "ipvalidate",
+    "stringcase",
+    "aspectratio",
+    "percentage",
+    "roman",
+    "morse",
+    "binaryconv",
+    "levenshtein",
+    "loremname",
+    "textstats",
+    "timezone",
+    "colorblend",
+    "fibonacci",
+    "primecheck",
+    "sortlines",
+    "countdowncalc",
+    "unitpressure",
+    "emojilookup",
+    "natoalphabet",
+    "bitwise",
+    "gcdlcm",
+    "tempconvert",
+    "statistics",
+    "textwrap",
+    "braille",
+    "piglatin",
+    "rot13",
+    "reversetext",
+    "palindrome",
+    "acronymgen",
+    "wordfreq",
+    "markdowntable",
+    "runlength",
+    "luhn",
+    "charcodes",
+    "soundex",
+    "frequency",
+    "entropy",
+    "ngram",
+    "camelsnake",
+    "metaphone",
+    "tfidf",
+    "readability",
+    "tokencount",
+    "crc32",
+    "jaccard",
+    "hamming",
+    "cosinesim",
+    "damerau",
+    "markov",
+    "vigenere",
+    "atbash",
+    "railfence",
+    "phonetic",
+    "matrix",
+    "setops",
+    "collatz",
+    "pascaltri",
+    "histogram",
+    "regression",
+    "baseconvert",
+    "gcd",
+    "permutation",
+    "combination",
+    "proportion",
+    "quadratic",
+    "primefactor",
+    "zscore",
+    "angleconv",
+    "polygon",
+    "sigmoid",
+    "interpolate",
+    "modpow",
+    "ratiosimplify",
+    "binomprob",
+    "normaldistr",
+    "trianglesolve",
+    "standardform",
+    "complexnum",
+    "wavelength",
+    "midpoint",
+    "slopeintercept",
+    "logbase",
+    "nthroot",
+    "areacalc",
+    "dotproduct",
+    "crossproduct",
+    "weightedmean",
+    "variancecalc",
+    "poisson",
+    "expgrowth",
+    "geomseries",
+    "harmonicseries",
+    "piapprox",
+    "taylor",
+    "lcs",
+    "toposort",
+    "convexhull",
+    "knapsack",
+    "spline",
+    "dijkstra",
+    "matrixdecomp",
+    "linearsolve",
+    "numdiff",
+    "numintegrate",
+    "fft",
+    "bezier",
+    "rootfind",
+    "matinverse",
+    "ode",
+    "polynomial",
+    "hypothesis",
+    "huffman",
+    "correlation",
+    "bitcount",
+    "runstats",
+    "graph",
+    "convolution",
+    "rle2",
+    "descriptive",
+    "bfs",
+    "montecarlo",
+    "dfs",
+    "percentile",
+    "mst",
+    "pagerank",
+    "astar",
+    "simplex",
+    "hungarian",
+    "kmeans",
+    "bellmanford",
+    "floydwarshall",
+    "reservoir",
+    "bloomfilter",
+    "poweriter",
+    "tsp",
+    "lrucache",
+    "unionfind",
+    "tarjan",
+    "catalan",
+    "rabinkarp",
+    "sieve",
+    "suffixarray",
+    "matchain",
+    "fenwick",
+    "segtree",
+    "kmp",
+    "ahocorasick",
+    "zalgo",
+    "trie",
+    "skiplist",
+    "manacher",
+    "countingsort",
+    "radixsort",
+    "treap",
+    "lis",
+    "kosaraju",
+    "bucketsort",
+    "edmondskarp",
+    "avltree",
+    "bipartite",
+    "eulerpath",
+    "sparsetable",
+    "millerrabin",
+    "rbtree",
+    "heapsort",
+    "crt",
+    "graphcolor",
+    "extgcd",
+    "eulertotient",
+    "hopcroftcarp",
+    "intervalmerge",
+    "ternarysearch",
+    "shellsort",
+    "matexp",
+    "segmentintersect",
+    "minvertexcover",
+    "suffixauto",
+    "gabow",
+    "babygiant",
+    "centroid",
+    "wavelet",
+    "dinic",
+    "lca",
+    "maxindepset",
+    "twosat",
+    "hld",
+    "mincostflow",
+    "persistarray",
+    "suffixtree",
+    "linkcut",
+    "condensation",
+    "mosalgo",
+    "cartesiantree",
+    "sternbrocot",
+    "chromatic",
+    "eulertour",
+    "gausselim",
+    "eertree",
+    "pollardrho",
+    "ntt",
+    "josephus",
+    "berlekamp",
+    "sos",
+    "xorbase",
+    "moebius",
+    "zfunction",
+    "chineseremainder",
+    "lucas",
+    "duval",
+    "goertzel",
+    "bwt",
+    "ackermann",
+    "debruijn",
+    "shunting",
+    "fenwickrange",
+    "bitmask",
+    "graycode",
+    "catmullrom",
+    "rlencode",
+    "topocount",
+    "booth",
+    "prefixfn",
+    "matrank",
+    "fenwick2d",
+    "contfrac",
+    "lcprefix",
+    "lehmer",
+    "digitdp",
+    "coinchange",
+    "editdist",
+    "powerset",
+    "necklace",
+    "derangement",
+    "kmpautomaton",
+    "rmqsparse",
+    "partition",
+    "stirling",
+    "waveletfn",
+    "convexhull3d",
+    "bezierclip",
+    "nasa",
+    "openmeteo",
+    "radiobrowser",
+    "gdelt",
+    "numbers",
+    "omdb",
+    "openlibrary",
+    "musicbrainz",
+    "genius",
+    "ticketmaster",
+    "seatgeek",
+    "eventbrite",
+    "foursquare",
+    "lastfm",
+    "discogs",
+    "setlistfm",
+    "bandsintown",
+    "podcastindex",
+    "lichess",
+    "chessdotcom",
+    "fpl",
+    "guardian",
+    "newsapi",
+    "alphavantage",
+    "coingecko",
+    "coinmarketcap",
+    "openexchangerates",
+    "wise",
+    "ipapi",
+    "restcountries",
+    "tomorrowio",
+    "twitch",
+    "reddit",
+    "mastodon",
+    "bluesky",
+    "discord",
+    "slack",
+    "telegram",
+    "line",
+    "figma",
+    "amazon",
+    "shopify",
+    "yelp",
+    "xero",
+    "ebay",
+    "etsy",
+    "stripe",
+    "paypal",
+    "square",
+    "quickbooks",
+    "plaid",
+    "woocommerce",
+    "csuite",
+    "qc",
+    "vault",
+    "keychain",
+    "github",
+    "gitlab",
+    "clickup",
+    "linear",
+    "airtable",
+    "trello",
+    "sentry",
+    "postman",
+    "twilio",
+    "pushover",
+    "whatsapp",
+    "youtube",
+    "spotify",
+    "higgsfield",
+    "heygen",
+    "runway",
+    "pika",
+    "mailchimp",
+    "sendgrid",
+    "mapbox",
+    "algolia",
+    "pinecone",
+    "mixpanel",
+    "datadog",
+    "hubspot",
+    "jira",
+    "jobsmith",
+    "contentful",
+    "webflow",
+    "digitalocean",
+    "klaviyo",
+    "todoist",
+    "pipedrive",
+    "confluence",
+    "unsplash",
+    "giphy",
+    "miro",
+    "shortcut",
+    "wikipedia",
+    "zendesk",
+    "intercom",
+    "typeform",
+    "calcom",
+    "posthog",
+    "netlify",
+    "deepl",
+    "assemblyai",
+    "groq",
+    "nudgeonly",
+    "igniteonly",
+    "pushonly",
+    "kling",
+    "pagerduty",
+    "circleci",
+    "segment",
+    "postmark",
+    "gumroad",
+    "togetherai",
+    "elevenlabs",
+    "replicate",
+    "stability",
+    "openai",
+    "anthropic",
+    "asana",
+    "monday",
+    "calendly",
+    "pinterest",
+    "tiktok",
+    "steam",
+    "igdb",
+    "speedrun",
+    "exchangerate",
+    "neon",
+    "upstash",
+    "turso",
+    "render",
+    "flyio",
+    "mistral",
+    "cohere",
+    "perplexity",
+    "lemonsqueezy",
+    "convertkit",
+    "testpass",
+    "legalpass"
+  ],
+  "handlerMarkerLine": "export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {",
+  "handlerSegments": [
+    {
+      "lit": "\n"
+    },
+    {
+      "slug": "bgg"
+    },
+    {
+      "slug": "rawg"
+    },
+    {
+      "slug": "riot"
+    },
+    {
+      "slug": "bungie"
+    },
+    {
+      "slug": "supercell"
+    },
+    {
+      "slug": "lego"
+    },
+    {
+      "slug": "untappd"
+    },
+    {
+      "slug": "pandascore"
+    },
+    {
+      "slug": "amber"
+    },
+    {
+      "slug": "willyweather"
+    },
+    {
+      "slug": "domain"
+    },
+    {
+      "slug": "trove"
+    },
+    {
+      "slug": "australiapost"
+    },
+    {
+      "slug": "sendle"
+    },
+    {
+      "slug": "ipaustralia"
+    },
+    {
+      "slug": "tab"
+    },
+    {
+      "slug": "thelott"
+    },
+    {
+      "slug": "abn"
+    },
+    {
+      "slug": "ptv"
+    },
+    {
+      "slug": "nvd"
+    },
+    {
+      "slug": "hunter"
+    },
+    {
+      "slug": "haveibeenpwned"
+    },
+    {
+      "slug": "virustotal"
+    },
+    {
+      "slug": "abuseipdb"
+    },
+    {
+      "slug": "urlscan"
+    },
+    {
+      "slug": "shodan"
+    },
+    {
+      "slug": "resend"
+    },
+    {
+      "slug": "vercel"
+    },
+    {
+      "slug": "supabase"
+    },
+    {
+      "slug": "toggl"
+    },
+    {
+      "slug": "email"
+    },
+    {
+      "slug": "usgs"
+    },
+    {
+      "slug": "openaq"
+    },
+    {
+      "slug": "openfoodfacts"
+    },
+    {
+      "slug": "ebird"
+    },
+    {
+      "slug": "carboninterface"
+    },
+    {
+      "slug": "toilets"
+    },
+    {
+      "slug": "calculator"
+    },
+    {
+      "slug": "unit-converter"
+    },
+    {
+      "slug": "datetime"
+    },
+    {
+      "slug": "text"
+    },
+    {
+      "slug": "meal"
+    },
+    {
+      "slug": "espn"
+    },
+    {
+      "slug": "sleeper"
+    },
+    {
+      "slug": "deezer"
+    },
+    {
+      "slug": "color"
+    },
+    {
+      "slug": "random"
+    },
+    {
+      "slug": "notion"
+    },
+    {
+      "slug": "readwise"
+    },
+    {
+      "slug": "raindrop"
+    },
+    {
+      "slug": "clockify"
+    },
+    {
+      "slug": "splitwise"
+    },
+    {
+      "slug": "instapaper"
+    },
+    {
+      "slug": "monica"
+    },
+    {
+      "slug": "feedly"
+    },
+    {
+      "slug": "hackernews"
+    },
+    {
+      "slug": "openf1"
+    },
+    {
+      "slug": "tmdb"
+    },
+    {
+      "slug": "trivia"
+    },
+    {
+      "slug": "pokeapi"
+    },
+    {
+      "slug": "cocktail"
+    },
+    {
+      "slug": "dictionary"
+    },
+    {
+      "slug": "joke"
+    },
+    {
+      "slug": "holidays"
+    },
+    {
+      "slug": "dogceo"
+    },
+    {
+      "slug": "rickandmorty"
+    },
+    {
+      "slug": "xkcd"
+    },
+    {
+      "slug": "brewery"
+    },
+    {
+      "slug": "jikan"
+    },
+    {
+      "slug": "chucknorris"
+    },
+    {
+      "slug": "catfacts"
+    },
+    {
+      "slug": "swapi"
+    },
+    {
+      "slug": "dnd5e"
+    },
+    {
+      "slug": "deckofcards"
+    },
+    {
+      "slug": "adviceslip"
+    },
+    {
+      "slug": "agify"
+    },
+    {
+      "slug": "quotable"
+    },
+    {
+      "slug": "bored"
+    },
+    {
+      "slug": "superhero"
+    },
+    {
+      "slug": "opennotify"
+    },
+    {
+      "slug": "tarot"
+    },
+    {
+      "slug": "aoe2"
+    },
+    {
+      "slug": "affirmation"
+    },
+    {
+      "slug": "jsonplaceholder"
+    },
+    {
+      "slug": "picsum"
+    },
+    {
+      "slug": "bible"
+    },
+    {
+      "slug": "frankfurter"
+    },
+    {
+      "slug": "zenquotes"
+    },
+    {
+      "slug": "kanye"
+    },
+    {
+      "slug": "dadjoke"
+    },
+    {
+      "slug": "uselessfacts"
+    },
+    {
+      "slug": "randomfox"
+    },
+    {
+      "slug": "httpbin"
+    },
+    {
+      "slug": "reqres"
+    },
+    {
+      "slug": "corporatebs"
+    },
+    {
+      "slug": "worldtime"
+    },
+    {
+      "slug": "sunrisesunset"
+    },
+    {
+      "slug": "zippopotamus"
+    },
+    {
+      "slug": "yesno"
+    },
+    {
+      "slug": "evilinsult"
+    },
+    {
+      "slug": "dogapi"
+    },
+    {
+      "slug": "apifootball"
+    },
+    {
+      "slug": "catapi"
+    },
+    {
+      "slug": "spaceflight"
+    },
+    {
+      "slug": "archiveorg"
+    },
+    {
+      "slug": "ipify"
+    },
+    {
+      "slug": "exchangerate2"
+    },
+    {
+      "slug": "makeup"
+    },
+    {
+      "slug": "github-emoji"
+    },
+    {
+      "slug": "metmuseum"
+    },
+    {
+      "slug": "lorem"
+    },
+    {
+      "slug": "placekitten"
+    },
+    {
+      "slug": "shibe"
+    },
+    {
+      "slug": "cataas"
+    },
+    {
+      "slug": "punkapi"
+    },
+    {
+      "slug": "colormind"
+    },
+    {
+      "slug": "dummyjson"
+    },
+    {
+      "slug": "excuser"
+    },
+    {
+      "slug": "dogfacts"
+    },
+    {
+      "slug": "amiibo"
+    },
+    {
+      "slug": "dummyimage"
+    },
+    {
+      "slug": "ipinfo"
+    },
+    {
+      "slug": "ghibli"
+    },
+    {
+      "slug": "finalspace"
+    },
+    {
+      "slug": "mcsrvstat"
+    },
+    {
+      "slug": "disneyapi"
+    },
+    {
+      "slug": "harrypotter"
+    },
+    {
+      "slug": "emojihub"
+    },
+    {
+      "slug": "avatarapi"
+    },
+    {
+      "slug": "robohash"
+    },
+    {
+      "slug": "openlib2"
+    },
+    {
+      "slug": "countryflag"
+    },
+    {
+      "slug": "mediawiki"
+    },
+    {
+      "slug": "bibleverse"
+    },
+    {
+      "slug": "urlhaus"
+    },
+    {
+      "slug": "tvmaze"
+    },
+    {
+      "slug": "freetogame"
+    },
+    {
+      "slug": "cheapshark"
+    },
+    {
+      "slug": "iseven"
+    },
+    {
+      "slug": "iceandfire"
+    },
+    {
+      "slug": "randomuser"
+    },
+    {
+      "slug": "digimon"
+    },
+    {
+      "slug": "stapi"
+    },
+    {
+      "slug": "breakingbad"
+    },
+    {
+      "slug": "tacofancy"
+    },
+    {
+      "slug": "publicapis"
+    },
+    {
+      "slug": "wger"
+    },
+    {
+      "slug": "animechan"
+    },
+    {
+      "slug": "lotr"
+    },
+    {
+      "slug": "coinpaprika"
+    },
+    {
+      "slug": "openfda"
+    },
+    {
+      "slug": "funtranslations"
+    },
+    {
+      "slug": "datamuse"
+    },
+    {
+      "slug": "balldontlie"
+    },
+    {
+      "slug": "worldbank"
+    },
+    {
+      "slug": "carbonintensity"
+    },
+    {
+      "slug": "lyrics"
+    },
+    {
+      "slug": "urbandictionary"
+    },
+    {
+      "slug": "nobelprize"
+    },
+    {
+      "slug": "universities"
+    },
+    {
+      "slug": "fakestoreapi"
+    },
+    {
+      "slug": "mtg"
+    },
+    {
+      "slug": "domainsdb"
+    },
+    {
+      "slug": "pokemontcg"
+    },
+    {
+      "slug": "spacex"
+    },
+    {
+      "slug": "genderize"
+    },
+    {
+      "slug": "nationalize"
+    },
+    {
+      "slug": "qrserver"
+    },
+    {
+      "slug": "solarsystem"
+    },
+    {
+      "slug": "pubchem"
+    },
+    {
+      "slug": "openmeteo-marine"
+    },
+    {
+      "slug": "opentriviadb"
+    },
+    {
+      "slug": "ipaddrinfo"
+    },
+    {
+      "slug": "diceware"
+    },
+    {
+      "slug": "colornames"
+    },
+    {
+      "slug": "mhwdb"
+    },
+    {
+      "slug": "exchangerate3"
+    },
+    {
+      "slug": "jisho"
+    },
+    {
+      "slug": "colr"
+    },
+    {
+      "slug": "gameoflife"
+    },
+    {
+      "slug": "fruityvice"
+    },
+    {
+      "slug": "opendota"
+    },
+    {
+      "slug": "artic"
+    },
+    {
+      "slug": "imgflip"
+    },
+    {
+      "slug": "foodish"
+    },
+    {
+      "slug": "acnhapi"
+    },
+    {
+      "slug": "httpcat"
+    },
+    {
+      "slug": "poetrydb"
+    },
+    {
+      "slug": "citybikes"
+    },
+    {
+      "slug": "wheretheiss"
+    },
+    {
+      "slug": "coinlore"
+    },
+    {
+      "slug": "openmeteo-airquality"
+    },
+    {
+      "slug": "officialjoke"
+    },
+    {
+      "slug": "multiavatar"
+    },
+    {
+      "slug": "openmeteo-flood"
+    },
+    {
+      "slug": "diseasesh"
+    },
+    {
+      "slug": "fishwatch"
+    },
+    {
+      "slug": "newton"
+    },
+    {
+      "slug": "placebear"
+    },
+    {
+      "slug": "countryis"
+    },
+    {
+      "slug": "openmeteo-historical"
+    },
+    {
+      "slug": "ukpolice"
+    },
+    {
+      "slug": "memegen"
+    },
+    {
+      "slug": "timeapi"
+    },
+    {
+      "slug": "postcodes"
+    },
+    {
+      "slug": "openmeteo-climate"
+    },
+    {
+      "slug": "gbif"
+    },
+    {
+      "slug": "crossref"
+    },
+    {
+      "slug": "nominatim"
+    },
+    {
+      "slug": "coincap"
+    },
+    {
+      "slug": "open-elevation"
+    },
+    {
+      "slug": "itis"
+    },
+    {
+      "slug": "arxiv"
+    },
+    {
+      "slug": "openalex"
+    },
+    {
+      "slug": "dblp"
+    },
+    {
+      "slug": "wikidata"
+    },
+    {
+      "slug": "randomduck"
+    },
+    {
+      "slug": "httpdog"
+    },
+    {
+      "slug": "opensky"
+    },
+    {
+      "slug": "cvecircl"
+    },
+    {
+      "slug": "vatcomply"
+    },
+    {
+      "slug": "thecolorapi"
+    },
+    {
+      "slug": "placehold"
+    },
+    {
+      "slug": "languagetool"
+    },
+    {
+      "slug": "bgpview"
+    },
+    {
+      "slug": "mymemory"
+    },
+    {
+      "slug": "openchargemap"
+    },
+    {
+      "slug": "crates"
+    },
+    {
+      "slug": "npm-registry"
+    },
+    {
+      "slug": "pypi"
+    },
+    {
+      "slug": "rdap"
+    },
+    {
+      "slug": "iban"
+    },
+    {
+      "slug": "stackexchange"
+    },
+    {
+      "slug": "ripe"
+    },
+    {
+      "slug": "gutendex"
+    },
+    {
+      "slug": "dohdns"
+    },
+    {
+      "slug": "nhtsa"
+    },
+    {
+      "slug": "geojs"
+    },
+    {
+      "slug": "isup"
+    },
+    {
+      "slug": "wayback"
+    },
+    {
+      "slug": "oeis"
+    },
+    {
+      "slug": "upcitemdb"
+    },
+    {
+      "slug": "fakerapi"
+    },
+    {
+      "slug": "openfigi"
+    },
+    {
+      "slug": "libretranslate"
+    },
+    {
+      "slug": "europeana"
+    },
+    {
+      "slug": "flyover"
+    },
+    {
+      "slug": "jsoncrack"
+    },
+    {
+      "slug": "abstract-holidays"
+    },
+    {
+      "slug": "cocktaildb2"
+    },
+    {
+      "slug": "regexr"
+    },
+    {
+      "slug": "hashgen"
+    },
+    {
+      "slug": "base64"
+    },
+    {
+      "slug": "urlencode"
+    },
+    {
+      "slug": "crontab"
+    },
+    {
+      "slug": "jwt"
+    },
+    {
+      "slug": "markdown"
+    },
+    {
+      "slug": "cidr"
+    },
+    {
+      "slug": "semver"
+    },
+    {
+      "slug": "colorconvert"
+    },
+    {
+      "slug": "epoch"
+    },
+    {
+      "slug": "difftext"
+    },
+    {
+      "slug": "passwordgen"
+    },
+    {
+      "slug": "slug"
+    },
+    {
+      "slug": "lorem2"
+    },
+    {
+      "slug": "csvparse"
+    },
+    {
+      "slug": "wordcount"
+    },
+    {
+      "slug": "jsonformat"
+    },
+    {
+      "slug": "htmlstrip"
+    },
+    {
+      "slug": "uuidgen"
+    },
+    {
+      "slug": "charcount"
+    },
+    {
+      "slug": "ipvalidate"
+    },
+    {
+      "slug": "stringcase"
+    },
+    {
+      "slug": "aspectratio"
+    },
+    {
+      "slug": "percentage"
+    },
+    {
+      "slug": "roman"
+    },
+    {
+      "slug": "morse"
+    },
+    {
+      "slug": "binaryconv"
+    },
+    {
+      "slug": "levenshtein"
+    },
+    {
+      "slug": "loremname"
+    },
+    {
+      "slug": "textstats"
+    },
+    {
+      "slug": "timezone"
+    },
+    {
+      "slug": "colorblend"
+    },
+    {
+      "slug": "fibonacci"
+    },
+    {
+      "slug": "primecheck"
+    },
+    {
+      "slug": "sortlines"
+    },
+    {
+      "slug": "countdowncalc"
+    },
+    {
+      "slug": "unitpressure"
+    },
+    {
+      "slug": "emojilookup"
+    },
+    {
+      "slug": "natoalphabet"
+    },
+    {
+      "slug": "bitwise"
+    },
+    {
+      "slug": "gcdlcm"
+    },
+    {
+      "slug": "tempconvert"
+    },
+    {
+      "slug": "statistics"
+    },
+    {
+      "slug": "textwrap"
+    },
+    {
+      "slug": "braille"
+    },
+    {
+      "slug": "piglatin"
+    },
+    {
+      "slug": "rot13"
+    },
+    {
+      "slug": "reversetext"
+    },
+    {
+      "slug": "palindrome"
+    },
+    {
+      "slug": "acronymgen"
+    },
+    {
+      "slug": "wordfreq"
+    },
+    {
+      "slug": "markdowntable"
+    },
+    {
+      "slug": "runlength"
+    },
+    {
+      "slug": "luhn"
+    },
+    {
+      "slug": "charcodes"
+    },
+    {
+      "slug": "soundex"
+    },
+    {
+      "slug": "frequency"
+    },
+    {
+      "slug": "entropy"
+    },
+    {
+      "slug": "ngram"
+    },
+    {
+      "slug": "camelsnake"
+    },
+    {
+      "slug": "metaphone"
+    },
+    {
+      "slug": "tfidf"
+    },
+    {
+      "slug": "readability"
+    },
+    {
+      "slug": "tokencount"
+    },
+    {
+      "slug": "crc32"
+    },
+    {
+      "slug": "jaccard"
+    },
+    {
+      "slug": "hamming"
+    },
+    {
+      "slug": "cosinesim"
+    },
+    {
+      "slug": "damerau"
+    },
+    {
+      "slug": "markov"
+    },
+    {
+      "slug": "vigenere"
+    },
+    {
+      "slug": "atbash"
+    },
+    {
+      "slug": "railfence"
+    },
+    {
+      "slug": "phonetic"
+    },
+    {
+      "slug": "matrix"
+    },
+    {
+      "slug": "setops"
+    },
+    {
+      "slug": "collatz"
+    },
+    {
+      "slug": "pascaltri"
+    },
+    {
+      "slug": "histogram"
+    },
+    {
+      "slug": "regression"
+    },
+    {
+      "slug": "baseconvert"
+    },
+    {
+      "slug": "gcd"
+    },
+    {
+      "slug": "permutation"
+    },
+    {
+      "slug": "combination"
+    },
+    {
+      "slug": "proportion"
+    },
+    {
+      "slug": "quadratic"
+    },
+    {
+      "slug": "primefactor"
+    },
+    {
+      "slug": "zscore"
+    },
+    {
+      "slug": "angleconv"
+    },
+    {
+      "slug": "polygon"
+    },
+    {
+      "slug": "sigmoid"
+    },
+    {
+      "slug": "interpolate"
+    },
+    {
+      "slug": "modpow"
+    },
+    {
+      "slug": "ratiosimplify"
+    },
+    {
+      "slug": "binomprob"
+    },
+    {
+      "slug": "normaldistr"
+    },
+    {
+      "slug": "trianglesolve"
+    },
+    {
+      "slug": "standardform"
+    },
+    {
+      "slug": "complexnum"
+    },
+    {
+      "slug": "wavelength"
+    },
+    {
+      "slug": "midpoint"
+    },
+    {
+      "slug": "slopeintercept"
+    },
+    {
+      "slug": "logbase"
+    },
+    {
+      "slug": "nthroot"
+    },
+    {
+      "slug": "areacalc"
+    },
+    {
+      "slug": "dotproduct"
+    },
+    {
+      "slug": "crossproduct"
+    },
+    {
+      "slug": "weightedmean"
+    },
+    {
+      "slug": "variancecalc"
+    },
+    {
+      "slug": "poisson"
+    },
+    {
+      "slug": "expgrowth"
+    },
+    {
+      "slug": "geomseries"
+    },
+    {
+      "slug": "harmonicseries"
+    },
+    {
+      "slug": "piapprox"
+    },
+    {
+      "slug": "taylor"
+    },
+    {
+      "slug": "nasa"
+    },
+    {
+      "slug": "openmeteo"
+    },
+    {
+      "slug": "radiobrowser"
+    },
+    {
+      "slug": "gdelt"
+    },
+    {
+      "slug": "numbers"
+    },
+    {
+      "slug": "omdb"
+    },
+    {
+      "slug": "openlibrary"
+    },
+    {
+      "slug": "musicbrainz"
+    },
+    {
+      "slug": "genius"
+    },
+    {
+      "slug": "ticketmaster"
+    },
+    {
+      "slug": "seatgeek"
+    },
+    {
+      "slug": "eventbrite"
+    },
+    {
+      "slug": "foursquare"
+    },
+    {
+      "slug": "lastfm"
+    },
+    {
+      "slug": "discogs"
+    },
+    {
+      "slug": "setlistfm"
+    },
+    {
+      "slug": "bandsintown"
+    },
+    {
+      "slug": "podcastindex"
+    },
+    {
+      "slug": "lichess"
+    },
+    {
+      "slug": "chessdotcom"
+    },
+    {
+      "slug": "fpl"
+    },
+    {
+      "slug": "guardian"
+    },
+    {
+      "slug": "newsapi"
+    },
+    {
+      "slug": "alphavantage"
+    },
+    {
+      "slug": "coingecko"
+    },
+    {
+      "slug": "coinmarketcap"
+    },
+    {
+      "slug": "openexchangerates"
+    },
+    {
+      "slug": "wise"
+    },
+    {
+      "slug": "ipapi"
+    },
+    {
+      "slug": "restcountries"
+    },
+    {
+      "slug": "tomorrowio"
+    },
+    {
+      "slug": "twitch"
+    },
+    {
+      "slug": "reddit"
+    },
+    {
+      "slug": "mastodon"
+    },
+    {
+      "slug": "bluesky"
+    },
+    {
+      "slug": "discord"
+    },
+    {
+      "slug": "slack"
+    },
+    {
+      "slug": "telegram"
+    },
+    {
+      "slug": "line"
+    },
+    {
+      "slug": "figma"
+    },
+    {
+      "slug": "amazon"
+    },
+    {
+      "slug": "shopify"
+    },
+    {
+      "slug": "yelp"
+    },
+    {
+      "slug": "xero"
+    },
+    {
+      "slug": "ebay"
+    },
+    {
+      "slug": "etsy"
+    },
+    {
+      "slug": "stripe"
+    },
+    {
+      "slug": "paypal"
+    },
+    {
+      "slug": "square"
+    },
+    {
+      "slug": "quickbooks"
+    },
+    {
+      "slug": "plaid"
+    },
+    {
+      "slug": "woocommerce"
+    },
+    {
+      "slug": "csuite"
+    },
+    {
+      "slug": "qc"
+    },
+    {
+      "slug": "vault"
+    },
+    {
+      "slug": "keychain"
+    },
+    {
+      "slug": "github"
+    },
+    {
+      "slug": "gitlab"
+    },
+    {
+      "slug": "clickup"
+    },
+    {
+      "slug": "linear"
+    },
+    {
+      "slug": "airtable"
+    },
+    {
+      "slug": "trello"
+    },
+    {
+      "slug": "sentry"
+    },
+    {
+      "slug": "postman"
+    },
+    {
+      "slug": "twilio"
+    },
+    {
+      "slug": "pushover"
+    },
+    {
+      "slug": "whatsapp"
+    },
+    {
+      "slug": "youtube"
+    },
+    {
+      "slug": "spotify"
+    },
+    {
+      "slug": "higgsfield"
+    },
+    {
+      "slug": "heygen"
+    },
+    {
+      "slug": "runway"
+    },
+    {
+      "slug": "pika"
+    },
+    {
+      "slug": "kling"
+    },
+    {
+      "slug": "elevenlabs"
+    },
+    {
+      "slug": "replicate"
+    },
+    {
+      "slug": "stability"
+    },
+    {
+      "slug": "openai"
+    },
+    {
+      "slug": "anthropic"
+    },
+    {
+      "slug": "asana"
+    },
+    {
+      "slug": "monday"
+    },
+    {
+      "slug": "calendly"
+    },
+    {
+      "slug": "pinterest"
+    },
+    {
+      "slug": "tiktok"
+    },
+    {
+      "slug": "steam"
+    },
+    {
+      "slug": "igdb"
+    },
+    {
+      "slug": "speedrun"
+    },
+    {
+      "slug": "exchangerate"
+    },
+    {
+      "slug": "mailchimp"
+    },
+    {
+      "slug": "sendgrid"
+    },
+    {
+      "slug": "mapbox"
+    },
+    {
+      "slug": "algolia"
+    },
+    {
+      "slug": "pinecone"
+    },
+    {
+      "slug": "mixpanel"
+    },
+    {
+      "slug": "hubspot"
+    },
+    {
+      "slug": "jira"
+    },
+    {
+      "slug": "jobsmith"
+    },
+    {
+      "slug": "contentful"
+    },
+    {
+      "slug": "webflow"
+    },
+    {
+      "slug": "digitalocean"
+    },
+    {
+      "lit": "\n  // klaviyo-tool.ts"
+    },
+    {
+      "slug": "todoist"
+    },
+    {
+      "slug": "pipedrive"
+    },
+    {
+      "slug": "confluence"
+    },
+    {
+      "slug": "unsplash"
+    },
+    {
+      "slug": "giphy"
+    },
+    {
+      "slug": "miro"
+    },
+    {
+      "slug": "shortcut"
+    },
+    {
+      "slug": "wikipedia"
+    },
+    {
+      "slug": "coda"
+    },
+    {
+      "slug": "brevo"
+    },
+    {
+      "slug": "uptimerobot"
+    },
+    {
+      "slug": "dropbox"
+    },
+    {
+      "slug": "gmail"
+    },
+    {
+      "slug": "google-drive"
+    },
+    {
+      "slug": "onedrive"
+    },
+    {
+      "slug": "bitbucket"
+    },
+    {
+      "slug": "cloudinary"
+    },
+    {
+      "slug": "wordpress"
+    },
+    {
+      "slug": "ghost"
+    },
+    {
+      "slug": "klaviyo"
+    },
+    {
+      "slug": "zendesk"
+    },
+    {
+      "slug": "intercom"
+    },
+    {
+      "slug": "typeform"
+    },
+    {
+      "slug": "calcom"
+    },
+    {
+      "slug": "posthog"
+    },
+    {
+      "slug": "netlify"
+    },
+    {
+      "slug": "datadog"
+    },
+    {
+      "slug": "deepl"
+    },
+    {
+      "slug": "assemblyai"
+    },
+    {
+      "slug": "groq"
+    },
+    {
+      "slug": "nudgeonly"
+    },
+    {
+      "slug": "igniteonly"
+    },
+    {
+      "slug": "pushonly"
+    },
+    {
+      "slug": "neon"
+    },
+    {
+      "slug": "upstash"
+    },
+    {
+      "slug": "turso"
+    },
+    {
+      "slug": "render"
+    },
+    {
+      "slug": "flyio"
+    },
+    {
+      "slug": "mistral"
+    },
+    {
+      "slug": "cohere"
+    },
+    {
+      "slug": "perplexity"
+    },
+    {
+      "slug": "lemonsqueezy"
+    },
+    {
+      "slug": "convertkit"
+    },
+    {
+      "slug": "pagerduty"
+    },
+    {
+      "slug": "circleci"
+    },
+    {
+      "slug": "segment"
+    },
+    {
+      "slug": "postmark"
+    },
+    {
+      "slug": "gumroad"
+    },
+    {
+      "slug": "togetherai"
+    },
+    {
+      "slug": "testpass"
+    },
+    {
+      "slug": "commonsensepass"
+    },
+    {
+      "slug": "xpass-aggregated-verdict"
+    },
+    {
+      "slug": "legalpass"
+    },
+    {
+      "slug": "uxpass"
+    },
+    {
+      "slug": "seopass"
+    },
+    {
+      "slug": "geopass"
+    },
+    {
+      "slug": "compliancepass"
+    },
+    {
+      "slug": "flowpass"
+    },
+    {
+      "slug": "securitypass"
+    },
+    {
+      "slug": "copypass"
+    },
+    {
+      "slug": "sloppass"
+    },
+    {
+      "slug": "fidelitycopy"
+    },
+    {
+      "slug": "crews"
+    }
+  ],
+  "handlersTail": "\n};\n",
+  "handlerOrder": [
+    "bgg",
+    "rawg",
+    "riot",
+    "bungie",
+    "supercell",
+    "lego",
+    "untappd",
+    "pandascore",
+    "amber",
+    "willyweather",
+    "domain",
+    "trove",
+    "australiapost",
+    "sendle",
+    "ipaustralia",
+    "tab",
+    "thelott",
+    "abn",
+    "ptv",
+    "nvd",
+    "hunter",
+    "haveibeenpwned",
+    "virustotal",
+    "abuseipdb",
+    "urlscan",
+    "shodan",
+    "resend",
+    "vercel",
+    "supabase",
+    "toggl",
+    "email",
+    "usgs",
+    "openaq",
+    "openfoodfacts",
+    "ebird",
+    "carboninterface",
+    "toilets",
+    "calculator",
+    "unit-converter",
+    "datetime",
+    "text",
+    "meal",
+    "espn",
+    "sleeper",
+    "deezer",
+    "color",
+    "random",
+    "notion",
+    "readwise",
+    "raindrop",
+    "clockify",
+    "splitwise",
+    "instapaper",
+    "monica",
+    "feedly",
+    "hackernews",
+    "openf1",
+    "tmdb",
+    "trivia",
+    "pokeapi",
+    "cocktail",
+    "dictionary",
+    "joke",
+    "holidays",
+    "dogceo",
+    "rickandmorty",
+    "xkcd",
+    "brewery",
+    "jikan",
+    "chucknorris",
+    "catfacts",
+    "swapi",
+    "dnd5e",
+    "deckofcards",
+    "adviceslip",
+    "agify",
+    "quotable",
+    "bored",
+    "superhero",
+    "opennotify",
+    "tarot",
+    "aoe2",
+    "affirmation",
+    "jsonplaceholder",
+    "picsum",
+    "bible",
+    "frankfurter",
+    "zenquotes",
+    "kanye",
+    "dadjoke",
+    "uselessfacts",
+    "randomfox",
+    "httpbin",
+    "reqres",
+    "corporatebs",
+    "worldtime",
+    "sunrisesunset",
+    "zippopotamus",
+    "yesno",
+    "evilinsult",
+    "dogapi",
+    "apifootball",
+    "catapi",
+    "spaceflight",
+    "archiveorg",
+    "ipify",
+    "exchangerate2",
+    "makeup",
+    "github-emoji",
+    "metmuseum",
+    "lorem",
+    "placekitten",
+    "shibe",
+    "cataas",
+    "punkapi",
+    "colormind",
+    "dummyjson",
+    "excuser",
+    "dogfacts",
+    "amiibo",
+    "dummyimage",
+    "ipinfo",
+    "ghibli",
+    "finalspace",
+    "mcsrvstat",
+    "disneyapi",
+    "harrypotter",
+    "emojihub",
+    "avatarapi",
+    "robohash",
+    "openlib2",
+    "countryflag",
+    "mediawiki",
+    "bibleverse",
+    "urlhaus",
+    "tvmaze",
+    "freetogame",
+    "cheapshark",
+    "iseven",
+    "iceandfire",
+    "randomuser",
+    "digimon",
+    "stapi",
+    "breakingbad",
+    "tacofancy",
+    "publicapis",
+    "wger",
+    "animechan",
+    "lotr",
+    "coinpaprika",
+    "openfda",
+    "funtranslations",
+    "datamuse",
+    "balldontlie",
+    "worldbank",
+    "carbonintensity",
+    "lyrics",
+    "urbandictionary",
+    "nobelprize",
+    "universities",
+    "fakestoreapi",
+    "mtg",
+    "domainsdb",
+    "pokemontcg",
+    "spacex",
+    "genderize",
+    "nationalize",
+    "qrserver",
+    "solarsystem",
+    "pubchem",
+    "openmeteo-marine",
+    "opentriviadb",
+    "ipaddrinfo",
+    "diceware",
+    "colornames",
+    "mhwdb",
+    "exchangerate3",
+    "jisho",
+    "colr",
+    "gameoflife",
+    "fruityvice",
+    "opendota",
+    "artic",
+    "imgflip",
+    "foodish",
+    "acnhapi",
+    "httpcat",
+    "poetrydb",
+    "citybikes",
+    "wheretheiss",
+    "coinlore",
+    "openmeteo-airquality",
+    "officialjoke",
+    "multiavatar",
+    "openmeteo-flood",
+    "diseasesh",
+    "fishwatch",
+    "newton",
+    "placebear",
+    "countryis",
+    "openmeteo-historical",
+    "ukpolice",
+    "memegen",
+    "timeapi",
+    "postcodes",
+    "openmeteo-climate",
+    "gbif",
+    "crossref",
+    "nominatim",
+    "coincap",
+    "open-elevation",
+    "itis",
+    "arxiv",
+    "openalex",
+    "dblp",
+    "wikidata",
+    "randomduck",
+    "httpdog",
+    "opensky",
+    "cvecircl",
+    "vatcomply",
+    "thecolorapi",
+    "placehold",
+    "languagetool",
+    "bgpview",
+    "mymemory",
+    "openchargemap",
+    "crates",
+    "npm-registry",
+    "pypi",
+    "rdap",
+    "iban",
+    "stackexchange",
+    "ripe",
+    "gutendex",
+    "dohdns",
+    "nhtsa",
+    "geojs",
+    "isup",
+    "wayback",
+    "oeis",
+    "upcitemdb",
+    "fakerapi",
+    "openfigi",
+    "libretranslate",
+    "europeana",
+    "flyover",
+    "jsoncrack",
+    "abstract-holidays",
+    "cocktaildb2",
+    "regexr",
+    "hashgen",
+    "base64",
+    "urlencode",
+    "crontab",
+    "jwt",
+    "markdown",
+    "cidr",
+    "semver",
+    "colorconvert",
+    "epoch",
+    "difftext",
+    "passwordgen",
+    "slug",
+    "lorem2",
+    "csvparse",
+    "wordcount",
+    "jsonformat",
+    "htmlstrip",
+    "uuidgen",
+    "charcount",
+    "ipvalidate",
+    "stringcase",
+    "aspectratio",
+    "percentage",
+    "roman",
+    "morse",
+    "binaryconv",
+    "levenshtein",
+    "loremname",
+    "textstats",
+    "timezone",
+    "colorblend",
+    "fibonacci",
+    "primecheck",
+    "sortlines",
+    "countdowncalc",
+    "unitpressure",
+    "emojilookup",
+    "natoalphabet",
+    "bitwise",
+    "gcdlcm",
+    "tempconvert",
+    "statistics",
+    "textwrap",
+    "braille",
+    "piglatin",
+    "rot13",
+    "reversetext",
+    "palindrome",
+    "acronymgen",
+    "wordfreq",
+    "markdowntable",
+    "runlength",
+    "luhn",
+    "charcodes",
+    "soundex",
+    "frequency",
+    "entropy",
+    "ngram",
+    "camelsnake",
+    "metaphone",
+    "tfidf",
+    "readability",
+    "tokencount",
+    "crc32",
+    "jaccard",
+    "hamming",
+    "cosinesim",
+    "damerau",
+    "markov",
+    "vigenere",
+    "atbash",
+    "railfence",
+    "phonetic",
+    "matrix",
+    "setops",
+    "collatz",
+    "pascaltri",
+    "histogram",
+    "regression",
+    "baseconvert",
+    "gcd",
+    "permutation",
+    "combination",
+    "proportion",
+    "quadratic",
+    "primefactor",
+    "zscore",
+    "angleconv",
+    "polygon",
+    "sigmoid",
+    "interpolate",
+    "modpow",
+    "ratiosimplify",
+    "binomprob",
+    "normaldistr",
+    "trianglesolve",
+    "standardform",
+    "complexnum",
+    "wavelength",
+    "midpoint",
+    "slopeintercept",
+    "logbase",
+    "nthroot",
+    "areacalc",
+    "dotproduct",
+    "crossproduct",
+    "weightedmean",
+    "variancecalc",
+    "poisson",
+    "expgrowth",
+    "geomseries",
+    "harmonicseries",
+    "piapprox",
+    "taylor",
+    "nasa",
+    "openmeteo",
+    "radiobrowser",
+    "gdelt",
+    "numbers",
+    "omdb",
+    "openlibrary",
+    "musicbrainz",
+    "genius",
+    "ticketmaster",
+    "seatgeek",
+    "eventbrite",
+    "foursquare",
+    "lastfm",
+    "discogs",
+    "setlistfm",
+    "bandsintown",
+    "podcastindex",
+    "lichess",
+    "chessdotcom",
+    "fpl",
+    "guardian",
+    "newsapi",
+    "alphavantage",
+    "coingecko",
+    "coinmarketcap",
+    "openexchangerates",
+    "wise",
+    "ipapi",
+    "restcountries",
+    "tomorrowio",
+    "twitch",
+    "reddit",
+    "mastodon",
+    "bluesky",
+    "discord",
+    "slack",
+    "telegram",
+    "line",
+    "figma",
+    "amazon",
+    "shopify",
+    "yelp",
+    "xero",
+    "ebay",
+    "etsy",
+    "stripe",
+    "paypal",
+    "square",
+    "quickbooks",
+    "plaid",
+    "woocommerce",
+    "csuite",
+    "qc",
+    "vault",
+    "keychain",
+    "github",
+    "gitlab",
+    "clickup",
+    "linear",
+    "airtable",
+    "trello",
+    "sentry",
+    "postman",
+    "twilio",
+    "pushover",
+    "whatsapp",
+    "youtube",
+    "spotify",
+    "higgsfield",
+    "heygen",
+    "runway",
+    "pika",
+    "kling",
+    "elevenlabs",
+    "replicate",
+    "stability",
+    "openai",
+    "anthropic",
+    "asana",
+    "monday",
+    "calendly",
+    "pinterest",
+    "tiktok",
+    "steam",
+    "igdb",
+    "speedrun",
+    "exchangerate",
+    "mailchimp",
+    "sendgrid",
+    "mapbox",
+    "algolia",
+    "pinecone",
+    "mixpanel",
+    "hubspot",
+    "jira",
+    "jobsmith",
+    "contentful",
+    "webflow",
+    "digitalocean",
+    "todoist",
+    "pipedrive",
+    "confluence",
+    "unsplash",
+    "giphy",
+    "miro",
+    "shortcut",
+    "wikipedia",
+    "coda",
+    "brevo",
+    "uptimerobot",
+    "dropbox",
+    "gmail",
+    "google-drive",
+    "onedrive",
+    "bitbucket",
+    "cloudinary",
+    "wordpress",
+    "ghost",
+    "klaviyo",
+    "zendesk",
+    "intercom",
+    "typeform",
+    "calcom",
+    "posthog",
+    "netlify",
+    "datadog",
+    "deepl",
+    "assemblyai",
+    "groq",
+    "nudgeonly",
+    "igniteonly",
+    "pushonly",
+    "neon",
+    "upstash",
+    "turso",
+    "render",
+    "flyio",
+    "mistral",
+    "cohere",
+    "perplexity",
+    "lemonsqueezy",
+    "convertkit",
+    "pagerduty",
+    "circleci",
+    "segment",
+    "postmark",
+    "gumroad",
+    "togetherai",
+    "testpass",
+    "commonsensepass",
+    "xpass-aggregated-verdict",
+    "legalpass",
+    "uxpass",
+    "seopass",
+    "geopass",
+    "compliancepass",
+    "flowpass",
+    "securitypass",
+    "copypass",
+    "sloppass",
+    "fidelitycopy",
+    "crews"
+  ],
+  "importRegionSynth": "// ─── Gaming ───\nimport { rawgSearchGames, rawgGetGame, rawgGetGameScreenshots, rawgListGenres, rawgListPlatforms, rawgUpcomingGames } from \"./rawg-tool.js\";\nimport { riotSummoner, riotRanked, riotMatchHistory, riotGetMatch, riotValorantAccount } from \"./riot-tool.js\";\nimport { bungieSearchPlayer, bungieGetProfile, bungieGetManifest, bungieSearchEntities } from \"./bungie-tool.js\";\nimport { cocPlayer, cocClan, cocClanMembers, crPlayer, crTopPlayers, bsPlayer, bsClub } from \"./supercell-tool.js\";\nimport { legoSearchSets, legoGetSet, legoSetParts, legoSearchParts, legoThemes, bricksetSearch, bricksetGetSet } from \"./lego-tool.js\";\nimport { untappdSearchBeer, untappdGetBeer, untappdGetBrewery, untappdSearchBrewery, untappdBeerActivities } from \"./untappd-tool.js\";\nimport { esportsMatches, esportsTournaments, esportsTeams, esportsPlayers, esportsGetMatch } from \"./pandascore-tool.js\";\nimport { bggSearch, bggGameDetails, bggUserCollection, bggTopGames, bggGameReviews } from \"./bgg-tool.js\";\nimport { gdeltNewsSearch, gdeltToneAnalysis, gdeltGeoEvents, gdeltTrending } from \"./gdelt-tool.js\";\n// ─── Australian / Local ───\nimport { getAmberSites, getAmberCurrentPrice, getAmberForecast } from \"./amber-tool.js\";\nimport { getWillyweatherForecast, getWillyweatherSurf, getWillyweatherTide } from \"./willyweather-tool.js\";\nimport { searchDomainListings, getDomainProperty, getDomainSuburbStats } from \"./domain-tool.js\";\nimport { searchTrove, getTroveWork, getTroveNewspaperArticle } from \"./trove-tool.js\";\nimport { trackAuspostParcel, getAuspostPostcode, getAuspostDeliveryTimes } from \"./australiapost-tool.js\";\nimport { getSendleQuote, createSendleOrder, trackSendleParcel } from \"./sendle-tool.js\";\nimport { searchTrademarks, getTrademarkDetails, searchPatents } from \"./ipaustralia-tool.js\";\nimport { getTabMeetings, getTabRace, getTabSportsMarkets } from \"./tab-tool.js\";\nimport { getLottResults, getLottJackpots } from \"./thelott-tool.js\";\nimport { abnLookup, abnSearch } from \"./abn-tool.js\";\nimport { ptvSearch, ptvDepartures, ptvDisruptions, ptvStopsOnRoute, ptvRouteDirections } from \"./ptv-tool.js\";\n// ─── Security ───\nimport { getCveDetail, searchCve, getRecentCves } from \"./nvd-tool.js\";\nimport { findEmail, verifyEmail, getDomainInfo } from \"./hunter-tool.js\";\nimport { checkAccountBreaches, getAllBreaches, checkPassword } from \"./haveibeenpwned-tool.js\";\nimport { scanUrlVirustotal, getUrlReport, scanIpVirustotal, scanDomainVirustotal } from \"./virustotal-tool.js\";\nimport { checkIpAbuse, reportIpAbuse, getBlacklistAbuseipdb } from \"./abuseipdb-tool.js\";\nimport { scanUrlUrlscan, getScanResult, searchUrlscan } from \"./urlscan-tool.js\";\nimport { searchShodan, getHostInfo, getShodanStats } from \"./shodan-tool.js\";\n// ─── Dev / Infra ───\nimport { sendEmailResend, getEmailResend, listDomainsResend } from \"./resend-tool.js\";\nimport { listVercelDeployments, getVercelDeployment, listVercelProjects, getVercelDomain, getVercelEnv, createVercelEnv, deleteVercelEnv, createVercelDeployment } from \"./vercel-tool.js\";\nimport { listSupabaseProjects, getSupabaseProject, listSupabaseOrganizations, executeSupabaseSql, applySupabaseMigration } from \"./supabase-tool.js\";\nimport { getTogglTimeEntries, createTimeEntryToggl, getTogglProjects, getTogglSummary } from \"./toggl-tool.js\";\n// ─── Email ───\nimport { sendEmail, readInbox, searchEmail, getEmail, markRead, deleteEmail, emailAction } from \"./email-tool.js\";\n// ─── Environment / Science ───\nimport { getRecentEarthquakes, getEarthquakeDetail, getEarthquakesByRegion, usgsAction } from \"./usgs-tool.js\";\nimport { getAirQuality, getAirMeasurements, getAqCountries, openaqAction } from \"./openaq-tool.js\";\nimport { searchFoodProducts, getFoodProduct, getFoodByCategory, openFoodFactsAction } from \"./openfoodfacts-tool.js\";\nimport { getRecentObservations, getNotableObservations, getSpeciesInfo, ebirdAction } from \"./ebird-tool.js\";\nimport { estimateFlightEmissions, estimateVehicleEmissions, estimateElectricityEmissions, carbonInterfaceAction } from \"./carboninterface-tool.js\";\nimport { findNearestToilets, getToiletDetails } from \"./toilets-tool.js\";\n// ─── Utilities ───\nimport { calculateTip, calculateMortgage, calculateBmi, calculateCompoundInterest, convertCurrencyEstimate } from \"./calculator-tool.js\";\nimport { convertLength, convertWeight, convertTemperature, convertVolume, convertSpeed, convertArea, convertDataStorage } from \"./unit-converter-tool.js\";\nimport { getCurrentTime, convertTimezone, calculateDateDiff, addToDate, getBusinessDays, formatDate, getWeekNumber } from \"./datetime-tool.js\";\nimport { analyseText, transformText, extractEmails, extractUrls, extractPhoneNumbers, countOccurrences, truncateText } from \"./text-tool.js\";\nimport { searchMeals, getRandomMeal, getMealById, listMealCategories, filterMealsByCategory, filterMealsByArea, filterMealsByIngredient } from \"./meal-tool.js\";\nimport { getNflScores, getNbaScores, getMlbScores, getNhlScores, getSoccerScores, getEspnNews, getTeamInfo } from \"./espn-tool.js\";\nimport { getNflState, getSleeperPlayers, getTrendingPlayers, getSleeperLeague, getLeagueRosters, getLeagueMatchups } from \"./sleeper-tool.js\";\nimport { searchDeezer, getDeezerArtist, getDeezerAlbum, getDeezerTrack, getDeezerChart, searchDeezerPlaylist } from \"./deezer-tool.js\";\nimport { convertColor, getColorInfo, generateColorPalette, mixColors, checkContrastRatio } from \"./color-tool.js\";\nimport { generateUuid, generateRandomNumber, generateRandomString, pickRandomFromList, flipCoin, rollDice, shuffleList, generateLoremIpsum } from \"./random-tool.js\";\n// ─── Productivity ───\nimport { notionAction } from \"./notion-tool.js\";\nimport { readwiseAction } from \"./readwise-tool.js\";\nimport { raindropAction } from \"./raindrop-tool.js\";\nimport { clockifyAction } from \"./clockify-tool.js\";\nimport { splitwiseAction } from \"./splitwise-tool.js\";\nimport { instapaperAction } from \"./instapaper-tool.js\";\nimport { monicaAction } from \"./monica-tool.js\";\nimport { feedlyAction } from \"./feedly-tool.js\";\n// ─── Existing tools (previously unwired) ───\nimport { hnTopStories, hnNewStories, hnBestStories, hnAskHn, hnShowHn, hnItem, hnUser } from \"./hackernews-tool.js\";\nimport { f1Sessions, f1Drivers, f1Positions, f1Laps, f1PitStops, f1CarData, f1TeamRadio, f1Weather } from \"./openf1-tool.js\";\nimport { tmdbSearchMovies, tmdbSearchTv, tmdbMovie, tmdbTv, tmdbTrending, tmdbNowPlaying, tmdbUpcoming, tmdbPopularTv } from \"./tmdb-tool.js\";\nimport { triviaQuestions, triviaCategories } from \"./trivia-tool.js\";\nimport { pokeGetPokemon, pokeSearchPokemon, pokeGetType, pokeGetAbility, pokeGetGeneration } from \"./pokeapi-tool.js\";\nimport { searchCocktails, getRandomCocktail, getCocktailById, listCocktailCategories, filterCocktailsByCategory, filterCocktailsByIngredient } from \"./cocktail-tool.js\";\nimport { dictionaryLookup, dictionaryLookupLanguage } from \"./dictionary-tool.js\";\nimport { jokeRandom, jokeCategories } from \"./joke-tool.js\";\nimport { holidaysByCountry, holidaysNextWorldwide, holidayCountries, holidayLongWeekends } from \"./holidays-tool.js\";\nimport { dogRandomImage, dogBreedImage, dogListBreeds, dogBreedList } from \"./dogceo-tool.js\";\nimport { ramGetCharacter, ramSearchCharacters, ramGetEpisode, ramSearchEpisodes, ramGetLocation } from \"./rickandmorty-tool.js\";\nimport { xkcdLatest, xkcdComic, xkcdRandom } from \"./xkcd-tool.js\";\nimport { brewerySearch, breweryGet, breweryList, breweryRandom } from \"./brewery-tool.js\";\nimport { jikanSearchAnime, jikanGetAnime, jikanTopAnime, jikanSearchManga, jikanGetCharacter } from \"./jikan-tool.js\";\nimport { chuckRandom, chuckSearch, chuckCategories } from \"./chucknorris-tool.js\";\nimport { catFact, catFacts, catBreeds } from \"./catfacts-tool.js\";\nimport { swapiGetPerson, swapiSearchPeople, swapiGetPlanet, swapiSearchPlanets, swapiGetStarship, swapiSearchStarships } from \"./swapi-tool.js\";\nimport { dndGetClass, dndListClasses, dndGetSpell, dndListSpells, dndGetMonster, dndListMonsters } from \"./dnd5e-tool.js\";\nimport { deckNew, deckDraw, deckShuffle } from \"./deckofcards-tool.js\";\nimport { adviceRandom, adviceSearch, adviceById } from \"./adviceslip-tool.js\";\nimport { agifyAge, genderizeName, nationalizeName } from \"./agify-tool.js\";\nimport { quoteRandom, quoteSearch, quoteByAuthor, quoteListTags, quoteListAuthors } from \"./quotable-tool.js\";\nimport { boredRandom, boredByType, boredByParticipants } from \"./bored-tool.js\";\nimport { heroGetById, heroAll, heroPowerstats } from \"./superhero-tool.js\";\nimport { issLocation, issAstronauts } from \"./opennotify-tool.js\";\nimport { tarotAllCards, tarotDraw, tarotSearch } from \"./tarot-tool.js\";\nimport { aoe2Civilizations, aoe2Civilization, aoe2Units, aoe2Unit, aoe2Technologies } from \"./aoe2-tool.js\";\nimport { affirmationRandom } from \"./affirmation-tool.js\";\nimport { jpListPosts, jpGetPost, jpListComments, jpListUsers } from \"./jsonplaceholder-tool.js\";\nimport { picsumList, picsumGet, picsumRandomUrl } from \"./picsum-tool.js\";\nimport { bibleVerse, bibleRandom } from \"./bible-tool.js\";\nimport { frankfurterLatest, frankfurterConvert, frankfurterHistorical, frankfurterCurrencies } from \"./frankfurter-tool.js\";\nimport { zenQuoteRandom, zenQuoteToday, zenQuotes } from \"./zenquotes-tool.js\";\nimport { kanyeQuote } from \"./kanye-tool.js\";\nimport { dadJokeRandom, dadJokeSearch, dadJokeById } from \"./dadjoke-tool.js\";\nimport { uselessFactRandom, uselessFactToday } from \"./uselessfacts-tool.js\";\nimport { randomFoxImage } from \"./randomfox-tool.js\";\nimport { httpbinGet, httpbinHeaders, httpbinIp, httpbinUserAgent, httpbinUuid } from \"./httpbin-tool.js\";\nimport { reqresListUsers, reqresGetUser, reqresListResources } from \"./reqres-tool.js\";\nimport { corporateBsPhrase } from \"./corporatebs-tool.js\";\nimport { worldTimeByTimezone, worldTimeByIp, worldTimeListTimezones } from \"./worldtime-tool.js\";\nimport { sunriseSunsetTimes } from \"./sunrisesunset-tool.js\";\nimport { zipLookup, zipByCity } from \"./zippopotamus-tool.js\";\nimport { yesNoRandom } from \"./yesno-tool.js\";\nimport { evilInsultRandom } from \"./evilinsult-tool.js\";\nimport { dogApiRandomImage, dogApiBreeds } from \"./dogapi-tool.js\";\nimport { sportsdbSearchTeam, sportsdbSearchPlayer, sportsdbTeamEvents, sportsdbLeagues } from \"./apifootball-tool.js\";\nimport { catApiRandomImage, catApiBreeds } from \"./catapi-tool.js\";\nimport { spaceflightArticles, spaceflightBlogs, spaceflightReports } from \"./spaceflight-tool.js\";\nimport { archiveSearch, archiveMetadata } from \"./archiveorg-tool.js\";\nimport { ipifyGetIp } from \"./ipify-tool.js\";\nimport { erLatestRates } from \"./exchangerate2-tool.js\";\nimport { makeupSearch } from \"./makeup-tool.js\";\nimport { githubEmojis } from \"./github-emoji-tool.js\";\nimport { metSearch, metObject, metDepartments } from \"./metmuseum-tool.js\";\nimport { baconIpsum } from \"./lorem-tool.js\";\nimport { placeholderImage, placekittenImage } from \"./placekitten-tool.js\";\nimport { shibeRandomImage } from \"./shibe-tool.js\";\nimport { cataasRandomCat, cataasListTags } from \"./cataas-tool.js\";\nimport { punkApiRandomBeer, punkApiSearchBeers, punkApiGetBeer } from \"./punkapi-tool.js\";\nimport { colormindGeneratePalette, colormindListModels } from \"./colormind-tool.js\";\nimport { dummyjsonProducts, dummyjsonSearchProducts, dummyjsonQuotes, dummyjsonRandomQuote } from \"./dummyjson-tool.js\";\nimport { excuserRandom } from \"./excuser-tool.js\";\nimport { dogFactRandom } from \"./dogfacts-tool.js\";\nimport { amiiboSearch, amiiboBySeries, amiiboTypes } from \"./amiibo-tool.js\";\nimport { dummyImageUrl } from \"./dummyimage-tool.js\";\nimport { ipInfoLookup } from \"./ipinfo-tool.js\";\nimport { ghibliFilms, ghibliPeople } from \"./ghibli-tool.js\";\nimport { finalSpaceCharacters, finalSpaceEpisodes } from \"./finalspace-tool.js\";\nimport { mcServerStatus } from \"./mcsrvstat-tool.js\";\nimport { disneyCharacterSearch, disneyAllCharacters } from \"./disneyapi-tool.js\";\nimport { hpAllCharacters, hpStudents, hpStaff, hpByHouse } from \"./harrypotter-tool.js\";\nimport { emojihubRandom, emojihubByCategory } from \"./emojihub-tool.js\";\nimport { avatarUrl } from \"./avatarapi-tool.js\";\nimport { robohashUrl } from \"./robohash-tool.js\";\nimport { gutenbergSearch, gutenbergBook } from \"./openlib2-tool.js\";\nimport { countryFlagUrl } from \"./countryflag-tool.js\";\nimport { wiktionaryLookup } from \"./mediawiki-tool.js\";\nimport { quranVerse, quranSurah } from \"./bibleverse-tool.js\";\nimport { urlhausLookupUrl, urlhausRecent } from \"./urlhaus-tool.js\";\nimport { tvmazeSearch, tvmazeShow, tvmazeSchedule } from \"./tvmaze-tool.js\";\nimport { freetogameList, freetogameDetail } from \"./freetogame-tool.js\";\nimport { cheapsharkDeals, cheapsharkStores } from \"./cheapshark-tool.js\";\nimport { isEven } from \"./iseven-tool.js\";\nimport { iceandfireCharacters, iceandfireBooks, iceandfireHouses } from \"./iceandfire-tool.js\";\nimport { randomUser } from \"./randomuser-tool.js\";\nimport { digimonAll, digimonByName, digimonByLevel } from \"./digimon-tool.js\";\nimport { stapiSearchCharacter, stapiSearchSpecies, stapiSearchStarship } from \"./stapi-tool.js\";\nimport { breakingBadQuote } from \"./breakingbad-tool.js\";\nimport { randomTaco } from \"./tacofancy-tool.js\";\nimport { publicapisSearch, publicapisCategories, publicapisRandom } from \"./publicapis-tool.js\";\nimport { wgerExercises, wgerCategories, wgerMuscles } from \"./wger-tool.js\";\nimport { animechanRandom, animechanSearch } from \"./animechan-tool.js\";\nimport { lotrBooks, lotrCharacters, lotrQuotes } from \"./lotr-tool.js\";\nimport { coinpaprikaGlobal, coinpaprikaCoin, coinpaprikaTicker } from \"./coinpaprika-tool.js\";\nimport { openfdaDrugSearch, openfdaRecallSearch, openfdaAdverseEvents } from \"./openfda-tool.js\";\nimport { funTranslate } from \"./funtranslations-tool.js\";\nimport { datamuseWords, datamuseSuggestions } from \"./datamuse-tool.js\";\nimport { nbaPlayers, nbaTeams, nbaGames } from \"./balldontlie-tool.js\";\nimport { worldbankCountry, worldbankIndicator } from \"./worldbank-tool.js\";\nimport { carbonIntensityCurrent, carbonIntensityForecast, carbonIntensityGeneration } from \"./carbonintensity-tool.js\";\nimport { lyricsGet } from \"./lyrics-tool.js\";\nimport { urbanDefine, urbanRandom } from \"./urbandictionary-tool.js\";\nimport { nobelPrizes, nobelLaureates } from \"./nobelprize-tool.js\";\nimport { universitiesSearch } from \"./universities-tool.js\";\nimport { fakestoreProducts, fakestoreProduct, fakestoreCategories } from \"./fakestoreapi-tool.js\";\nimport { mtgSearchCards, mtgGetCard, mtgSets } from \"./mtg-tool.js\";\nimport { domainsdbSearch, domainsdbTlds } from \"./domainsdb-tool.js\";\nimport { pokemonTcgSearchCards, pokemonTcgSets } from \"./pokemontcg-tool.js\";\nimport { spacexLatestLaunch, spacexLaunches, spacexRockets } from \"./spacex-tool.js\";\nimport { genderizePredict } from \"./genderize-tool.js\";\nimport { nationalizePredict } from \"./nationalize-tool.js\";\nimport { qrserverGenerate } from \"./qrserver-tool.js\";\nimport { solarsystemBodies, solarsystemBody } from \"./solarsystem-tool.js\";\nimport { pubchemSearch, pubchemProperties } from \"./pubchem-tool.js\";\nimport { marineForecast } from \"./openmeteo-marine-tool.js\";\nimport { triviaDbQuestions, triviaDbCategories } from \"./opentriviadb-tool.js\";\nimport { ipAddressLookup } from \"./ipaddrinfo-tool.js\";\nimport { dicewarePassphrase } from \"./diceware-tool.js\";\nimport { colorNameLookup, colorNameRandom } from \"./colornames-tool.js\";\nimport { mhwMonsters, mhwWeapons } from \"./mhwdb-tool.js\";\nimport { currencyApiRates, currencyApiList } from \"./exchangerate3-tool.js\";\nimport { jishoSearch } from \"./jisho-tool.js\";\nimport { colrRandomPalette } from \"./colr-tool.js\";\nimport { gameOfLifeStep } from \"./gameoflife-tool.js\";\nimport { fruityviceAll, fruityviceByName } from \"./fruityvice-tool.js\";\nimport { opendotaHeroes, opendotaHeroStats, opendotaProMatches } from \"./opendota-tool.js\";\nimport { imgflipGetMemes } from \"./imgflip-tool.js\";\nimport { articSearchArtworks, articGetArtwork } from \"./artic-tool.js\";\nimport { citybikesNetworks, citybikesNetwork } from \"./citybikes-tool.js\";\nimport { issPosition, issPassTimes } from \"./wheretheiss-tool.js\";\nimport { coinloreGlobal, coinloreTickers, coinloreCoin } from \"./coinlore-tool.js\";\nimport { airQualityCurrent, airQualityForecast } from \"./openmeteo-airquality-tool.js\";\nimport { officialJokeRandom, officialJokeByType, officialJokeTen } from \"./officialjoke-tool.js\";\nimport { multiavatarGenerate } from \"./multiavatar-tool.js\";\nimport { foodishRandom, foodishByCategory } from \"./foodish-tool.js\";\nimport { acnhVillagers, acnhFish, acnhBugs } from \"./acnhapi-tool.js\";\nimport { httpCatImage } from \"./httpcat-tool.js\";\nimport { poetrySearchByAuthor, poetrySearchByTitle, poetryRandom } from \"./poetrydb-tool.js\";\nimport { floodForecast } from \"./openmeteo-flood-tool.js\";\nimport { covidGlobal, covidCountry, covidVaccine } from \"./diseasesh-tool.js\";\nimport { fishwatchSpecies, fishwatchSpeciesDetail } from \"./fishwatch-tool.js\";\nimport { newtonMath } from \"./newton-tool.js\";\nimport { placebearImage } from \"./placebear-tool.js\";\nimport { countryByIp } from \"./countryis-tool.js\";\nimport { historicalWeather } from \"./openmeteo-historical-tool.js\";\nimport { ukPoliceForces, ukPoliceCrimes } from \"./ukpolice-tool.js\";\nimport { memegenTemplates, memegenCreate } from \"./memegen-tool.js\";\nimport { timeApiCurrentByZone, timeApiTimezones } from \"./timeapi-tool.js\";\nimport { postcodeLookup, postcodeRandom } from \"./postcodes-tool.js\";\nimport { climateNormals } from \"./openmeteo-climate-tool.js\";\nimport { gbifSearchSpecies, gbifSpeciesDetail, gbifOccurrences } from \"./gbif-tool.js\";\nimport { crossrefSearchWorks, crossrefGetWork } from \"./crossref-tool.js\";\nimport { nominatimSearch, nominatimReverse } from \"./nominatim-tool.js\";\nimport { coincapAssets, coincapAssetDetail, coincapRates } from \"./coincap-tool.js\";\nimport { openElevationLookup } from \"./open-elevation-tool.js\";\nimport { itisSearchByName, itisGetFullRecord } from \"./itis-tool.js\";\nimport { arxivSearch } from \"./arxiv-tool.js\";\nimport { openalexSearchWorks, openalexGetWork, openalexSearchAuthors } from \"./openalex-tool.js\";\nimport { dblpSearchPublications, dblpSearchAuthors } from \"./dblp-tool.js\";\nimport { wikidataSearch, wikidataGetEntity } from \"./wikidata-tool.js\";\nimport { randomDuckImage, randomDuckList } from \"./randomduck-tool.js\";\nimport { httpDogImage } from \"./httpdog-tool.js\";\nimport { openskyStates, openskyFlights } from \"./opensky-tool.js\";\nimport { circlCveLookup, circlCveRecent } from \"./cvecircl-tool.js\";\nimport { vatcomplyRates, vatcomplyCountries } from \"./vatcomply-tool.js\";\nimport { theColorApiId, theColorApiScheme } from \"./thecolorapi-tool.js\";\nimport { placeholdImage } from \"./placehold-tool.js\";\nimport { languagetoolCheck, languagetoolLanguages } from \"./languagetool-tool.js\";\nimport { bgpviewAsn, bgpviewAsnPrefixes, bgpviewIp } from \"./bgpview-tool.js\";\nimport { mymemoryTranslate } from \"./mymemory-tool.js\";\nimport { openchargemapSearch } from \"./openchargemap-tool.js\";\nimport { cratesSearch, cratesGet } from \"./crates-tool.js\";\nimport { npmSearch, npmGetPackage } from \"./npm-registry-tool.js\";\nimport { pypiGetPackage, pypiGetVersion } from \"./pypi-tool.js\";\nimport { rdapDomain, rdapIp } from \"./rdap-tool.js\";\nimport { ibanValidate } from \"./iban-tool.js\";\nimport { stackexchangeSearch, stackexchangeQuestion } from \"./stackexchange-tool.js\";\nimport { ripeNetworkInfo, ripeAsnNeighbours } from \"./ripe-tool.js\";\nimport { gutendexSearch, gutendexBook } from \"./gutendex-tool.js\";\nimport { dohdnsResolve } from \"./dohdns-tool.js\";\nimport { nhtsaDecodeVin, nhtsaRecalls } from \"./nhtsa-tool.js\";\nimport { geojsLookup } from \"./geojs-tool.js\";\nimport { isupCheck } from \"./isup-tool.js\";\nimport { waybackCheck } from \"./wayback-tool.js\";\nimport { oeisSearch } from \"./oeis-tool.js\";\nimport { upcLookup, upcSearch } from \"./upcitemdb-tool.js\";\nimport { fakerPersons, fakerCompanies, fakerTexts } from \"./fakerapi-tool.js\";\nimport { openfigiMapping, openfigiSearch } from \"./openfigi-tool.js\";\nimport { libretranslateTranslate, libretranslateLanguages, libretranslateDetect } from \"./libretranslate-tool.js\";\nimport { europeanaSearch, europeanaRecord } from \"./europeana-tool.js\";\nimport { issFlyover } from \"./flyover-tool.js\";\nimport { jsoncrackFormat } from \"./jsoncrack-tool.js\";\nimport { abstractCountryInfo, abstractLongWeekends } from \"./abstract-holidays-tool.js\";\nimport { cocktailByIngredient, cocktailIngredientInfo } from \"./cocktaildb2-tool.js\";\nimport { regexTest } from \"./regexr-tool.js\";\nimport { hashGenerate, hashCompare } from \"./hashgen-tool.js\";\nimport { base64Encode, base64Decode } from \"./base64-tool.js\";\nimport { urlEncode, urlDecode } from \"./urlencode-tool.js\";\nimport { crontabExplain } from \"./crontab-tool.js\";\nimport { jwtDecode } from \"./jwt-tool.js\";\nimport { markdownToHtml, markdownStats } from \"./markdown-tool.js\";\nimport { cidrCalculate } from \"./cidr-tool.js\";\nimport { semverParse, semverCompare } from \"./semver-tool.js\";\nimport { colorHexConvert } from \"./colorconvert-tool.js\";\nimport { epochConvert, epochNow } from \"./epoch-tool.js\";\nimport { diffText } from \"./difftext-tool.js\";\nimport { passwordGenerate } from \"./passwordgen-tool.js\";\nimport { slugify } from \"./slug-tool.js\";\nimport { loremGenerate } from \"./lorem2-tool.js\";\nimport { csvParse } from \"./csvparse-tool.js\";\nimport { wordCount } from \"./wordcount-tool.js\";\nimport { jsonFormat } from \"./jsonformat-tool.js\";\nimport { htmlStrip } from \"./htmlstrip-tool.js\";\nimport { uuidGenerate } from \"./uuidgen-tool.js\";\nimport { charFrequency } from \"./charcount-tool.js\";\nimport { ipValidate } from \"./ipvalidate-tool.js\";\nimport { stringCase } from \"./stringcase-tool.js\";\nimport { aspectRatio } from \"./aspectratio-tool.js\";\nimport { percentageCalc } from \"./percentage-tool.js\";\nimport { romanConvert } from \"./roman-tool.js\";\nimport { morseConvert } from \"./morse-tool.js\";\nimport { numberBaseConvert } from \"./binaryconv-tool.js\";\nimport { stringDistance } from \"./levenshtein-tool.js\";\nimport { loremNameGenerate } from \"./loremname-tool.js\";\nimport { textReadability } from \"./textstats-tool.js\";\nimport { timezoneInfo } from \"./timezone-tool.js\";\nimport { colorBlend } from \"./colorblend-tool.js\";\nimport { fibonacciSequence } from \"./fibonacci-tool.js\";\nimport { primeCheck } from \"./primecheck-tool.js\";\nimport { sortLines } from \"./sortlines-tool.js\";\nimport { countdownCalc } from \"./countdowncalc-tool.js\";\nimport { pressureConvert } from \"./unitpressure-tool.js\";\nimport { emojiLookup } from \"./emojilookup-tool.js\";\nimport { natoConvert } from \"./natoalphabet-tool.js\";\nimport { bitwiseCalc } from \"./bitwise-tool.js\";\nimport { gcdLcmCalc } from \"./gcdlcm-tool.js\";\nimport { temperatureConvert } from \"./tempconvert-tool.js\";\nimport { statisticsCalc } from \"./statistics-tool.js\";\nimport { textWrap } from \"./textwrap-tool.js\";\nimport { brailleConvert } from \"./braille-tool.js\";\nimport { pigLatinConvert } from \"./piglatin-tool.js\";\nimport { rot13Convert } from \"./rot13-tool.js\";\nimport { reverseText } from \"./reversetext-tool.js\";\nimport { palindromeCheck } from \"./palindrome-tool.js\";\nimport { acronymGenerate } from \"./acronymgen-tool.js\";\nimport { wordfreqAnalyse } from \"./wordfreq-tool.js\";\nimport { markdowntableConvert } from \"./markdowntable-tool.js\";\nimport { runlengthProcess } from \"./runlength-tool.js\";\nimport { luhnValidate } from \"./luhn-tool.js\";\nimport { charcodesConvert } from \"./charcodes-tool.js\";\nimport { soundexEncode } from \"./soundex-tool.js\";\nimport { frequencyAnalyse } from \"./frequency-tool.js\";\nimport { entropyCalculate } from \"./entropy-tool.js\";\nimport { ngramExtract } from \"./ngram-tool.js\";\nimport { camelsnakeConvert } from \"./camelsnake-tool.js\";\nimport { metaphoneEncode } from \"./metaphone-tool.js\";\nimport { tfidfCalculate } from \"./tfidf-tool.js\";\nimport { readabilityScore } from \"./readability-tool.js\";\nimport { tokencountEstimate } from \"./tokencount-tool.js\";\nimport { crc32Calculate } from \"./crc32-tool.js\";\nimport { jaccardSimilarity } from \"./jaccard-tool.js\";\nimport { hammingDistance } from \"./hamming-tool.js\";\nimport { cosinesimCompare } from \"./cosinesim-tool.js\";\nimport { damerauDistance } from \"./damerau-tool.js\";\nimport { markovGenerate } from \"./markov-tool.js\";\nimport { vigenereProcess } from \"./vigenere-tool.js\";\nimport { atbashProcess } from \"./atbash-tool.js\";\nimport { railfenceProcess } from \"./railfence-tool.js\";\nimport { phoneticSpell } from \"./phonetic-tool.js\";\nimport { matrixOperate } from \"./matrix-tool.js\";\nimport { setopsCalculate } from \"./setops-tool.js\";\nimport { collatzSequence } from \"./collatz-tool.js\";\nimport { pascaltriGenerate } from \"./pascaltri-tool.js\";\nimport { histogramCreate } from \"./histogram-tool.js\";\nimport { regressionFit } from \"./regression-tool.js\";\nimport { baseConvert } from \"./baseconvert-tool.js\";\nimport { gcdCalculate } from \"./gcd-tool.js\";\nimport { permutationCalc } from \"./permutation-tool.js\";\nimport { combinationCalc } from \"./combination-tool.js\";\nimport { proportionSolve } from \"./proportion-tool.js\";\nimport { quadraticSolve } from \"./quadratic-tool.js\";\nimport { primeFactor } from \"./primefactor-tool.js\";\nimport { zscoreCalculate } from \"./zscore-tool.js\";\nimport { angleConvert } from \"./angleconv-tool.js\";\nimport { polygonCalculate } from \"./polygon-tool.js\";\nimport { sigmoidCalculate } from \"./sigmoid-tool.js\";\nimport { interpolateCalc } from \"./interpolate-tool.js\";\nimport { modularArithmetic } from \"./modpow-tool.js\";\nimport { ratioSimplify } from \"./ratiosimplify-tool.js\";\nimport { binomialProbability } from \"./binomprob-tool.js\";\nimport { normalDistribution } from \"./normaldistr-tool.js\";\nimport { triangleSolve } from \"./trianglesolve-tool.js\";\nimport { standardForm } from \"./standardform-tool.js\";\nimport { complexCalc } from \"./complexnum-tool.js\";\nimport { wavelengthConvert } from \"./wavelength-tool.js\";\nimport { midpointCalc } from \"./midpoint-tool.js\";\nimport { slopeIntercept } from \"./slopeintercept-tool.js\";\nimport { logBase } from \"./logbase-tool.js\";\nimport { nthRoot } from \"./nthroot-tool.js\";\nimport { areaCalculate } from \"./areacalc-tool.js\";\nimport { dotProduct } from \"./dotproduct-tool.js\";\nimport { crossProduct } from \"./crossproduct-tool.js\";\nimport { weightedMean } from \"./weightedmean-tool.js\";\nimport { varianceCalc } from \"./variancecalc-tool.js\";\nimport { poissonProbability } from \"./poisson-tool.js\";\nimport { exponentialGrowth } from \"./expgrowth-tool.js\";\nimport { geometricSeries } from \"./geomseries-tool.js\";\nimport { harmonicSeries } from \"./harmonicseries-tool.js\";\nimport { piApprox } from \"./piapprox-tool.js\";\nimport { taylorExpand } from \"./taylor-tool.js\";\nimport { stringLcs } from \"./lcs-tool.js\";\nimport { topoSort } from \"./toposort-tool.js\";\nimport { convexHull } from \"./convexhull-tool.js\";\nimport { knapsackSolve } from \"./knapsack-tool.js\";\nimport { splineInterpolate } from \"./spline-tool.js\";\nimport { dijkstraPath } from \"./dijkstra-tool.js\";\nimport { matrixDecomp } from \"./matrixdecomp-tool.js\";\nimport { linearSolve } from \"./linearsolve-tool.js\";\nimport { numericalDiff } from \"./numdiff-tool.js\";\nimport { numericalIntegrate } from \"./numintegrate-tool.js\";\nimport { fftTransform } from \"./fft-tool.js\";\nimport { bezierCurve } from \"./bezier-tool.js\";\nimport { rootFind } from \"./rootfind-tool.js\";\nimport { matrixInverse } from \"./matinverse-tool.js\";\nimport { odeSolve } from \"./ode-tool.js\";\nimport { polynomialOps } from \"./polynomial-tool.js\";\nimport { hypothesisTest } from \"./hypothesis-tool.js\";\nimport { huffmanCode } from \"./huffman-tool.js\";\nimport { correlationCalc } from \"./correlation-tool.js\";\nimport { bitCount } from \"./bitcount-tool.js\";\nimport { runningStats } from \"./runstats-tool.js\";\nimport { graphAnalyze } from \"./graph-tool.js\";\nimport { convolution } from \"./convolution-tool.js\";\nimport { rleEncodeDecode } from \"./rle2-tool.js\";\nimport { descriptiveStats } from \"./descriptive-tool.js\";\nimport { bfsSearch } from \"./bfs-tool.js\";\nimport { monteCarloEstimate } from \"./montecarlo-tool.js\";\nimport { dfsSearch } from \"./dfs-tool.js\";\nimport { percentileCalc } from \"./percentile-tool.js\";\nimport { mstFind } from \"./mst-tool.js\";\nimport { pageRank } from \"./pagerank-tool.js\";\nimport { astarPath } from \"./astar-tool.js\";\nimport { simplexSolve } from \"./simplex-tool.js\";\nimport { hungarianAssign } from \"./hungarian-tool.js\";\nimport { kmeansCluster } from \"./kmeans-tool.js\";\nimport { bellmanFord } from \"./bellmanford-tool.js\";\nimport { floydWarshall } from \"./floydwarshall-tool.js\";\nimport { reservoirSample } from \"./reservoir-tool.js\";\nimport { bloomFilter } from \"./bloomfilter-tool.js\";\nimport { powerIteration } from \"./poweriter-tool.js\";\nimport { tspSolve } from \"./tsp-tool.js\";\nimport { lruSimulate } from \"./lrucache-tool.js\";\nimport { unionFindOps } from \"./unionfind-tool.js\";\nimport { tarjanScc } from \"./tarjan-tool.js\";\nimport { catalanCalc } from \"./catalan-tool.js\";\nimport { rabinKarpSearch } from \"./rabinkarp-tool.js\";\nimport { sieveOfEratosthenes } from \"./sieve-tool.js\";\nimport { suffixArrayBuild } from \"./suffixarray-tool.js\";\nimport { matChainOrder } from \"./matchain-tool.js\";\nimport { fenwickTree } from \"./fenwick-tool.js\";\nimport { segTree } from \"./segtree-tool.js\";\nimport { kmpSearch } from \"./kmp-tool.js\";\nimport { ahoCorasickSearch } from \"./ahocorasick-tool.js\";\nimport { zAlgorithm } from \"./zalgo-tool.js\";\nimport { trieOps } from \"./trie-tool.js\";\nimport { skipListSim } from \"./skiplist-tool.js\";\nimport { manacherPalindrome } from \"./manacher-tool.js\";\nimport { countingSort } from \"./countingsort-tool.js\";\nimport { radixSort } from \"./radixsort-tool.js\";\nimport { treapSim } from \"./treap-tool.js\";\nimport { longestIncreasingSubseq } from \"./lis-tool.js\";\nimport { kosarajuScc } from \"./kosaraju-tool.js\";\nimport { bucketSort } from \"./bucketsort-tool.js\";\nimport { edmondsKarp } from \"./edmondskarp-tool.js\";\nimport { avlTree } from \"./avltree-tool.js\";\nimport { bipartiteCheck } from \"./bipartite-tool.js\";\nimport { eulerPath } from \"./eulerpath-tool.js\";\nimport { sparseTable } from \"./sparsetable-tool.js\";\nimport { millerRabinTest } from \"./millerrabin-tool.js\";\nimport { rbTreeSim } from \"./rbtree-tool.js\";\nimport { heapSort } from \"./heapsort-tool.js\";\nimport { chineseRemainderTheorem } from \"./crt-tool.js\";\nimport { graphColoring } from \"./graphcolor-tool.js\";\nimport { extendedGcd } from \"./extgcd-tool.js\";\nimport { eulerTotient } from \"./eulertotient-tool.js\";\nimport { hopcroftKarp } from \"./hopcroftcarp-tool.js\";\nimport { intervalMerge } from \"./intervalmerge-tool.js\";\nimport { ternarySearch } from \"./ternarysearch-tool.js\";\nimport { shellSort } from \"./shellsort-tool.js\";\nimport { matrixExponentiation } from \"./matexp-tool.js\";\nimport { segmentIntersection } from \"./segmentintersect-tool.js\";\nimport { minVertexCover } from \"./minvertexcover-tool.js\";\nimport { suffixAutomaton } from \"./suffixauto-tool.js\";\nimport { gabowScc } from \"./gabow-tool.js\";\nimport { babyGiantStep } from \"./babygiant-tool.js\";\nimport { centroidDecomposition } from \"./centroid-tool.js\";\nimport { waveletTree } from \"./wavelet-tool.js\";\nimport { dinicMaxFlow } from \"./dinic-tool.js\";\nimport { lowestCommonAncestor } from \"./lca-tool.js\";\nimport { maxIndependentSet } from \"./maxindepset-tool.js\";\nimport { twoSat } from \"./twosat-tool.js\";\nimport { heavyLightDecomp } from \"./hld-tool.js\";\nimport { minCostMaxFlow } from \"./mincostflow-tool.js\";\nimport { persistentArray } from \"./persistarray-tool.js\";\nimport { suffixTree } from \"./suffixtree-tool.js\";\nimport { linkCutTree } from \"./linkcut-tool.js\";\nimport { graphCondensation } from \"./condensation-tool.js\";\nimport { mosAlgorithm } from \"./mosalgo-tool.js\";\nimport { cartesianTree } from \"./cartesiantree-tool.js\";\nimport { sternBrocotTree } from \"./sternbrocot-tool.js\";\nimport { chromaticNumber } from \"./chromatic-tool.js\";\nimport { eulerTour } from \"./eulertour-tool.js\";\nimport { gaussianElimination } from \"./gausselim-tool.js\";\nimport { eertree } from \"./eertree-tool.js\";\nimport { pollardRho } from \"./pollardrho-tool.js\";\nimport { ntt } from \"./ntt-tool.js\";\nimport { josephus } from \"./josephus-tool.js\";\nimport { berlekampMassey } from \"./berlekamp-tool.js\";\nimport { sosDp } from \"./sos-tool.js\";\nimport { xorBasis } from \"./xorbase-tool.js\";\nimport { moebiusFunction } from \"./moebius-tool.js\";\nimport { zFunction } from \"./zfunction-tool.js\";\nimport { chineseRemainder } from \"./chineseremainder-tool.js\";\nimport { lucasTheorem } from \"./lucas-tool.js\";\nimport { duvalFactorize } from \"./duval-tool.js\";\nimport { goertzel } from \"./goertzel-tool.js\";\nimport { burrowsWheeler } from \"./bwt-tool.js\";\nimport { ackermannFunction } from \"./ackermann-tool.js\";\nimport { deBruijn } from \"./debruijn-tool.js\";\nimport { shuntingYard } from \"./shunting-tool.js\";\nimport { fenwickRange } from \"./fenwickrange-tool.js\";\nimport { bitmaskOps } from \"./bitmask-tool.js\";\nimport { grayCode } from \"./graycode-tool.js\";\nimport { catmullRom } from \"./catmullrom-tool.js\";\nimport { rlEncode } from \"./rlencode-tool.js\";\nimport { topoCount } from \"./topocount-tool.js\";\nimport { boothRotation } from \"./booth-tool.js\";\nimport { prefixFunction } from \"./prefixfn-tool.js\";\nimport { matrixRank } from \"./matrank-tool.js\";\nimport { fenwick2D } from \"./fenwick2d-tool.js\";\nimport { continuedFraction } from \"./contfrac-tool.js\";\nimport { longestCommonPrefix } from \"./lcprefix-tool.js\";\nimport { lehmerCode } from \"./lehmer-tool.js\";\nimport { digitDp } from \"./digitdp-tool.js\";\nimport { coinChange } from \"./coinchange-tool.js\";\nimport { editDistance } from \"./editdist-tool.js\";\nimport { powerSet } from \"./powerset-tool.js\";\nimport { necklaceCount } from \"./necklace-tool.js\";\nimport { derangementCalc } from \"./derangement-tool.js\";\nimport { kmpAutomaton } from \"./kmpautomaton-tool.js\";\nimport { rmqSparse } from \"./rmqsparse-tool.js\";\nimport { partitionCount } from \"./partition-tool.js\";\nimport { stirlingNumbers } from \"./stirling-tool.js\";\nimport { haarWavelet } from \"./waveletfn-tool.js\";\nimport { convexHull3D } from \"./convexhull3d-tool.js\";\nimport { bezierClip } from \"./bezierclip-tool.js\";\nimport { nasaApod, nasaAsteroids, nasaMarsPhotos, nasaEarthImagery, nasaEpic } from \"./nasa-tool.js\";\nimport { weatherCurrent, weatherForecast, weatherHourly } from \"./openmeteo-tool.js\";\nimport { radioSearch, radioByCountry, radioTopClicked, radioTopVoted, radioByTag, radioCountries } from \"./radiobrowser-tool.js\";\nimport { numberFact, numberRandom } from \"./numbers-tool.js\";\nimport { omdbSearch, omdbGetByTitle, omdbGetById } from \"./omdb-tool.js\";\nimport { openlibrarySearch, openlibraryGetBook, openlibraryGetEdition, openlibraryGetAuthor, openlibraryAuthorWorks, openlibraryTrending } from \"./openlibrary-tool.js\";\nimport { mbSearchArtists, mbSearchReleases, mbSearchRecordings, mbGetArtist, mbGetRelease } from \"./musicbrainz-tool.js\";\nimport { geniusSearch, geniusGetSong, geniusGetArtist, geniusArtistSongs } from \"./genius-tool.js\";\nimport { tmSearchEvents, tmGetEvent, tmSearchVenues, tmGetVenue, tmSearchAttractions } from \"./ticketmaster-tool.js\";\nimport { seatgeekSearchEvents, seatgeekGetEvent, seatgeekSearchPerformers, seatgeekGetPerformer, seatgeekSearchVenues, seatgeekGetVenue } from \"./seatgeek-tool.js\";\nimport { eventbriteSearchEvents, eventbriteGetEvent, eventbriteGetEventAttendees, eventbriteCreateEvent, eventbriteListCategories, eventbriteGetVenue } from \"./eventbrite-tool.js\";\nimport { foursquareSearchPlaces, foursquareGetPlace, foursquareGetPhotos, foursquareGetTips, foursquareAutocomplete } from \"./foursquare-tool.js\";\nimport { lastfmGetArtistInfo, lastfmSearchArtists, lastfmGetTopTracks, lastfmGetSimilarArtists, lastfmGetChartTopArtists, lastfmGetChartTopTracks, lastfmGetAlbumInfo } from \"./lastfm-tool.js\";\nimport { discogsSearchReleases, discogsGetRelease, discogsGetArtist, discogsSearchArtists, discogsGetMarketplaceStats, discogsGetLabel } from \"./discogs-tool.js\";\nimport { setlistfmSearchArtist, setlistfmArtistSetlists, setlistfmSearchSetlists, setlistfmGetSetlist } from \"./setlistfm-tool.js\";\nimport { bandsintownArtist, bandsintownEvents, bandsintownRecommended } from \"./bandsintown-tool.js\";\nimport { podcastSearch, podcastGetByFeedUrl, podcastGetEpisodes, podcastSearchEpisodes, podcastTrending, podcastRecentEpisodes } from \"./podcastindex-tool.js\";\nimport { lichessUser, lichessUserGames, lichessPuzzleDaily, lichessTopPlayers, lichessTournament } from \"./lichess-tool.js\";\nimport { chessPlayer, chessPlayerStats, chessPlayerGames, chessPuzzlesRandom, chessLeaderboards } from \"./chessdotcom-tool.js\";\nimport { fplBootstrap, fplPlayer, fplGameweek, fplFixtures, fplMyTeam, fplManager, fplLeaguesClassic } from \"./fpl-tool.js\";\nimport { guardianSearchArticles, guardianGetArticle, guardianGetSections, guardianGetTags, guardianGetEdition } from \"./guardian-tool.js\";\nimport { newsGetTopHeadlines, newsSearchNews, newsGetSources } from \"./newsapi-tool.js\";\nimport { stockQuote, stockSearch, stockDaily, stockIntraday, forexRate, cryptoDaily } from \"./alphavantage-tool.js\";\nimport { cryptoPrice, cryptoCoin, cryptoSearch, cryptoTrending, cryptoTopCoins, cryptoCoinHistory } from \"./coingecko-tool.js\";\nimport { cmcListings, cmcQuotes, cmcInfo, cmcTrending, cmcGlobalMetrics } from \"./coinmarketcap-tool.js\";\nimport { forexLatest, forexHistorical, forexCurrencies, forexConvert } from \"./openexchangerates-tool.js\";\nimport { wiseExchangeRates, wiseProfile, wiseAccounts, wiseCreateQuote } from \"./wise-tool.js\";\nimport { ipLookup, ipBatch } from \"./ipapi-tool.js\";\nimport { countryAll, countryByName, countryByCode, countryByRegion, countryByCurrency, countryByLanguage } from \"./restcountries-tool.js\";\nimport { tomorrowRealtime, tomorrowForecast, tomorrowHistory } from \"./tomorrowio-tool.js\";\nimport { twitchSearchStreams, twitchGetStream, twitchSearchGames, twitchGetTopGames, twitchGetClips, twitchGetChannelInfo, twitchGetSchedule } from \"./twitch-tool.js\";\nimport { redditRead, redditPost, redditComment, redditSearch, redditThread, redditUser, redditVote, redditSubscribe } from \"./reddit-tool.js\";\nimport { mastodonAction } from \"./mastodon-tool.js\";\nimport { blueskyAction } from \"./bluesky-tool.js\";\nimport { discordSend, discordRead, discordThread, discordReact, discordChannels, discordMembers, discordSearch } from \"./discord-tool.js\";\nimport { slackAction } from \"./slack-tool.js\";\nimport { telegramSend, telegramRead, telegramSearch, telegramSendMedia, telegramGetUpdates, telegramManageChat } from \"./telegram-tool.js\";\nimport { lineSendMessage, lineSendFlexMessage, lineGetProfile, lineGetGroupSummary, lineReplyMessage, lineBroadcast } from \"./line-tool.js\";\nimport { figmaGetFile, figmaGetNode, figmaGetImages, figmaGetComments, figmaPostComment, figmaGetComponents, figmaGetTeamProjects } from \"./figma-tool.js\";\n// ─── Messaging ───\nimport { twilioSendSms, twilioListMessages, twilioGetMessage, twilioMakeCall, twilioListCalls, twilioSendVerify, twilioCheckVerify } from \"./twilio-tool.js\";\nimport { pushoverSendNotification, pushoverGetReceipt, pushoverCancelEmergency, pushoverListSounds, pushoverValidateUser } from \"./pushover-tool.js\";\nimport { whatsappSendText, whatsappSendTemplate, whatsappSendMedia, whatsappGetMedia, whatsappUploadMedia } from \"./whatsapp-tool.js\";\n// ─── Media / Data ───\nimport { youtubeSearch, youtubeGetVideo, youtubeGetChannel, youtubeListPlaylists, youtubeListPlaylistItems, youtubeGetCaptions } from \"./youtube-tool.js\";\nimport { spotifySearch, spotifyGetTrack, spotifyGetAlbum, spotifyGetArtist, spotifyGetPlaylist, spotifyGetRecommendations, spotifyGetAudioFeatures } from \"./spotify-tool.js\";\n// ─── AI Video ───\nimport { higgsfield_generate_video, higgsfield_generate_image, higgsfield_get_styles, higgsfield_get_status } from \"./higgsfield-tool.js\";\nimport { heygen_create_avatar_video, heygen_list_avatars, heygen_get_video_status, heygen_list_voices } from \"./heygen-tool.js\";\nimport { runway_generate_video, runway_get_task, runway_list_models } from \"./runway-tool.js\";\nimport { pika_generate_video, pika_get_generation, pika_list_styles } from \"./pika-tool.js\";\nimport { kling_generate_video, kling_get_task } from \"./kling-tool.js\";\n// ─── Monitoring / CI / CDP / Email / Commerce / Inference ───\nimport { pagerduty_list_incidents, pagerduty_get_incident, pagerduty_create_incident, pagerduty_acknowledge_incident, pagerduty_resolve_incident, pagerduty_list_services, pagerduty_list_oncalls } from \"./pagerduty-tool.js\";\nimport { circleci_list_pipelines, circleci_get_pipeline, circleci_list_workflows, circleci_get_workflow, circleci_list_jobs, circleci_trigger_pipeline } from \"./circleci-tool.js\";\nimport { segment_track_event, segment_identify_user, segment_list_sources, segment_list_destinations, segment_get_source } from \"./segment-tool.js\";\nimport { postmark_send_email, postmark_send_batch, postmark_get_delivery_stats, postmark_list_templates, postmark_get_template, postmark_search_messages } from \"./postmark-tool.js\";\nimport { gumroad_list_products, gumroad_get_product, gumroad_list_sales, gumroad_get_sale, gumroad_list_subscribers } from \"./gumroad-tool.js\";\nimport { togetherai_chat_completion, togetherai_completion, togetherai_create_embedding, togetherai_list_models } from \"./togetherai-tool.js\";\n// ─── AI ───\nimport { elevenlabsListVoices, elevenlabsGetVoice, elevenlabsTextToSpeech, elevenlabsGetModels, elevenlabsGetHistory } from \"./elevenlabs-tool.js\";\nimport { replicateListModels, replicateGetModel, replicateCreatePrediction, replicateGetPrediction, replicateListPredictions, replicateCancelPrediction } from \"./replicate-tool.js\";\nimport { stabilityTextToImage, stabilityImageToImage, stabilityUpscale, stabilityListEngines } from \"./stability-tool.js\";\nimport { openaiChatCompletion, openaiCreateEmbedding, openaiGenerateImage, openaiCreateTranscription, openaiListModels } from \"./openai-tool.js\";\nimport { anthropicCreateMessage, anthropicListModels } from \"./anthropic-tool.js\";\nimport { amazonSearch, amazonProduct, amazonBrowse, amazonVariations } from \"./amazon-tool.js\";\nimport { shopifyProducts, shopifyOrders, shopifyCustomers, shopifyInventory, shopifyCollections, shopifyShop, shopifyFulfillments } from \"./shopify-tool.js\";\nimport { yelpSearchBusinesses, yelpGetBusiness, yelpGetReviews, yelpSearchEvents, yelpGetAutocomplete } from \"./yelp-tool.js\";\nimport { xeroInvoices, xeroContacts, xeroAccounts, xeroPayments, xeroBankTransactions, xeroReports, xeroQuotes, xeroOrganisation } from \"./xero-tool.js\";\nimport { ebaySearch, ebayGetItem, ebayGetItemByLegacyId, ebayGetCategories } from \"./ebay-tool.js\";\nimport { etsySearchListings, etsyGetListing, etsyGetShop, etsyGetShopListings, etsySearchShops } from \"./etsy-tool.js\";\nimport { stripeCustomers, stripeCharges, stripeSubscriptions, stripeInvoices, stripeProducts, stripePrices } from \"./stripe-tool.js\";\nimport { paypalOrders, paypalInvoices } from \"./paypal-tool.js\";\nimport { squarePayments, squareCustomers, squareCatalogList, squareCatalogSearch } from \"./square-tool.js\";\nimport { quickbooksCustomers, quickbooksInvoices, quickbooksItems, quickbooksPayments } from \"./quickbooks-tool.js\";\nimport { plaidAccounts, plaidTransactions, plaidBalances, plaidIdentity, plaidLinkTokenCreate } from \"./plaid-tool.js\";\nimport { wooProducts, wooOrders, wooCustomers } from \"./woocommerce-tool.js\";\nimport { csuitAnalyze } from \"./csuite-tool.js\";\nimport { vaultAction } from \"./vault-tool.js\";\nimport { qcRunChecklist, qcCheckApi, qcCopyAudit } from \"./qc-tool.js\";\nimport { keychainAction } from \"./keychain-tool.js\";\n// ─── Marketing / Communication / Data ───\nimport { mailchimpListAudiences, mailchimpListCampaigns, mailchimpGetCampaign, mailchimpCreateCampaign, mailchimpListMembers, mailchimpAddMember, mailchimpSearchMembers } from \"./mailchimp-tool.js\";\nimport { sendgridSendEmail, sendgridListTemplates, sendgridGetTemplate, sendgridListContacts, sendgridAddContact, sendgridGetStats } from \"./sendgrid-tool.js\";\nimport { mapboxGeocodeForward, mapboxGeocodeReverse, mapboxGetDirections, mapboxGetStaticMap, mapboxListTilesets } from \"./mapbox-tool.js\";\nimport { algoliaSearch, algoliaGetObject, algoliaListIndices, algoliaBrowseIndex } from \"./algolia-tool.js\";\nimport { pineconeListIndexes, pineconeDescribeIndex, pineconeQueryVectors, pineconeUpsertVectors, pineconeDeleteVectors } from \"./pinecone-tool.js\";\nimport { mixpanelTrackEvent, mixpanelGetEvents, mixpanelGetFunnels, mixpanelGetRetention, mixpanelExportData } from \"./mixpanel-tool.js\";\nimport { datadogListMonitors, datadogGetMonitor, datadogCreateMonitor, datadogListDashboards, datadogQueryMetrics, datadogListEvents } from \"./datadog-tool.js\";\nimport { hubspotListContacts, hubspotGetContact, hubspotSearchContacts, hubspotListCompanies, hubspotListDeals, hubspotCreateContact } from \"./hubspot-tool.js\";\nimport { jiraSearchIssues, jiraGetIssue, jiraListProjects, jiraCreateIssue, jiraAddComment } from \"./jira-tool.js\";\nimport { posthogListFeatureFlags, posthogListInsights, posthogListPersons, posthogQuery } from \"./posthog-tool.js\";\nimport { netlifyListSites, netlifyGetSite, netlifyListDeploys, netlifyGetDeploy } from \"./netlify-tool.js\";\nimport { jobsmithCheck, jobsmithRules } from \"./jobsmith-tool.js\";\nimport { zendeskSearch, zendeskListTickets, zendeskGetTicket, zendeskAddComment } from \"./zendesk-tool.js\";\nimport { intercomListConversations, intercomGetConversation, intercomListContacts, intercomSearchContacts } from \"./intercom-tool.js\";\nimport { typeformListForms, typeformGetForm, typeformGetResponses } from \"./typeform-tool.js\";\nimport { calcomMe, calcomListEventTypes, calcomListBookings } from \"./calcom-tool.js\";\nimport { contentfulListEntries, contentfulGetEntry, contentfulListContentTypes, contentfulListAssets } from \"./contentful-tool.js\";\nimport { webflowListSites, webflowGetSite, webflowListCollections, webflowListItems } from \"./webflow-tool.js\";\nimport { doListDroplets, doListApps, doListDatabases, doAccount } from \"./digitalocean-tool.js\";\nimport { klaviyoListLists, klaviyoListSegments, klaviyoListMetrics, klaviyoListProfiles } from \"./klaviyo-tool.js\";\nimport { todoistListProjects, todoistListTasks, todoistCreateTask, todoistCompleteTask } from \"./todoist-tool.js\";\nimport { pipedriveListDeals, pipedriveListPersons, pipedriveListOrganizations, pipedriveSearchDeals } from \"./pipedrive-tool.js\";\nimport { confluenceSearch, confluenceGetPage, confluenceListSpaces } from \"./confluence-tool.js\";\nimport { unsplashSearchPhotos, unsplashGetPhoto, unsplashRandomPhoto } from \"./unsplash-tool.js\";\nimport { giphySearch, giphyTrending, giphyRandom } from \"./giphy-tool.js\";\nimport { miroListBoards, miroGetBoard, miroListItems } from \"./miro-tool.js\";\nimport { shortcutSearchStories, shortcutGetStory, shortcutListProjects, shortcutListEpics } from \"./shortcut-tool.js\";\nimport { codaListDocs, codaListTables, codaListRows } from \"./coda-tool.js\";\nimport { brevoListContacts, brevoListCampaigns, brevoGetAccount } from \"./brevo-tool.js\";\nimport { uptimerobotGetMonitors, uptimerobotGetAccount } from \"./uptimerobot-tool.js\";\nimport { dropboxListFolder, dropboxSearch, dropboxGetAccount } from \"./dropbox-tool.js\";\nimport { gmailSearch, gmailRead, gmailSend } from \"./gmail-tool.js\";\nimport { driveSearch, driveRead } from \"./google-drive-tool.js\";\nimport { onedriveList, onedriveSearch, onedriveRead } from \"./onedrive-tool.js\";\nimport { bitbucketListRepos, bitbucketGetRepo, bitbucketListPullRequests } from \"./bitbucket-tool.js\";\nimport { cloudinaryListResources, cloudinaryGetUsage } from \"./cloudinary-tool.js\";\nimport { wordpressListPosts, wordpressGetPost, wordpressListPages } from \"./wordpress-tool.js\";\nimport { ghostListPosts, ghostListPages, ghostListTags } from \"./ghost-tool.js\";\nimport { wikipediaSearch, wikipediaSummary, wikipediaPage } from \"./wikipedia-tool.js\";\nimport { deeplTranslateText, deeplGetUsage, deeplListLanguages, deeplTranslateDocument } from \"./deepl-tool.js\";\nimport { assemblyaiTranscribe, assemblyaiGetTranscript, assemblyaiListTranscripts, assemblyaiGetSentences, assemblyaiGetParagraphs, assemblyaiSummarize } from \"./assemblyai-tool.js\";\nimport { groqChatCompletion, groqListModels } from \"./groq-tool.js\";\nimport { nudgeonlyApi, nudgeonlyPolicy, nudgeonlyReceiptBridge } from \"./nudgeonly-tool.js\";\nimport { igniteonlyApi, igniteonlyPolicy, igniteonlyReceiptConsumer } from \"./igniteonly-tool.js\";\nimport { pushonlyApi, pushonlyPolicy, pushonlyWakePusher } from \"./pushonly-tool.js\";\n// ─── Developer / Productivity ───\nimport { githubAction } from \"./github-tool.js\";\nimport { gitlabAction } from \"./gitlab-tool.js\";\nimport { clickupAction } from \"./clickup-tool.js\";\nimport { linearAction } from \"./linear-tool.js\";\nimport { airtableAction } from \"./airtable-tool.js\";\nimport { trelloAction } from \"./trello-tool.js\";\nimport { sentryAction } from \"./sentry-tool.js\";\nimport { postmanAction } from \"./postman-tool.js\";\n// ─── Productivity / Social / Misc ───\nimport { listAsanaWorkspaces, listAsanaProjects, listAsanaTasks, createAsanaTask, updateAsanaTask, getAsanaTask, searchAsanaTasks } from \"./asana-tool.js\";\nimport { listMondayBoards, getMondayBoard, listMondayItems, createMondayItem, updateMondayItem, searchMondayItems } from \"./monday-tool.js\";\nimport { getCalendlyUser, listCalendlyEventTypes, listCalendlyEvents, getCalendlyEvent, listCalendlyInvitees } from \"./calendly-tool.js\";\nimport { listPinterestBoards, getPinterestBoard, listPinterestPins, createPinterestPin, searchPinterestPins, getPinterestUser } from \"./pinterest-tool.js\";\nimport { getTiktokUser, listTiktokVideos, getTiktokVideo } from \"./tiktok-tool.js\";\nimport { getSteamPlayerSummaries, getSteamOwnedGames, getSteamAchievements, getSteamAppDetails, searchSteamStore } from \"./steam-tool.js\";\nimport { igdbSearchGames, igdbGetGame, igdbListPlatforms, igdbListGenres, igdbGetCompany } from \"./igdb-tool.js\";\nimport { speedrunSearchGames, speedrunGetGame, speedrunGetLeaderboard, speedrunListRuns, speedrunGetUser } from \"./speedrun-tool.js\";\nimport { exchangerateLatest, exchangerateConvert, exchangerateHistorical, exchangerateCodes } from \"./exchangerate-tool.js\";\n// ─── Dev / Cloud ───\nimport { neonListProjects, neonGetProject, neonListBranches, neonCreateBranch, neonListDatabases, neonExecuteSql } from \"./neon-tool.js\";\nimport { upstashRedisGet, upstashRedisSet, upstashRedisDel, upstashRedisListKeys, upstashRedisIncr, upstashKafkaProduce, upstashKafkaListTopics } from \"./upstash-tool.js\";\nimport { tursoListDatabases, tursoCreateDatabase, tursoListGroups, tursoGetDatabase, tursoExecuteSql } from \"./turso-tool.js\";\nimport { renderListServices, renderGetService, renderListDeploys, renderTriggerDeploy, renderListEnvVars, renderSetEnvVar } from \"./render-tool.js\";\nimport { flyListApps, flyGetApp, flyListMachines, flyCreateMachine, flyListVolumes } from \"./flyio-tool.js\";\n// ─── AI Models ───\nimport { mistralChatCompletion, mistralListModels, mistralCreateEmbedding } from \"./mistral-tool.js\";\nimport { cohereChat, cohereGenerate, cohereEmbed, cohereRerank, cohereClassify, cohereListModels } from \"./cohere-tool.js\";\nimport { perplexityChatCompletion } from \"./perplexity-tool.js\";\n// ─── Commerce / Creator ───\nimport { lsListStores, lsListProducts, lsListOrders, lsListSubscriptions, lsGetOrder, lsListCustomers } from \"./lemonsqueezy-tool.js\";\nimport { ckListSubscribers, ckAddSubscriber, ckListForms, ckListSequences, ckListTags, ckTagSubscriber } from \"./convertkit-tool.js\";\n// ─── TestPass ───\nimport { testpassListPacks, testpassRun, testpassStatus, testpassSavePack, testpassEditItem, testpassEvidence, testpassFixList, testpassReportHtml, testpassReportJson, testpassReportMd } from \"./testpass-tool.js\";\n// ─── LegalPass (issue-spotting guardrails) ───\nimport { legalpassEditItem, legalpassRun, legalpassSavePack, legalpassStatus, legalpassVerdict } from \"./legalpass-tool.js\";\n// ─── UXPass (sister to TestPass, journey/usability QC) ───\nimport { uxpassRun, uxpassStatus, uxpassReportHtml, uxpassReportJson, uxpassReportMd, uxpassRegisterPack } from \"./uxpass-tool.js\";\n// ─── SEOPass (search visibility QC, sister to UXPass) ───\nimport { seopassRun, seopassStatus, seopassRegisterPack, seopassLighthousePlan } from \"./seopass-tool.js\";\n// ─── GEOPass (AI answer-engine readiness QC, sister to SEOPass) ───\nimport { geopassRun, geopassStatus } from \"./geopass-tool.js\";\n// ─── CompliancePass (public name for EnterprisePass readiness) ───\nimport { compliancepassRun, compliancepassStatus, compliancepassReportJson, compliancepassReportMd } from \"./compliancepass-tool.js\";\n// ─── FlowPass (journey completion QC, sister to UXPass) ───\nimport { flowpassDisagreementQueue, flowpassQuarantine, flowpassRecord, flowpassRegisterPack, flowpassReport, flowpassRun, flowpassStatus } from \"./flowpass-tool.js\";\n// ─── SecurityPass (scope-gated security receipts) ───\nimport { securitypassDisclosureStatus, securitypassFindingDetail, securitypassRegisterPack, securitypassReport, securitypassRun, securitypassStatus, securitypassVerifyScope } from \"./securitypass-tool.js\";\n// ─── CopyPass (copy quality QC, sister to SecurityPass) ───\nimport { copypassRun, copypassStatus } from \"./copypass-tool.js\";\n// ─── SlopPass (AI-code quality and slop-signal QC) ───\nimport { sloppassRun } from \"./sloppass-tool.js\";\n// ─── FidelityCopy / FidelityPass (deterministic preserve-lane receipts) ───\nimport { fidelitycopyCopy, fidelitypassVerifyCopy } from \"./fidelitycopy-tool.js\";\n// ─── CommonSensePass (worker sanity-gate verdicts) ───\nimport { commonsensepassCheckTool, commonsensepassRulesTool } from \"./commonsensepass-tool.js\";\n// ─── XPass (conductor receipt across product checks) ───\nimport { xpassAggregatedVerdict } from \"./xpass-aggregated-verdict-tool.js\";\n// ─── Crews (Orchestrator Wizard) ───\nimport { crewsStartRun, crewsGetRun, crewsListRuns } from \"./crews-tool.js\";\n"
+}
