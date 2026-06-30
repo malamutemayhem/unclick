@@ -16,7 +16,7 @@
 // ============================================================
 
 import { useEffect, useState } from "react";
-import { Plus, X, Bot, UserPlus } from "lucide-react";
+import { Plus, X, Bot, UserPlus, Power } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -36,7 +36,10 @@ export interface AiSeat {
   model: string;
   label: string;
   handle: string;
+  active: boolean;
 }
+
+export type ResponderPolicy = "mention" | "round_table" | "routed" | "crew";
 
 // A small avatar for a human member: their picture if we have one, else
 // initials. Keeps the rail readable without coupling to UserAvatar's
@@ -245,15 +248,25 @@ function InviteMemberForm({
   );
 }
 
+const POLICY_LABELS: Record<ResponderPolicy, string> = {
+  mention: "@mention only",
+  round_table: "Round table",
+  routed: "Best-fit routing",
+  crew: "Crew (coordinated)",
+};
+
 export function ChatMemberRail({
   user,
   accessToken,
   seats,
   activeSeatId,
   humanMembers,
+  responderPolicy,
   onSelectSeat,
   onAddSeat,
   onRemoveSeat,
+  onToggleSeatActive,
+  onResponderPolicyChange,
   onAddHumanMember,
   onRemoveHumanMember,
 }: {
@@ -262,9 +275,12 @@ export function ChatMemberRail({
   seats: AiSeat[];
   activeSeatId: string | null;
   humanMembers: HumanMember[];
+  responderPolicy: ResponderPolicy;
   onSelectSeat: (seat: AiSeat) => void;
   onAddSeat: (slug: string, model: string) => void;
   onRemoveSeat: (id: string) => void;
+  onToggleSeatActive: (id: string) => void;
+  onResponderPolicyChange: (policy: ResponderPolicy) => void;
   onAddHumanMember: (member: HumanMember) => void;
   onRemoveHumanMember: (id: string) => void;
 }) {
@@ -352,13 +368,37 @@ export function ChatMemberRail({
               activeSeatId === s.id ? "bg-primary/10" : "hover:bg-card/50",
             )}
           >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <span
+              className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                s.active ? "bg-emerald-500/20 text-emerald-400" : "bg-primary/15 text-primary",
+              )}
+            >
               <Bot className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-body">{s.label}</p>
-              <p className="truncate text-[10px] text-muted-foreground">@{s.handle}</p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                @{s.handle} {s.active ? "- called in" : "- benched"}
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSeatActive(s.id);
+              }}
+              className={cn(
+                "shrink-0 rounded p-1 transition-colors",
+                s.active
+                  ? "text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300"
+                  : "text-muted-foreground opacity-0 hover:bg-card/60 hover:text-body group-hover:opacity-100",
+              )}
+              aria-label={s.active ? `Bench ${s.label}` : `Call in ${s.label}`}
+              title={s.active ? "Bench (stop auto-responding)" : "Call in (auto-respond)"}
+            >
+              <Power className="h-3.5 w-3.5" />
+            </button>
             <button
               type="button"
               onClick={(e) => {
@@ -373,6 +413,23 @@ export function ChatMemberRail({
           </div>
         ))}
       </div>
+
+      {seats.filter((s) => s.active).length >= 2 && (
+        <div className="mt-2 border-t border-border/40 pt-2">
+          <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+            Multi-AI policy
+          </p>
+          <select
+            value={responderPolicy}
+            onChange={(e) => onResponderPolicyChange(e.target.value as ResponderPolicy)}
+            className="w-full rounded-md border border-border/50 bg-card/40 px-2 py-1.5 text-xs text-body outline-none focus:border-primary/50"
+          >
+            {(Object.keys(POLICY_LABELS) as ResponderPolicy[]).map((p) => (
+              <option key={p} value={p}>{POLICY_LABELS[p]}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="mt-2 space-y-1 border-t border-border/40 pt-2">
         <Popover open={addOpen} onOpenChange={setAddOpen}>
