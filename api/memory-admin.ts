@@ -151,6 +151,7 @@ import {
   providerConfigKeyForPlatform,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
+import { laneForUserId } from "./lib/account-lane.js";
 import {
   attachBuildDeskIdempotencyKey,
   findBuildDeskRowByIdempotencyKey,
@@ -256,6 +257,20 @@ const SALT_BYTES = 32;
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+// Default OFF. Mirrors the same flag in /api/credentials and /api/oauth-init.
+// With it off, the login-connect (server-scheme) read path below is never taken
+// and the connected-apps list behaves byte-identically to the api-key-only
+// original.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+// Same fallback name convention as /api/credentials and /api/ai-provider-key.
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
 }
 
 function normalizeFishbowlText(input: string): string {
@@ -5536,6 +5551,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
           .eq("api_key_hash", tenant.apiKeyHash);
 
+        // Login-connect path (flag-gated): credentials saved while logged in are
+        // stored as enc_scheme='server' rows keyed by the stable account lane,
+        // NOT by api_key_hash, so the api_key_hash query above misses them when
+        // lane_hash differs from the active key_hash. Resolve the lane the same
+        // way /api/credentials does (laneForUserId) and read those rows by
+        // lane_hash + enc_scheme='server'. Presence/metadata only - nothing is
+        // decrypted here. Off (and behaviour-neutral) unless the flag is on and
+        // the server secret is configured.
+        let serverCreds: Array<Record<string, unknown>> = [];
+        if (loginConnectEnabled(process.env) && aiKeySecret(process.env)) {
+          const lane = await laneForUserId(supabaseUrl, supabaseKey, tenant.userId);
+          if (lane && lane !== tenant.apiKeyHash) {
+            const serverQ = await supabase
+              .from("user_credentials")
+              .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+              .eq("lane_hash", lane)
+              .eq("enc_scheme", "server");
+            serverCreds = serverQ.error ? [] : (serverQ.data ?? []);
+          }
+        }
+
         const managedQ = await supabase
           .from("managed_app_connections")
           .select("id, platform_slug, provider, provider_config_key, external_connection_id, auth_mode, status, account_label, scope_summary, last_checked_at, connected_at, created_at, updated_at, metadata")
@@ -5624,6 +5660,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         for (const c of userCreds ?? []) {
+          mergeCredential(c.platform_slug as string, {
+            id: c.id as string,
+            is_valid: c.is_valid !== false,
+            last_tested_at: (c.last_tested_at as string | null) ?? null,
+            label: (c.label as string | null) ?? null,
+            source: "user_credentials",
+            created_at: (c.created_at as string | null) ?? null,
+            updated_at: (c.updated_at as string | null) ?? null,
+          });
+        }
+
+        // Server-scheme (login-connect) rows merge on the same footing as the
+        // api-key rows above, so a logged-in user's server-saved apps surface in
+        // the Connected lens. Empty unless the flag/secret enabled the read.
+        for (const c of serverCreds) {
           mergeCredential(c.platform_slug as string, {
             id: c.id as string,
             is_valid: c.is_valid !== false,
