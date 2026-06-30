@@ -151,7 +151,7 @@ import {
   providerConfigKeyForPlatform,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
-import { laneForUserId } from "./lib/account-lane.js";
+import { laneForUserId, resolveLaneFromMcpOAuth } from "./lib/account-lane.js";
 import {
   attachBuildDeskIdempotencyKey,
   findBuildDeskRowByIdempotencyKey,
@@ -1580,7 +1580,16 @@ async function resolveApiKeyHash(
   // look up that user's api_keys row server-side. Never use a client
   // supplied value for the tenant hash on this path.
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
-  if (!user) return null;
+  if (!user) {
+    // Keyless OAuth seat: the bearer is neither a uc_/agt_ key nor a Supabase
+    // session JWT, but a cryptographically-verifiable MCP OAuth access token
+    // (bare https://unclick.world/api/mcp + magic-link login). Resolve it to the
+    // SAME stable account lane the key/JWT paths use - verified server-side, no
+    // caller-supplied value reaches the lane. Flag-gated inside the resolver, so
+    // login-connect OFF is byte-identical to the api-key-only original. Returns
+    // null on any tampering/expiry/wrong-kind.
+    return resolveLaneFromMcpOAuth(token, process.env, supabaseUrl, serviceRoleKey);
+  }
 
   // Pick the SAME key every other surface does. A user can own more than
   // one api_keys row (regenerations, BYOD). Without an is_active filter and

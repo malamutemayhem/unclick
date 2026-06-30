@@ -149,3 +149,53 @@ describe("vault bridge session-token fallback (keyless login)", () => {
     }
   });
 });
+
+// ─── unclickCredentialsBearer: the bearer the key-gated meta-tools now use ────
+//
+// read_orchestrator_context, check_signals, and the Boardroom / AutoPilot-ledger
+// tools route their Authorization through this so a keyless OAuth seat (bare
+// https://unclick.world/api/mcp + magic-link login) works with no pasted key.
+// Contract: plaintext key wins; else the MCP session token only when the
+// login-connect flag is on; never the bare lane hash; null when truly offline.
+
+describe("unclickCredentialsBearer", () => {
+  afterEach(() => {
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
+  });
+
+  it("returns the plaintext api key when present", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.session.token";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "1";
+    const { unclickCredentialsBearer } = await import("./vault-bridge.js");
+    expect(unclickCredentialsBearer()).toBe("uc_test");
+  });
+
+  it("returns the MCP session token when there is no key and login-connect is on", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.session.token";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "true";
+    const { unclickCredentialsBearer } = await import("./vault-bridge.js");
+    expect(unclickCredentialsBearer()).toBe("mcp.session.token");
+  });
+
+  it("returns null with a session token but the flag off (byte-identical to key-only)", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.session.token";
+    // flag unset -> OFF
+    const { unclickCredentialsBearer } = await import("./vault-bridge.js");
+    expect(unclickCredentialsBearer()).toBeNull();
+  });
+
+  it("never returns the bare lane hash, and is null when fully offline", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    process.env.UNCLICK_API_KEY_HASH = "lane_hash_must_not_leak";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "1";
+    const { unclickCredentialsBearer } = await import("./vault-bridge.js");
+    expect(unclickCredentialsBearer()).toBeNull();
+  });
+});
