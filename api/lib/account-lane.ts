@@ -5,12 +5,15 @@
 // form:
 //   - a Supabase session JWT (the logged-in website) -> auth user -> api_keys
 //   - a raw uc_/agt_ UnClick api key -> key_hash -> api_keys
+//   - a cryptographically-verifiable MCP OAuth access token -> sub -> api_keys
+//     (login-connect only; gated on UNCLICK_LOGIN_CONNECT_ENABLED + secret)
 //
 // AI provider keys are scoped to this lane and encrypted with a server secret,
 // so recycling the master api key never touches them: the lane and the secret
 // both stay the same. Returns null when the caller cannot be resolved.
 
 import * as crypto from "crypto";
+import { verifyMcpOAuthToken } from "./mcp-oauth.js";
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
@@ -54,9 +57,60 @@ export async function laneForUserId(
   return row ? (row.lane_hash || row.key_hash || null) : null;
 }
 
+// Login-connect gate mirror. Matches the other api/ flag readers exactly
+// (oauth-init.ts, oauth-callback.ts, credentials.ts) so the whole login-connect
+// surface is on/off together. Default OFF.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+// Same fallback name convention as api/ai-provider-key.ts / credentials.ts.
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
+}
+
+/**
+ * Resolve an MCP OAuth ACCESS token to the caller's stable account lane.
+ *
+ * The bearer is trusted ONLY after `verifyMcpOAuthToken` passes: the token's
+ * HMAC signature, issuer, audience, kind ('access'), and expiry are all checked
+ * against the server signing secret. The lane is then derived from the verified
+ * `payload.sub` (an auth.users id) via `laneForUserId` - never from anything the
+ * caller supplies. There is deliberately NO "look it up in api_keys by raw hex"
+ * fallback here: possession of a bare lane_hash (which leaks via shared-room
+ * membership) must never resolve a lane. Returns null on any verification
+ * failure, on a disabled flag, or on a missing secret.
+ */
+export async function resolveLaneFromMcpOAuth(
+  token: string,
+  env: NodeJS.ProcessEnv,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<string | null> {
+  if (!token) return null;
+  // Gate the entire token->lane resolver behind the login-connect flag and the
+  // server secret, so flag OFF is byte-identical to the api-key-only original.
+  if (!loginConnectEnabled(env) || !aiKeySecret(env)) return null;
+
+  let payload;
+  try {
+    // Cryptographic verification: signature + iss + aud + kind + expiry. Throws
+    // (and we return null) on any tampering, wrong kind, or expiry.
+    payload = verifyMcpOAuthToken(token, "access", env);
+  } catch {
+    return null;
+  }
+  if (!payload?.sub || typeof payload.sub !== "string") return null;
+
+  // Map the VERIFIED subject to its lane. No caller-supplied value reaches this.
+  return laneForUserId(supabaseUrl, serviceKey, payload.sub);
+}
+
 /**
  * Resolve the Authorization header to the caller's stable account lane.
- * Accepts a uc_/agt_ key or a Supabase session JWT. Returns null if neither
+ * Accepts a uc_/agt_ key, a Supabase session JWT, or (login-connect only) a
+ * cryptographically-verifiable MCP OAuth access token. Returns null if none
  * resolves.
  */
 export async function resolveAccountLane(
@@ -76,10 +130,16 @@ export async function resolveAccountLane(
   const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${token}` },
   });
-  if (!userRes.ok) return null;
-  const user = (await userRes.json().catch(() => null)) as { id?: string } | null;
-  if (!user?.id) return null;
-  return laneForUserId(supabaseUrl, serviceKey, user.id);
+  if (userRes.ok) {
+    const user = (await userRes.json().catch(() => null)) as { id?: string } | null;
+    if (user?.id) return laneForUserId(supabaseUrl, serviceKey, user.id);
+  }
+
+  // MCP OAuth access-token path (login-connect only): the bearer is NOT a
+  // uc_/agt_ key and was NOT accepted as a Supabase session JWT above. Treat it
+  // as a possible MCP OAuth access token and resolve ONLY if it cryptographically
+  // verifies. A bare lane_hash / arbitrary hex can never reach a lane here.
+  return resolveLaneFromMcpOAuth(token, process.env, supabaseUrl, serviceKey);
 }
 
 // auth.users id for the api_keys row matching this key hash (agent path).

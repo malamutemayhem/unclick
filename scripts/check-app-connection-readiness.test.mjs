@@ -55,6 +55,9 @@ describe("app connection readiness", () => {
     assert.ok(receipt.global_checks.some((check) => check.name === "unclick_git_proxy_keeps_github_secret_server_side" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "unclick_git_proxy_has_production_rewrite" && check.status === "pass"));
     assert.ok(receipt.global_checks.some((check) => check.name === "builder_provider_matrix_covers_github_vercel_supabase" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "api_keys_reads_never_select_plaintext_key" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "vault_decrypt_surfaces_avoid_mismatched_crypto_helper" && check.status === "pass"));
+    assert.ok(receipt.global_checks.some((check) => check.name === "server_secret_read_checks_non_empty_not_presence" && check.status === "pass"));
   });
 
   it("blocks when an app is missing from the Apps catalog", async () => {
@@ -254,6 +257,60 @@ describe("app connection readiness", () => {
 
     assert.equal(receipt.status, "blocker");
     assert.match(actionText(receipt), /builder_provider_matrix_covers_github_vercel_supabase/);
+  });
+
+  it("blocks when an api_keys read selects the non-existent plaintext api_key column", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    // public.api_keys has no plaintext api_key column; adding it to a select
+    // 400s the whole PostgREST read and silently empties the Connections page.
+    sources.testpassRun = sources.testpassRun.replace(
+      "select=user_id,is_active",
+      "select=user_id,is_active,api_key"
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /api_keys_reads_never_select_plaintext_key/);
+  });
+
+  it("blocks when a vault decrypt surface imports the mismatched crypto-helpers module", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    // crypto-helpers.ts (210k iterations, dot-joined payload) cannot decrypt the
+    // 100k / four-hex-column vault rows; importing it here is the regression.
+    sources.vaultBridge = sources.vaultBridge.replace(
+      'import { vaultAction }                   from "./vault-tool.js";',
+      'import { decryptGcm } from "../../../api/lib/crypto-helpers.js";\nimport { vaultAction }                   from "./vault-tool.js";'
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /vault_decrypt_surfaces_avoid_mismatched_crypto_helper/);
+  });
+
+  it("blocks when the server-scheme secret read tests presence instead of non-empty length", async () => {
+    const sources = cloneSources(await loadConnectionReadinessSources(process.cwd()));
+    // Dropping .trim() turns a length check into a bare-presence check, so a
+    // present-but-empty secret would be treated as configured.
+    sources.credentialsApi = sources.credentialsApi.replace(
+      'return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();',
+      'return env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "";'
+    );
+
+    const receipt = evaluateConnectionReadinessSources(sources, {
+      platforms: ["github"],
+      now: "2026-06-18T00:00:00.000Z",
+    });
+
+    assert.equal(receipt.status, "blocker");
+    assert.match(actionText(receipt), /server_secret_read_checks_non_empty_not_presence/);
   });
 
   it("blocks when stale public MCP auth can bypass the pairing discovery path", async () => {
