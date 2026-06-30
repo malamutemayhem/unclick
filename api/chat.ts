@@ -24,9 +24,19 @@
 // ============================================================
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from "ai";
+import {
+  streamText,
+  stepCountIs,
+  convertToModelMessages,
+  type UIMessage,
+} from "ai";
 import { resolveApiChatModel } from "./lib/chat-transport.js";
-import { sha256hex, readProviderKey, readProviderKeyForAccount, type EncryptedCredential } from "./lib/chat-crypto.js";
+import {
+  sha256hex,
+  readProviderKey,
+  readProviderKeyForAccount,
+  type EncryptedCredential,
+} from "./lib/chat-crypto.js";
 import { decideChatProviderCall } from "./lib/chat-spend.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
 import { fetchMemoryBlock, buildChatMemory } from "./lib/chat-memory.js";
@@ -63,7 +73,9 @@ export function extractApiKey(authHeader: string | undefined): string | null {
 // uc_/agt_ key here purely so the seat can reach connected apps. It is validated
 // to the caller's lane before use (see handler) and never logged. Returns null
 // for a missing or non-uc_/agt_ value.
-export function extractConnectorKeyHeader(headerValue: string | string[] | undefined): string | null {
+export function extractConnectorKeyHeader(
+  headerValue: string | string[] | undefined,
+): string | null {
   const raw = Array.isArray(headerValue) ? headerValue[0] : headerValue;
   const token = (raw ?? "").trim();
   if (!token.startsWith("uc_") && !token.startsWith("agt_")) return null;
@@ -113,7 +125,9 @@ export interface ChatRequest {
 
 // Validate the request body. This endpoint is api-lane only; local and
 // subscription are rejected with a clear pointer to the right path.
-export function validateChatRequest(body: unknown): { error: string } | ChatRequest {
+export function validateChatRequest(
+  body: unknown,
+): { error: string } | ChatRequest {
   const b = (body ?? {}) as Record<string, unknown>;
   const lane = typeof b.lane === "string" ? b.lane : "api";
   if (lane !== "api") {
@@ -126,12 +140,31 @@ export function validateChatRequest(body: unknown): { error: string } | ChatRequ
   const model = typeof b.model === "string" ? b.model.trim() : "";
   if (!slug) return { error: "slug is required" };
   if (!model) return { error: "model is required" };
-  if (!Array.isArray(b.messages) || b.messages.length === 0) return { error: "messages is required" };
+  if (!Array.isArray(b.messages) || b.messages.length === 0)
+    return { error: "messages is required" };
 
   const out: ChatRequest = { slug, model, messages: b.messages as UIMessage[] };
   if (typeof b.system === "string") out.system = b.system;
   if (typeof b.thread_id === "string") out.thread_id = b.thread_id;
   return out;
+}
+
+function providerDisplayName(slug: string): string {
+  const known: Record<string, string> = {
+    openrouter: "OpenRouter",
+    openai: "OpenAI",
+    anthropic: "Anthropic",
+    google: "Google AI",
+    groq: "Groq",
+    mistral: "Mistral",
+    together: "Together AI",
+    xai: "xAI",
+    deepseek: "DeepSeek",
+    "z-ai": "Z.ai",
+    z_ai: "Z.ai",
+    zai: "Z.ai",
+  };
+  return known[slug] ?? slug.replace(/[-_]/g, " ");
 }
 
 // ─── supabase REST (service role) ────────────────────────────────
@@ -275,9 +308,13 @@ async function persistAssistantTurn(opts: {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-UnClick-Connector-Key");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Authorization, Content-Type, X-UnClick-Connector-Key",
+  );
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "POST required" });
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -291,12 +328,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Resolve the caller to their STABLE account lane from either a logged-in
   // session JWT or a uc_/agt_ key. AI provider keys are account-scoped, so a
   // logged-in session is enough and master-key rotation has no effect.
-  const lane = await resolveAccountLane(req.headers.authorization, supabaseUrl, serviceKey);
+  const lane = await resolveAccountLane(
+    req.headers.authorization,
+    supabaseUrl,
+    serviceKey,
+  );
   if (!lane) return res.status(401).json({ error: "Sign in to chat." });
   const apiKeyHash = lane;
 
   const threadPersistenceLane = parsed.thread_id
-    ? await resolveThreadPersistenceLane(supabaseUrl, serviceKey, parsed.thread_id, lane)
+    ? await resolveThreadPersistenceLane(
+        supabaseUrl,
+        serviceKey,
+        parsed.thread_id,
+        lane,
+      )
     : null;
   if (parsed.thread_id && !threadPersistenceLane) {
     return res.status(403).json({ error: "Not a member of this chat room." });
@@ -307,11 +353,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // master-key-encrypted row when the caller sent a uc_/agt_ key.
   // Fallback to a V2 name so a typo or stray character in the original env var
   // name can be sidestepped without another code change.
-  const aiSecret = process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
+  const aiSecret =
+    process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
   let providerKey: string | null = null;
   if (aiSecret) {
     try {
-      const row = await fetchServerVaultRow(supabaseUrl, serviceKey, lane, parsed.slug);
+      const row = await fetchServerVaultRow(
+        supabaseUrl,
+        serviceKey,
+        lane,
+        parsed.slug,
+      );
       if (row) providerKey = readProviderKeyForAccount(aiSecret, lane, row);
     } catch {
       providerKey = null;
@@ -321,7 +373,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = extractApiKey(req.headers.authorization);
     if (apiKey) {
       try {
-        const row = await fetchVaultRow(supabaseUrl, serviceKey, sha256hex(apiKey), parsed.slug);
+        const row = await fetchVaultRow(
+          supabaseUrl,
+          serviceKey,
+          sha256hex(apiKey),
+          parsed.slug,
+        );
         if (row) providerKey = readProviderKey(apiKey, row);
       } catch {
         providerKey = null;
@@ -335,12 +392,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     hasVaultKey: Boolean(providerKey),
   });
   if (!decision.allowed || !providerKey) {
-    return res.status(403).json({ error: decision.reason });
+    const label = providerDisplayName(parsed.slug);
+    return res.status(403).json({
+      error: "provider_key_missing",
+      provider: parsed.slug,
+      message: `${label} is not connected for this account yet. Add its API key, or choose a connected seat.`,
+    });
   }
 
   let model: ReturnType<typeof resolveApiChatModel>;
   try {
-    model = resolveApiChatModel({ slug: parsed.slug, model: parsed.model, apiKey: providerKey });
+    model = resolveApiChatModel({
+      slug: parsed.slug,
+      model: parsed.model,
+      apiKey: providerKey,
+    });
   } catch (err) {
     return res.status(400).json({ error: (err as Error).message });
   }
@@ -349,7 +415,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Ground the seat in the user's UnClick memory. Best-effort: a memory hiccup
   // returns "" and the chat proceeds with the preamble + any client system text.
-  const memoryBlock = await fetchMemoryBlock(supabaseUrl, serviceKey, apiKeyHash);
+  const memoryBlock = await fetchMemoryBlock(
+    supabaseUrl,
+    serviceKey,
+    apiKeyHash,
+  );
   const groundedSystem = [
     UNCLICK_SEAT_PREAMBLE,
     memoryBlock ? `The user's UnClick memory:\n\n${memoryBlock}` : "",
@@ -373,9 +443,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let connectorKey = extractApiKey(req.headers.authorization);
   if (!connectorKey) {
-    const headerKey = extractConnectorKeyHeader(req.headers["x-unclick-connector-key"]);
+    const headerKey = extractConnectorKeyHeader(
+      req.headers["x-unclick-connector-key"],
+    );
     if (headerKey) {
-      const keyLane = await resolveAccountLane(`Bearer ${headerKey}`, supabaseUrl, serviceKey);
+      const keyLane = await resolveAccountLane(
+        `Bearer ${headerKey}`,
+        supabaseUrl,
+        serviceKey,
+      );
       if (keyLane && keyLane === lane) connectorKey = headerKey;
     }
   }
@@ -394,12 +470,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     stopWhen: stepCountIs(MAX_STEPS),
     onError({ error }) {
       // Log the error shape only - never the key, the body, or the prompt.
-      console.error("chat stream error:", error instanceof Error ? error.message : "unknown");
+      console.error(
+        "chat stream error:",
+        error instanceof Error ? error.message : "unknown",
+      );
     },
     onFinish({ text, usage }) {
       if (!parsed.thread_id) return;
       const u = usage as
-        | { inputTokens?: number; outputTokens?: number; promptTokens?: number; completionTokens?: number }
+        | {
+            inputTokens?: number;
+            outputTokens?: number;
+            promptTokens?: number;
+            completionTokens?: number;
+          }
         | undefined;
       void persistAssistantTurn({
         supabaseUrl,

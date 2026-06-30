@@ -72,9 +72,102 @@ interface MemberRow {
   member_lane_hash: string;
   role: "owner" | "admin" | "member";
   status: "invited" | "active" | "left";
+  invited_by_lane_hash?: string | null;
+  joined_at?: string | null;
+  last_read_at?: string | null;
 }
 
 type AccessRole = "owner" | "admin" | "member" | null;
+
+function userDisplayName(
+  user: { user_metadata?: Record<string, unknown> } | null | undefined,
+): string | null {
+  const meta = user?.user_metadata ?? {};
+  for (const key of ["display_name", "full_name", "name"]) {
+    const value = meta[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function userAvatarUrl(
+  user: { user_metadata?: Record<string, unknown> } | null | undefined,
+): string | null {
+  const meta = user?.user_metadata ?? {};
+  const photo = meta.avatar_photo;
+  if (typeof photo === "string" && photo.startsWith("data:image/"))
+    return photo;
+  const avatar = meta.avatar_url;
+  if (typeof avatar === "string" && /^https:\/\//i.test(avatar)) return avatar;
+  return null;
+}
+
+interface MemberProfile {
+  userId: string | null;
+  email: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
+
+async function fetchMemberProfiles(
+  supabaseUrl: string,
+  serviceKey: string,
+  memberLanes: string[],
+): Promise<Map<string, MemberProfile>> {
+  const out = new Map<string, MemberProfile>();
+  const safeLanes = Array.from(new Set(memberLanes.filter(Boolean))).map(
+    (lane) => encodeURIComponent(lane),
+  );
+  if (safeLanes.length === 0) return out;
+
+  const keyRes = await fetch(
+    `${supabaseUrl}/rest/v1/api_keys?lane_hash=in.(${safeLanes.join(",")})` +
+      `&is_active=eq.true&select=lane_hash,user_id&order=last_used_at.desc.nullslast&limit=1000`,
+    { headers: sbHeaders(serviceKey) },
+  );
+  if (!keyRes.ok) return out;
+  const keyRows = (await keyRes.json().catch(() => [])) as Array<{
+    lane_hash?: string | null;
+    user_id?: string | null;
+  }>;
+
+  const userByLane = new Map<string, string>();
+  for (const row of keyRows) {
+    if (row.lane_hash && row.user_id && !userByLane.has(row.lane_hash)) {
+      userByLane.set(row.lane_hash, row.user_id);
+    }
+  }
+
+  const authByUser = new Map<
+    string,
+    { email?: string | null; user_metadata?: Record<string, unknown> }
+  >();
+  for (const userId of Array.from(new Set(userByLane.values()))) {
+    const userRes = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
+      {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+      },
+    );
+    if (!userRes.ok) continue;
+    const user = (await userRes.json().catch(() => null)) as {
+      email?: string | null;
+      user_metadata?: Record<string, unknown>;
+    } | null;
+    if (user) authByUser.set(userId, user);
+  }
+
+  for (const [laneHash, userId] of userByLane) {
+    const user = authByUser.get(userId);
+    out.set(laneHash, {
+      userId,
+      email: user?.email ?? null,
+      displayName: userDisplayName(user),
+      avatarUrl: userAvatarUrl(user),
+    });
+  }
+  return out;
+}
 
 // Result of an access resolution: the caller's role on the thread plus the
 // thread owner's lane. The owner lane is the canonical tenant key for the
@@ -101,7 +194,7 @@ async function fetchThreadOwner(
   );
   if (!r.ok) return null;
   const rows = (await r.json().catch(() => [])) as ThreadOwnerRow[];
-  return Array.isArray(rows) ? rows[0] ?? null : null;
+  return Array.isArray(rows) ? (rows[0] ?? null) : null;
 }
 
 async function fetchActiveMember(
@@ -118,7 +211,7 @@ async function fetchActiveMember(
   );
   if (!r.ok) return null;
   const rows = (await r.json().catch(() => [])) as MemberRow[];
-  return Array.isArray(rows) ? rows[0] ?? null : null;
+  return Array.isArray(rows) ? (rows[0] ?? null) : null;
 }
 
 // Resolve the caller's role on a thread: owner (owns the row or has an
@@ -157,7 +250,7 @@ async function fetchMemberByLane(
   );
   if (!r.ok) return null;
   const rows = (await r.json().catch(() => [])) as MemberRow[];
-  return Array.isArray(rows) ? rows[0] ?? null : null;
+  return Array.isArray(rows) ? (rows[0] ?? null) : null;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -173,8 +266,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Server not configured." });
   }
 
-  const lane = await resolveAccountLane(req.headers.authorization, supabaseUrl, serviceKey);
-  if (!lane) return res.status(401).json({ error: "Sign in to use chat sessions." });
+  const lane = await resolveAccountLane(
+    req.headers.authorization,
+    supabaseUrl,
+    serviceKey,
+  );
+  if (!lane)
+    return res.status(401).json({ error: "Sign in to use chat sessions." });
 
   const action = String((req.query.action ?? "") || "").trim();
   const rest = `${supabaseUrl}/rest/v1`;
@@ -190,8 +288,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `&select=id,title,kind,metadata,created_at,updated_at` +
       `&order=updated_at.desc&limit=200`;
     const ownedRes = await fetch(ownedUrl, { headers: sbHeaders(serviceKey) });
-    if (!ownedRes.ok) return res.status(502).json({ error: "Failed to list sessions." });
-    const owned = ((await ownedRes.json().catch(() => [])) as ThreadRow[]) || [];
+    if (!ownedRes.ok)
+      return res.status(502).json({ error: "Failed to list sessions." });
+    const owned =
+      ((await ownedRes.json().catch(() => [])) as ThreadRow[]) || [];
 
     // Threads where the caller is an active member (and not the owner).
     const memberRes = await fetch(
@@ -200,11 +300,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { headers: sbHeaders(serviceKey) },
     );
     const memberRows = memberRes.ok
-      ? ((await memberRes.json().catch(() => [])) as Array<{ thread_id: string }>)
+      ? ((await memberRes.json().catch(() => [])) as Array<{
+          thread_id: string;
+        }>)
       : [];
     const ownedIds = new Set(owned.map((t) => t.id));
     const joinedIds = Array.from(
-      new Set(memberRows.map((m) => m.thread_id).filter((id) => id && !ownedIds.has(id))),
+      new Set(
+        memberRows
+          .map((m) => m.thread_id)
+          .filter((id) => id && !ownedIds.has(id)),
+      ),
     );
 
     let joined: ThreadRow[] = [];
@@ -222,7 +328,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `&select=id,title,kind,metadata,created_at,updated_at&order=updated_at.desc&limit=200`,
         { headers: sbHeaders(serviceKey) },
       );
-      joined = joinedRes.ok ? ((await joinedRes.json().catch(() => [])) as ThreadRow[]) : [];
+      joined = joinedRes.ok
+        ? ((await joinedRes.json().catch(() => [])) as ThreadRow[])
+        : [];
     }
 
     const rows = [...owned, ...joined];
@@ -235,7 +343,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .map((t) => t.id)
       .filter((id) => /^[0-9a-fA-F-]{36}$/.test(id))
       .map((id) => encodeURIComponent(id));
-    let memberAllRows: Array<{ thread_id: string; member_lane_hash: string; role: AccessRole; status: string }> = [];
+    let memberAllRows: Array<{
+      thread_id: string;
+      member_lane_hash: string;
+      role: AccessRole;
+      status: string;
+    }> = [];
     if (allIds.length) {
       const inList = allIds.join(",");
       const memberAllRes = await fetch(
@@ -266,7 +379,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             id: t.id,
             title: t.title || "New chat",
             kind: t.kind || "agent",
-            pinned: Boolean(t.metadata && (t.metadata as { pinned?: boolean }).pinned),
+            pinned: Boolean(
+              t.metadata && (t.metadata as { pinned?: boolean }).pinned,
+            ),
             created_at: t.created_at,
             updated_at: t.updated_at,
             shared: false,
@@ -277,12 +392,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Room: caller owns it if their lane is the thread row's lane (owned
         // set), otherwise read their membership role; default to 'member'.
         const ownsRow = ownedIds.has(t.id);
-        const myRole: AccessRole = ownsRow ? "owner" : myRoleByThread.get(t.id) ?? "member";
+        const myRole: AccessRole = ownsRow
+          ? "owner"
+          : (myRoleByThread.get(t.id) ?? "member");
         return {
           id: t.id,
           title: t.title || "New chat",
           kind: t.kind || "agent",
-          pinned: Boolean(t.metadata && (t.metadata as { pinned?: boolean }).pinned),
+          pinned: Boolean(
+            t.metadata && (t.metadata as { pinned?: boolean }).pinned,
+          ),
           created_at: t.created_at,
           updated_at: t.updated_at,
           shared: activeCount > 1,
@@ -301,34 +420,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Shared stream: any owner or active member reads the same rows.
   if (req.method === "GET" && action === "messages") {
     const threadId = String((req.query.thread_id ?? "") || "").trim();
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
     const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
-    if (!role) return res.status(403).json({ error: "Not a member of this room." });
+    if (!role)
+      return res.status(403).json({ error: "Not a member of this room." });
     const url =
       `${rest}/chat_thread_messages?thread_id=eq.${encodeURIComponent(threadId)}` +
       `&select=id,sender_id,sender_kind,seat_lane,model,content,status,created_at` +
       `&order=created_at.asc&limit=2000`;
     const r = await fetch(url, { headers: sbHeaders(serviceKey) });
-    if (!r.ok) return res.status(502).json({ error: "Failed to load messages." });
+    if (!r.ok)
+      return res.status(502).json({ error: "Failed to load messages." });
     const messages = (await r.json().catch(() => [])) as unknown[];
-    return res.status(200).json({ messages: Array.isArray(messages) ? messages : [] });
+    return res
+      .status(200)
+      .json({ messages: Array.isArray(messages) ? messages : [] });
   }
 
   // ── GET members ──────────────────────────────────────────────────
   if (req.method === "GET" && action === "members") {
     const threadId = String((req.query.thread_id ?? "") || "").trim();
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
     const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
-    if (!role) return res.status(403).json({ error: "Not a member of this room." });
+    if (!role)
+      return res.status(403).json({ error: "Not a member of this room." });
     const r = await fetch(
       `${rest}/chat_room_members?thread_id=eq.${encodeURIComponent(threadId)}` +
         `&select=id,thread_id,member_lane_hash,role,status,invited_by_lane_hash,joined_at,last_read_at` +
         `&order=joined_at.asc&limit=200`,
       { headers: sbHeaders(serviceKey) },
     );
-    if (!r.ok) return res.status(502).json({ error: "Failed to load members." });
-    const members = (await r.json().catch(() => [])) as unknown[];
-    return res.status(200).json({ members: Array.isArray(members) ? members : [] });
+    if (!r.ok)
+      return res.status(502).json({ error: "Failed to load members." });
+    const members = (await r.json().catch(() => [])) as MemberRow[];
+    if (!Array.isArray(members)) return res.status(200).json({ members: [] });
+    const profiles = await fetchMemberProfiles(
+      supabaseUrl,
+      serviceKey,
+      members.map((m) => m.member_lane_hash),
+    );
+    return res.status(200).json({
+      members: members.map((member) => {
+        const profile = profiles.get(member.member_lane_hash);
+        return {
+          ...member,
+          user_id: profile?.userId ?? null,
+          email: profile?.email ?? null,
+          display_name: profile?.displayName ?? profile?.email ?? null,
+          avatar_url: profile?.avatarUrl ?? null,
+        };
+      }),
+    });
   }
 
   if (req.method !== "POST") {
@@ -339,8 +483,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── POST create ────────────────────────────────────────────────
   if (action === "create") {
-    const title = typeof body.title === "string" && body.title.trim() ? trimTitle(body.title) : "New chat";
-    const kind = typeof body.kind === "string" && body.kind.trim() ? body.kind.trim() : "agent";
+    const title =
+      typeof body.title === "string" && body.title.trim()
+        ? trimTitle(body.title)
+        : "New chat";
+    const kind =
+      typeof body.kind === "string" && body.kind.trim()
+        ? body.kind.trim()
+        : "agent";
     const now = new Date().toISOString();
     const r = await fetch(`${rest}/chat_threads`, {
       method: "POST",
@@ -384,20 +534,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }).catch(() => {});
     }
 
-    return res.status(200).json({ id: row?.id, title: row?.title ?? title, created_at: row?.created_at });
+    return res
+      .status(200)
+      .json({
+        id: row?.id,
+        title: row?.title ?? title,
+        created_at: row?.created_at,
+      });
   }
 
   // ── POST append (persist a human turn; auto-title on first message) ──────────
   // Owner or active member may post into the shared stream.
   if (action === "append") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
     const content = typeof body.content === "string" ? body.content : "";
-    const senderId = typeof body.sender_id === "string" && body.sender_id.trim() ? body.sender_id.trim() : "you";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
-    if (!content.trim()) return res.status(400).json({ error: "content is required." });
+    const senderId =
+      typeof body.sender_id === "string" && body.sender_id.trim()
+        ? body.sender_id.trim()
+        : "you";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
+    if (!content.trim())
+      return res.status(400).json({ error: "content is required." });
 
-    const { role, ownerLane } = await resolveAccessRole(rest, serviceKey, threadId, lane);
-    if (!role || !ownerLane) return res.status(403).json({ error: "Not a member of this room." });
+    const { role, ownerLane } = await resolveAccessRole(
+      rest,
+      serviceKey,
+      threadId,
+      lane,
+    );
+    if (!role || !ownerLane)
+      return res.status(403).json({ error: "Not a member of this room." });
 
     const now = new Date().toISOString();
     const insert = await fetch(`${rest}/chat_thread_messages`, {
@@ -422,7 +590,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Log the upstream body server-side; never leak it to the client.
       const detail = (await insert.text().catch(() => "")).slice(0, 200);
       console.error("chat-threads append failed:", insert.status, detail);
-      return res.status(insert.status).json({ error: "Failed to save message." });
+      return res
+        .status(insert.status)
+        .json({ error: "Failed to save message." });
     }
 
     // Touch updated_at, and auto-title from the first human turn if still
@@ -433,10 +603,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `&api_key_hash=eq.${encodeURIComponent(ownerLane)}&select=title`,
       { headers: sbHeaders(serviceKey) },
     );
-    const curRows = cur.ok ? ((await cur.json().catch(() => [])) as Array<{ title: string | null }>) : [];
+    const curRows = cur.ok
+      ? ((await cur.json().catch(() => [])) as Array<{ title: string | null }>)
+      : [];
     const patch: Record<string, unknown> = { updated_at: now };
     const existingTitle = curRows[0]?.title;
-    if (!existingTitle || existingTitle === "New chat") patch.title = trimTitle(content);
+    if (!existingTitle || existingTitle === "New chat")
+      patch.title = trimTitle(content);
     await fetch(
       `${rest}/chat_threads?id=eq.${encodeURIComponent(threadId)}` +
         `&api_key_hash=eq.${encodeURIComponent(ownerLane)}`,
@@ -447,21 +620,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ).catch(() => {});
 
-    return res.status(200).json({ success: true, title: patch.title ?? existingTitle ?? "New chat" });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        title: patch.title ?? existingTitle ?? "New chat",
+      });
   }
 
   // ── POST update (rename / pin) ──────────────────────────────────────
   // Only owner or admin may rename a room.
   if (action === "update") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
-    const { role, ownerLane } = await resolveAccessRole(rest, serviceKey, threadId, lane);
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
+    const { role, ownerLane } = await resolveAccessRole(
+      rest,
+      serviceKey,
+      threadId,
+      lane,
+    );
     if (role !== "owner" && role !== "admin") {
-      return res.status(403).json({ error: "Only the room owner or an admin can rename this thread." });
+      return res
+        .status(403)
+        .json({
+          error: "Only the room owner or an admin can rename this thread.",
+        });
     }
-    if (!ownerLane) return res.status(403).json({ error: "Only the room owner or an admin can rename this thread." });
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (typeof body.title === "string" && body.title.trim()) patch.title = trimTitle(body.title);
+    if (!ownerLane)
+      return res
+        .status(403)
+        .json({
+          error: "Only the room owner or an admin can rename this thread.",
+        });
+    const patch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (typeof body.title === "string" && body.title.trim())
+      patch.title = trimTitle(body.title);
     if (typeof body.pinned === "boolean") {
       // Merge the pinned flag into metadata without clobbering other keys.
       const cur = await fetch(
@@ -469,7 +666,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `&api_key_hash=eq.${encodeURIComponent(ownerLane)}&select=metadata`,
         { headers: sbHeaders(serviceKey) },
       );
-      const rows = cur.ok ? ((await cur.json().catch(() => [])) as Array<{ metadata: Record<string, unknown> | null }>) : [];
+      const rows = cur.ok
+        ? ((await cur.json().catch(() => [])) as Array<{
+            metadata: Record<string, unknown> | null;
+          }>)
+        : [];
       patch.metadata = { ...(rows[0]?.metadata ?? {}), pinned: body.pinned };
     }
     // Scope the write by the thread's owner lane (its canonical tenant key).
@@ -482,23 +683,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body: JSON.stringify(patch),
       },
     );
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to update session." });
+    if (!r.ok)
+      return res.status(r.status).json({ error: "Failed to update session." });
     return res.status(200).json({ success: true });
   }
 
   // ── POST delete (thread + its messages) ───────────────────────────────
   // Only owner or admin may delete a room.
   if (action === "delete") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
-    const { role, ownerLane } = await resolveAccessRole(rest, serviceKey, threadId, lane);
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
+    const { role, ownerLane } = await resolveAccessRole(
+      rest,
+      serviceKey,
+      threadId,
+      lane,
+    );
     if (role !== "owner" && role !== "admin") {
-      return res.status(403).json({ error: "Only the room owner or an admin can delete this thread." });
+      return res
+        .status(403)
+        .json({
+          error: "Only the room owner or an admin can delete this thread.",
+        });
     }
-    if (!ownerLane) return res.status(403).json({ error: "Only the room owner or an admin can delete this thread." });
+    if (!ownerLane)
+      return res
+        .status(403)
+        .json({
+          error: "Only the room owner or an admin can delete this thread.",
+        });
     await fetch(
       `${rest}/chat_thread_messages?thread_id=eq.${encodeURIComponent(threadId)}`,
-      { method: "DELETE", headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" } },
+      {
+        method: "DELETE",
+        headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+      },
     ).catch(() => {});
     // Scope the delete by the thread's owner lane (its canonical tenant key).
     const r = await fetch(
@@ -509,7 +730,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
       },
     );
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to delete session." });
+    if (!r.ok)
+      return res.status(r.status).json({ error: "Failed to delete session." });
     return res.status(200).json({ success: true });
   }
 
@@ -521,18 +743,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // (c) Resolve the target's lane from api_keys (freshest active key).
   // (d) Insert/activate the target's membership row.
   if (action === "add_member") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
-    const memberUserId = typeof body.member_user_id === "string" ? body.member_user_id.trim() : "";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
-    if (!memberUserId) return res.status(400).json({ error: "member_user_id is required." });
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    const memberUserId =
+      typeof body.member_user_id === "string" ? body.member_user_id.trim() : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
+    if (!memberUserId)
+      return res.status(400).json({ error: "member_user_id is required." });
 
     const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
     if (role !== "owner" && role !== "admin") {
-      return res.status(403).json({ error: "Only the room owner or an admin can add members." });
+      return res
+        .status(403)
+        .json({ error: "Only the room owner or an admin can add members." });
     }
 
     // (b) Circle gate: an accepted link must pair caller <-> target.
-    const callerUserId = await resolveCallerUserId(req.headers.authorization, supabaseUrl, serviceKey);
+    const callerUserId = await resolveCallerUserId(
+      req.headers.authorization,
+      supabaseUrl,
+      serviceKey,
+    );
     if (!callerUserId) {
       return res.status(401).json({ error: "Could not resolve your account." });
     }
@@ -541,7 +773,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `&or=(and(requester_user_id.eq.${encodeURIComponent(callerUserId)},recipient_user_id.eq.${encodeURIComponent(memberUserId)}),` +
       `and(requester_user_id.eq.${encodeURIComponent(memberUserId)},recipient_user_id.eq.${encodeURIComponent(callerUserId)}))`;
     const linkRes = await fetch(linkUrl, { headers: sbHeaders(serviceKey) });
-    const linkRows = linkRes.ok ? ((await linkRes.json().catch(() => [])) as Array<{ id: string }>) : [];
+    const linkRows = linkRes.ok
+      ? ((await linkRes.json().catch(() => [])) as Array<{ id: string }>)
+      : [];
     if (!linkRows.length) {
       return res.status(409).json({
         error: "no_circle_link",
@@ -551,12 +785,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // (c) Resolve the target's stable lane from their api_keys.
-    const targetLane = await laneForUserId(supabaseUrl, serviceKey, memberUserId);
+    const targetLane = await laneForUserId(
+      supabaseUrl,
+      serviceKey,
+      memberUserId,
+    );
     if (!targetLane) {
       return res.status(409).json({ error: "target_not_provisioned" });
     }
     if (targetLane === lane) {
-      return res.status(400).json({ error: "That member is already in this room." });
+      return res
+        .status(400)
+        .json({ error: "That member is already in this room." });
     }
 
     // (d) Insert or re-activate the target's membership row.
@@ -594,34 +834,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error("chat-threads add_member failed:", upsert.status, detail);
       return res.status(upsert.status).json({ error: "Failed to add member." });
     }
-    return res.status(200).json({ success: true, member_lane_hash: targetLane });
+    return res
+      .status(200)
+      .json({ success: true, member_lane_hash: targetLane });
   }
 
   // ── POST remove_member (owner/admin sets a member's status to 'left') ──
   if (action === "remove_member") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
-    const memberUserId = typeof body.member_user_id === "string" ? body.member_user_id.trim() : "";
-    const explicitLane = typeof body.member_lane_hash === "string" ? body.member_lane_hash.trim() : "";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    const memberUserId =
+      typeof body.member_user_id === "string" ? body.member_user_id.trim() : "";
+    const explicitLane =
+      typeof body.member_lane_hash === "string"
+        ? body.member_lane_hash.trim()
+        : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
 
     const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
     if (role !== "owner" && role !== "admin") {
-      return res.status(403).json({ error: "Only the room owner or an admin can remove members." });
+      return res
+        .status(403)
+        .json({ error: "Only the room owner or an admin can remove members." });
     }
 
     let targetLane = explicitLane;
     if (!targetLane && memberUserId) {
-      targetLane = (await laneForUserId(supabaseUrl, serviceKey, memberUserId)) ?? "";
+      targetLane =
+        (await laneForUserId(supabaseUrl, serviceKey, memberUserId)) ?? "";
     }
     if (!targetLane) {
-      return res.status(400).json({ error: "member_user_id or member_lane_hash is required." });
+      return res
+        .status(400)
+        .json({ error: "member_user_id or member_lane_hash is required." });
     }
 
     // Re-validate the target against THIS thread before acting:
     //  - the target must hold an active membership row on this thread,
     //  - the room owner can never be removed (only the room is deleted),
     //  - an admin can only be removed by the owner, not by another admin.
-    const target = await fetchMemberByLane(rest, serviceKey, threadId, targetLane);
+    const target = await fetchMemberByLane(
+      rest,
+      serviceKey,
+      threadId,
+      targetLane,
+    );
     if (!target || target.status !== "active") {
       return res.status(404).json({ error: "not_a_member" });
     }
@@ -644,7 +902,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body: JSON.stringify({ status: "left" }),
       },
     );
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to remove member." });
+    if (!r.ok)
+      return res.status(r.status).json({ error: "Failed to remove member." });
     return res.status(200).json({ success: true });
   }
 
@@ -653,8 +912,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // must delete the room or transfer ownership), and a caller with no
   // membership row is not a member.
   if (action === "leave") {
-    const threadId = typeof body.thread_id === "string" ? body.thread_id.trim() : "";
-    if (!threadId) return res.status(400).json({ error: "thread_id is required." });
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
 
     const owner = await fetchThreadOwner(rest, serviceKey, threadId);
     if (!owner) return res.status(404).json({ error: "not_a_member" });
@@ -679,7 +940,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body: JSON.stringify({ status: "left" }),
       },
     );
-    if (!r.ok) return res.status(r.status).json({ error: "Failed to leave room." });
+    if (!r.ok)
+      return res.status(r.status).json({ error: "Failed to leave room." });
     return res.status(200).json({ success: true });
   }
 

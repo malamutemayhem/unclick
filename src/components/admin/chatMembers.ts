@@ -17,6 +17,8 @@ export interface HumanMember {
   email: string; // best-known email for the connection
   label: string; // display name, falling back to email
   avatarUrl: string | null;
+  memberLaneHash?: string | null;
+  role?: "owner" | "admin" | "member";
 }
 
 interface AccountLinkPerson {
@@ -36,6 +38,21 @@ interface AccountLinkView {
 
 interface AccountLinksResponse {
   links?: AccountLinkView[];
+}
+
+interface RoomMemberRow {
+  id: string;
+  member_lane_hash?: string | null;
+  role?: "owner" | "admin" | "member";
+  status?: "invited" | "active" | "left";
+  user_id?: string | null;
+  email?: string | null;
+  display_name?: string | null;
+  avatar_url?: string | null;
+}
+
+interface RoomMembersResponse {
+  members?: RoomMemberRow[];
 }
 
 // An incoming connection request the operator has not yet answered: an
@@ -84,6 +101,46 @@ export async function fetchConnectedMembers(
   }
 }
 
+// Fetch the actual active members of a shared chat room. The server only
+// returns this after the caller is already authorized on the room.
+export async function fetchRoomMembers(
+  accessToken: string,
+  threadId: string,
+  timeoutMs = 8000,
+): Promise<HumanMember[] | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(
+      `/api/chat-threads?action=members&thread_id=${encodeURIComponent(threadId)}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: controller.signal,
+      },
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as RoomMembersResponse;
+    return (json.members ?? [])
+      .filter((member) => member.status === "active")
+      .map((member) => {
+        const email = member.email ?? "";
+        return {
+          id: member.id,
+          userId: member.user_id ?? null,
+          email,
+          label: member.display_name || email || "Room member",
+          avatarUrl: member.avatar_url ?? null,
+          memberLaneHash: member.member_lane_hash ?? null,
+          role: member.role,
+        };
+      });
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Fetch the incoming connection requests waiting on the operator (pending
 // Circle links the other side sent us). Returns null on any failure so the
 // caller can fall back to a soft empty state instead of breaking the chat.
@@ -101,7 +158,9 @@ export async function fetchPendingHandshakes(
     if (!res.ok) return null;
     const json = (await res.json()) as AccountLinksResponse;
     return (json.links ?? [])
-      .filter((link) => link.status === "pending" && link.direction === "received")
+      .filter(
+        (link) => link.status === "pending" && link.direction === "received",
+      )
       .map((link) => {
         const email = link.person.email ?? "";
         return {
