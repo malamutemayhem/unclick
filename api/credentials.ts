@@ -3,11 +3,13 @@
  * Vercel serverless function - serves GET and POST for platform credentials.
  *
  * GET  /api/credentials?platform=xero[&label=foo]
- *   Authorization: Bearer <unclick_api_key OR Supabase session JWT>
+ *   Authorization: Bearer <unclick_api_key OR Supabase session JWT
+ *                          OR MCP OAuth access token>
  *   Returns decrypted credential fields for the platform.
  *   If label is omitted, returns the default (NULL-label) row, falling
  *   back to the first labeled row.
- *   Used by vault-bridge.ts in the MCP server (UNCLICK_API_KEY env var).
+ *   Used by vault-bridge.ts in the MCP server (UNCLICK_API_KEY env var, or the
+ *   verifiable UNCLICK_MCP_SESSION_TOKEN on a keyless login session).
  *
  * POST /api/credentials
  *   Body: { platform: string, credentials: Record<string, string>,
@@ -56,7 +58,7 @@ import {
   type EncryptedCredential,
 } from "./lib/chat-crypto.js";
 
-// ─── Crypto helpers ───────────────────────────────────────────────────────────
+// ─── Crypto helpers ───────────────────────────────────────────────────
 
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_BYTES         = 32;
@@ -96,7 +98,7 @@ function decrypt(
   ]).toString("utf8");
 }
 
-// ─── Server-scheme (login-connect) helpers ────────────────────────────────────
+// ─── Server-scheme (login-connect) helpers ───────────────────────────────────────
 
 // Default OFF. The session-authed server-scheme path (and its lazy migration)
 // is only taken when this flag is explicitly enabled. With it off, behaviour is
@@ -125,7 +127,7 @@ function encryptedCredentialFromRow(row: Record<string, unknown>): EncryptedCred
   };
 }
 
-// ─── Supabase helpers ─────────────────────────────────────────────────────────
+// ─── Supabase helpers ─────────────────────────────────────────────────
 
 function supabaseHeaders(serviceRoleKey: string): Record<string, string> {
   return {
@@ -152,7 +154,7 @@ async function supabaseFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
-// ─── OAuth refresh on read ────────────────────────────────────────────────────
+// ─── OAuth refresh on read ───────────────────────────────────────────────
 // The single chokepoint every OAuth connector funnels through (vault-bridge ->
 // GET /api/credentials). If a stored access token is expiring and we hold a
 // refresh token, mint a fresh one here so connectors never receive a dead token.
@@ -234,7 +236,7 @@ async function refreshStoredCredential(params: {
   }
 }
 
-// ─── Lazy migration: apikey row -> server scheme ──────────────────────────────
+// ─── Lazy migration: apikey row -> server scheme ────────────────────────────────
 // Best-effort and NON-destructive. When an 'apikey' row is read on a request
 // that also resolves an account lane (flag on, secret present), write a new
 // server-scheme copy of the SAME plaintext and verify it decrypts before we
@@ -275,7 +277,7 @@ async function migrateRowToServerScheme(params: {
   }
 }
 
-// ─── Main handler ─────────────────────────────────────────────────────────────
+// ─── Main handler ──────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
@@ -369,7 +371,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── GET: retrieve decrypted credentials ───────────────────────────────────
+  // ── GET: retrieve decrypted credentials ──────────────────────────────
   if (req.method === "GET") {
     const authHeader = req.headers.authorization ?? "";
     const apiKey     = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -384,7 +386,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKeyHash = sha256hex(apiKey);
     // Login-connect path: resolve the caller's stable lane so we can find
     // server-scheme rows (and lazily migrate apikey rows). Off unless the flag
-    // is on and the server secret is configured.
+    // is on and the server secret is configured. resolveAccountLane accepts a
+    // uc_/agt_ key, a Supabase session JWT, OR a cryptographically-verifiable
+    // MCP OAuth access token (the keyless login-session path). A bare lane_hash
+    // or any unverified bearer never resolves here, so a leaked lane is useless:
+    // only a token whose signature/issuer/audience/expiry verify maps (via its
+    // `sub`) to a lane.
     const lane = (loginConnect && serverSecret)
       ? await resolveAccountLane(authHeader, supabaseUrl, serviceRoleKey)
       : null;
@@ -515,7 +522,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ── POST: store encrypted credentials ────────────────────────────────────
+  // ── POST: store encrypted credentials ───────────────────────────────
   if (req.method === "POST") {
     const body = req.body as {
       platform:    string;
