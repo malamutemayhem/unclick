@@ -66,7 +66,7 @@ describe("Orchestrator continuity bridge", () => {
 
   it("sanitizes free-text search before building PostgREST or filters", () => {
     const contextReadCase = handlerCase("orchestrator_context_read", "orchestrator_log_read");
-    const logReadCase = handlerCase("orchestrator_log_read", "autopilot_zero_touch_metrics");
+    const logReadCase = handlerCase("orchestrator_log_read", "fishbowl_create_todo");
 
     expect(memoryAdmin).toContain("function postgrestOrSafeIlikePattern(input: string)");
     expect(memoryAdmin).toContain(".replace(/[(),]/g, \" \")");
