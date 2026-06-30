@@ -47,9 +47,19 @@ function createResponse(): CapturedResponse {
   };
 }
 
-type MockRes = { ok: boolean; status: number; json: () => Promise<unknown>; text: () => Promise<string> };
+type MockRes = {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+  text: () => Promise<string>;
+};
 function jsonRes(data: unknown, ok = true, status = 200): MockRes {
-  return { ok, status, json: async () => data, text: async () => JSON.stringify(data) };
+  return {
+    ok,
+    status,
+    json: async () => data,
+    text: async () => JSON.stringify(data),
+  };
 }
 
 const CALLER_KEY = "uc_caller_key";
@@ -76,17 +86,54 @@ interface RouteConfig {
   targetLane?: string | null;
   // remove_member: the target's membership row on THIS thread (any status).
   // undefined => no row at all (404 not_a_member).
-  targetMembership?: { role: "owner" | "admin" | "member"; status: "invited" | "active" | "left" } | null;
+  targetMembership?: {
+    role: "owner" | "admin" | "member";
+    status: "invited" | "active" | "left";
+  } | null;
   // leave: the caller's own membership row on the thread (any status).
   // undefined => no row at all (404 not_a_member).
-  callerOwnMembership?: { role: "owner" | "admin" | "member"; status: "invited" | "active" | "left" } | null;
+  callerOwnMembership?: {
+    role: "owner" | "admin" | "member";
+    status: "invited" | "active" | "left";
+  } | null;
   // list: owned thread rows (api_key_hash == caller lane)
-  ownedThreads?: Array<{ id: string; title?: string; kind?: string; metadata?: Record<string, unknown> }>;
+  ownedThreads?: Array<{
+    id: string;
+    title?: string;
+    kind?: string;
+    metadata?: Record<string, unknown>;
+  }>;
   // list: thread_ids the caller is an active member of (and the rows behind them)
   memberThreadIds?: string[];
-  joinedThreads?: Array<{ id: string; title?: string; kind?: string; metadata?: Record<string, unknown> }>;
+  joinedThreads?: Array<{
+    id: string;
+    title?: string;
+    kind?: string;
+    metadata?: Record<string, unknown>;
+  }>;
   // list: batched active membership rows over the listed thread ids
-  batchedMembers?: Array<{ thread_id: string; member_lane_hash: string; role: "owner" | "admin" | "member" }>;
+  batchedMembers?: Array<{
+    thread_id: string;
+    member_lane_hash: string;
+    role: "owner" | "admin" | "member";
+  }>;
+  // members: active membership rows and optional profile data keyed by lane
+  roomMembers?: Array<{
+    id: string;
+    thread_id: string;
+    member_lane_hash: string;
+    role: "owner" | "admin" | "member";
+    status: "active" | "left" | "invited";
+  }>;
+  roomMemberProfiles?: Record<
+    string,
+    {
+      user_id: string;
+      email: string;
+      display_name?: string | null;
+      avatar_url?: string | null;
+    }
+  >;
   // capture sink for inserts/patches
   calls: Array<{ url: string; method: string; body: unknown }>;
 }
@@ -102,16 +149,59 @@ function stubFetch(cfg: RouteConfig) {
       if (method !== "GET") cfg.calls.push({ url, method, body: parsedBody });
 
       // resolveAccountLane: uc_ key -> lane
-      if (url.includes("/api_keys?") && url.includes("key_hash=eq.") && url.includes("select=lane_hash&")) {
+      if (
+        url.includes("/api_keys?") &&
+        url.includes("key_hash=eq.") &&
+        url.includes("select=lane_hash&")
+      ) {
         return jsonRes([{ lane_hash: CALLER_LANE }]);
       }
       // resolveCallerUserId: uc_ key -> user_id
-      if (url.includes("/api_keys?") && url.includes("key_hash=eq.") && url.includes("select=user_id")) {
+      if (
+        url.includes("/api_keys?") &&
+        url.includes("key_hash=eq.") &&
+        url.includes("select=user_id")
+      ) {
         return jsonRes([{ user_id: CALLER_USER }]);
       }
       // laneForUserId(target): freshest active key
-      if (url.includes("/api_keys?") && url.includes(`user_id=eq.${TARGET_USER}`)) {
-        return jsonRes(cfg.targetLane === undefined ? [] : cfg.targetLane === null ? [] : [{ lane_hash: cfg.targetLane }]);
+      if (
+        url.includes("/api_keys?") &&
+        url.includes(`user_id=eq.${TARGET_USER}`)
+      ) {
+        return jsonRes(
+          cfg.targetLane === undefined
+            ? []
+            : cfg.targetLane === null
+              ? []
+              : [{ lane_hash: cfg.targetLane }],
+        );
+      }
+      // GET members: map room member lane hashes back to user ids
+      if (url.includes("/api_keys?") && url.includes("lane_hash=in.(")) {
+        const profiles = cfg.roomMemberProfiles ?? {};
+        return jsonRes(
+          Object.entries(profiles).map(([laneHash, profile]) => ({
+            lane_hash: laneHash,
+            user_id: profile.user_id,
+          })),
+        );
+      }
+      // GET members: auth profile lookup for each resolved user id
+      if (url.includes("/auth/v1/admin/users/")) {
+        const userId = decodeURIComponent(url.split("/").pop() ?? "");
+        const profile = Object.values(cfg.roomMemberProfiles ?? {}).find(
+          (p) => p.user_id === userId,
+        );
+        return profile
+          ? jsonRes({
+              email: profile.email,
+              user_metadata: {
+                display_name: profile.display_name,
+                avatar_url: profile.avatar_url,
+              },
+            })
+          : jsonRes(null, false, 404);
       }
       // list: owned threads (scoped by caller lane)
       if (
@@ -132,7 +222,11 @@ function stubFetch(cfg: RouteConfig) {
         );
       }
       // list: joined thread details (id in.(...))
-      if (url.includes("/chat_threads?") && url.includes("id=in.(") && method === "GET") {
+      if (
+        url.includes("/chat_threads?") &&
+        url.includes("id=in.(") &&
+        method === "GET"
+      ) {
         return jsonRes(
           (cfg.joinedThreads ?? []).map((t) => ({
             id: t.id,
@@ -152,7 +246,9 @@ function stubFetch(cfg: RouteConfig) {
         url.includes("select=thread_id&") &&
         method === "GET"
       ) {
-        return jsonRes((cfg.memberThreadIds ?? []).map((id) => ({ thread_id: id })));
+        return jsonRes(
+          (cfg.memberThreadIds ?? []).map((id) => ({ thread_id: id })),
+        );
       }
       // list: batched active membership over the listed thread ids
       if (
@@ -180,18 +276,64 @@ function stubFetch(cfg: RouteConfig) {
       ) {
         return jsonRes(
           cfg.callerOwnMembership
-            ? [{ id: "m-self", thread_id: "thread-1", member_lane_hash: CALLER_LANE, role: cfg.callerOwnMembership.role, status: cfg.callerOwnMembership.status }]
+            ? [
+                {
+                  id: "m-self",
+                  thread_id: "thread-1",
+                  member_lane_hash: CALLER_LANE,
+                  role: cfg.callerOwnMembership.role,
+                  status: cfg.callerOwnMembership.status,
+                },
+              ]
             : [],
         );
       }
+      // GET members: all room members for a visible thread
+      if (
+        url.includes("/chat_room_members?") &&
+        url.includes(
+          "select=id,thread_id,member_lane_hash,role,status,invited_by_lane_hash",
+        ) &&
+        method === "GET"
+      ) {
+        return jsonRes(
+          (cfg.roomMembers ?? []).map((m) => ({
+            ...m,
+            invited_by_lane_hash: CALLER_LANE,
+            joined_at: "2026-06-29T00:00:00Z",
+            last_read_at: null,
+          })),
+        );
+      }
       // thread owner lookup
-      if (url.includes("/chat_threads?") && url.includes("select=id,api_key_hash")) {
-        if (cfg.threadOwner === undefined || cfg.threadOwner === null) return jsonRes([]);
+      if (
+        url.includes("/chat_threads?") &&
+        url.includes("select=id,api_key_hash")
+      ) {
+        if (cfg.threadOwner === undefined || cfg.threadOwner === null)
+          return jsonRes([]);
         return jsonRes([{ id: "thread-1", api_key_hash: cfg.threadOwner }]);
       }
       // caller active membership lookup
-      if (url.includes("/chat_room_members?") && url.includes("member_lane_hash=eq.") && url.includes("status=eq.active") && method === "GET") {
-        return jsonRes(cfg.callerMembership ? [{ id: "m-1", thread_id: "thread-1", member_lane_hash: CALLER_LANE, role: cfg.callerMembership.role, status: "active" }] : []);
+      if (
+        url.includes("/chat_room_members?") &&
+        url.includes("member_lane_hash=eq.") &&
+        url.includes("status=eq.active") &&
+        method === "GET"
+      ) {
+        return jsonRes(
+          cfg.callerMembership
+            ? [
+                {
+                  id: "m-1",
+                  thread_id: "thread-1",
+                  member_lane_hash: CALLER_LANE,
+                  role: cfg.callerMembership.role,
+                  status: "active",
+                },
+              ]
+            : [],
+        );
       }
       // target membership lookup (remove_member: fetchMemberByLane, no status filter)
       if (
@@ -202,17 +344,34 @@ function stubFetch(cfg: RouteConfig) {
       ) {
         return jsonRes(
           cfg.targetMembership
-            ? [{ id: "m-target", thread_id: "thread-1", member_lane_hash: TARGET_LANE, role: cfg.targetMembership.role, status: cfg.targetMembership.status }]
+            ? [
+                {
+                  id: "m-target",
+                  thread_id: "thread-1",
+                  member_lane_hash: TARGET_LANE,
+                  role: cfg.targetMembership.role,
+                  status: cfg.targetMembership.status,
+                },
+              ]
             : [],
         );
       }
       // accepted Circle link lookup
-      if (url.includes("/account_links?") && url.includes("status=eq.accepted")) {
+      if (
+        url.includes("/account_links?") &&
+        url.includes("status=eq.accepted")
+      ) {
         return jsonRes(cfg.acceptedLink ? [{ id: "link-1" }] : []);
       }
       // create thread -> representation
       if (url.endsWith("/chat_threads") && method === "POST") {
-        return jsonRes([{ id: "thread-1", title: "New chat", created_at: "2026-06-29T00:00:00Z" }]);
+        return jsonRes([
+          {
+            id: "thread-1",
+            title: "New chat",
+            created_at: "2026-06-29T00:00:00Z",
+          },
+        ]);
       }
       // membership insert / upsert
       if (url.includes("/chat_room_members") && method === "POST") {
@@ -220,7 +379,14 @@ function stubFetch(cfg: RouteConfig) {
       }
       // messages read
       if (url.includes("/chat_thread_messages?") && method === "GET") {
-        return jsonRes([{ id: "msg-1", sender_id: "you", sender_kind: "human", content: "hi" }]);
+        return jsonRes([
+          {
+            id: "msg-1",
+            sender_id: "you",
+            sender_kind: "human",
+            content: "hi",
+          },
+        ]);
       }
       // generic write success
       if (method !== "GET") return jsonRes(null, true, 200);
@@ -258,12 +424,19 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "create" }, headers: auth, body: { kind: "council", title: "Strategy" } } as never,
+      {
+        method: "POST",
+        query: { action: "create" },
+        headers: auth,
+        body: { kind: "council", title: "Strategy" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
-    const memberInsert = cfg.calls.find((c) => c.url.includes("/chat_room_members") && c.method === "POST");
+    const memberInsert = cfg.calls.find(
+      (c) => c.url.includes("/chat_room_members") && c.method === "POST",
+    );
     expect(memberInsert).toBeTruthy();
     expect(memberInsert!.body).toMatchObject({
       thread_id: "thread-1",
@@ -278,41 +451,80 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "create" }, headers: auth, body: { kind: "agent" } } as never,
+      {
+        method: "POST",
+        query: { action: "create" },
+        headers: auth,
+        body: { kind: "agent" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
-    expect(cfg.calls.find((c) => c.url.includes("/chat_room_members"))).toBeUndefined();
+    expect(
+      cfg.calls.find((c) => c.url.includes("/chat_room_members")),
+    ).toBeUndefined();
   });
 
   it("add_member returns needs_handshake when no accepted Circle link exists", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE, acceptedLink: false };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      acceptedLink: false,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "add_member" }, headers: auth, body: { thread_id: "thread-1", member_user_id: TARGET_USER } } as never,
+      {
+        method: "POST",
+        query: { action: "add_member" },
+        headers: auth,
+        body: { thread_id: "thread-1", member_user_id: TARGET_USER },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(409);
-    expect(res.body).toMatchObject({ error: "no_circle_link", needs_handshake: true, circle_url: "/admin/circle" });
+    expect(res.body).toMatchObject({
+      error: "no_circle_link",
+      needs_handshake: true,
+      circle_url: "/admin/circle",
+    });
     // No membership row should be written when the handshake is missing.
-    expect(cfg.calls.find((c) => c.url.includes("/chat_room_members") && c.method === "POST")).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.url.includes("/chat_room_members") && c.method === "POST",
+      ),
+    ).toBeUndefined();
   });
 
   it("add_member succeeds and inserts a member row when an accepted link exists", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE, acceptedLink: true, targetLane: TARGET_LANE };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      acceptedLink: true,
+      targetLane: TARGET_LANE,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "add_member" }, headers: auth, body: { thread_id: "thread-1", member_user_id: TARGET_USER } } as never,
+      {
+        method: "POST",
+        query: { action: "add_member" },
+        headers: auth,
+        body: { thread_id: "thread-1", member_user_id: TARGET_USER },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toMatchObject({ success: true, member_lane_hash: TARGET_LANE });
-    const insert = cfg.calls.find((c) => c.url.includes("/chat_room_members") && c.method === "POST");
+    expect(res.body).toMatchObject({
+      success: true,
+      member_lane_hash: TARGET_LANE,
+    });
+    const insert = cfg.calls.find(
+      (c) => c.url.includes("/chat_room_members") && c.method === "POST",
+    );
     expect(insert).toBeTruthy();
     expect(insert!.body).toMatchObject({
       thread_id: "thread-1",
@@ -324,11 +536,21 @@ describe("chat-threads shared rooms", () => {
   });
 
   it("add_member returns target_not_provisioned when the target has no api key", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE, acceptedLink: true, targetLane: null };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      acceptedLink: true,
+      targetLane: null,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "add_member" }, headers: auth, body: { thread_id: "thread-1", member_user_id: TARGET_USER } } as never,
+      {
+        method: "POST",
+        query: { action: "add_member" },
+        headers: auth,
+        body: { thread_id: "thread-1", member_user_id: TARGET_USER },
+      } as never,
       res as never,
     );
 
@@ -337,11 +559,19 @@ describe("chat-threads shared rooms", () => {
   });
 
   it("an active member can read room messages", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: { role: "member" } };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_someone_else",
+      callerMembership: { role: "member" },
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "GET", query: { action: "messages", thread_id: "thread-1" }, headers: auth } as never,
+      {
+        method: "GET",
+        query: { action: "messages", thread_id: "thread-1" },
+        headers: auth,
+      } as never,
       res as never,
     );
 
@@ -350,11 +580,19 @@ describe("chat-threads shared rooms", () => {
   });
 
   it("a non-member is rejected from messages", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: null };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_someone_else",
+      callerMembership: null,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "GET", query: { action: "messages", thread_id: "thread-1" }, headers: auth } as never,
+      {
+        method: "GET",
+        query: { action: "messages", thread_id: "thread-1" },
+        headers: auth,
+      } as never,
       res as never,
     );
 
@@ -367,11 +605,77 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "GET", query: { action: "messages", thread_id: "thread-1" }, headers: auth } as never,
+      {
+        method: "GET",
+        query: { action: "messages", thread_id: "thread-1" },
+        headers: auth,
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
+  });
+
+  it("members returns displayable room humans for an authorized room", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      roomMembers: [
+        {
+          id: "m-owner",
+          thread_id: "thread-1",
+          member_lane_hash: CALLER_LANE,
+          role: "owner",
+          status: "active",
+        },
+        {
+          id: "m-target",
+          thread_id: "thread-1",
+          member_lane_hash: TARGET_LANE,
+          role: "member",
+          status: "active",
+        },
+      ],
+      roomMemberProfiles: {
+        [CALLER_LANE]: {
+          user_id: CALLER_USER,
+          email: "creativelead@example.com",
+          display_name: "Creative Lead",
+          avatar_url: null,
+        },
+        [TARGET_LANE]: {
+          user_id: TARGET_USER,
+          email: "byrneck@example.com",
+          display_name: "Byrneck",
+          avatar_url: "https://example.com/avatar.png",
+        },
+      },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "GET",
+        query: { action: "members", thread_id: "thread-1" },
+        headers: auth,
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const members = (res.body as { members: Array<Record<string, unknown>> })
+      .members;
+    expect(members).toHaveLength(2);
+    expect(members[1]).toMatchObject({
+      id: "m-target",
+      member_lane_hash: TARGET_LANE,
+      role: "member",
+      status: "active",
+      user_id: TARGET_USER,
+      email: "byrneck@example.com",
+      display_name: "Byrneck",
+      avatar_url: "https://example.com/avatar.png",
+    });
   });
 
   it("remove_member returns 403 when the target is the room owner", async () => {
@@ -384,14 +688,23 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "remove_member" }, headers: auth, body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE } } as never,
+      {
+        method: "POST",
+        query: { action: "remove_member" },
+        headers: auth,
+        body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(403);
     expect(res.body).toMatchObject({ error: "cannot_remove_owner" });
     // No PATCH to 'left' should be issued for the owner.
-    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+      ),
+    ).toBeUndefined();
   });
 
   it("remove_member returns 404 when the target is not a member of the thread", async () => {
@@ -403,35 +716,66 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "remove_member" }, headers: auth, body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE } } as never,
+      {
+        method: "POST",
+        query: { action: "remove_member" },
+        headers: auth,
+        body: { thread_id: "thread-1", member_lane_hash: TARGET_LANE },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toMatchObject({ error: "not_a_member" });
-    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+      ),
+    ).toBeUndefined();
   });
 
   it("a non-member is rejected (403) from update", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: null };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_someone_else",
+      callerMembership: null,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "update" }, headers: auth, body: { thread_id: "thread-1", title: "Hijack" } } as never,
+      {
+        method: "POST",
+        query: { action: "update" },
+        headers: auth,
+        body: { thread_id: "thread-1", title: "Hijack" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(403);
     // No PATCH to chat_threads should be issued for a non-member.
-    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_threads"))).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_threads"),
+      ),
+    ).toBeUndefined();
   });
 
   it("a non-member is rejected (403) from delete", async () => {
-    const cfg: RouteConfig = { calls: [], threadOwner: "lane_someone_else", callerMembership: null };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_someone_else",
+      callerMembership: null,
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "delete" }, headers: auth, body: { thread_id: "thread-1" } } as never,
+      {
+        method: "POST",
+        query: { action: "delete" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
       res as never,
     );
 
@@ -444,19 +788,36 @@ describe("chat-threads shared rooms", () => {
     // The caller is an active member of a room owned by someone else. The
     // inserted message must carry the OWNER's lane as api_key_hash so the
     // shared stream stays unified under one tenant key.
-    const cfg: RouteConfig = { calls: [], threadOwner: "lane_owner", callerMembership: { role: "member" } };
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_owner",
+      callerMembership: { role: "member" },
+    };
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "append" }, headers: auth, body: { thread_id: "thread-1", content: "hello room" } } as never,
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: { thread_id: "thread-1", content: "hello room" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
-    const insert = cfg.calls.find((c) => c.url.includes("/chat_thread_messages") && c.method === "POST");
+    const insert = cfg.calls.find(
+      (c) => c.url.includes("/chat_thread_messages") && c.method === "POST",
+    );
     expect(insert).toBeTruthy();
-    expect(insert!.body).toMatchObject({ api_key_hash: "lane_owner", thread_id: "thread-1", sender_kind: "human" });
-    expect((insert!.body as { api_key_hash: string }).api_key_hash).not.toBe(CALLER_LANE);
+    expect(insert!.body).toMatchObject({
+      api_key_hash: "lane_owner",
+      thread_id: "thread-1",
+      sender_kind: "human",
+    });
+    expect((insert!.body as { api_key_hash: string }).api_key_hash).not.toBe(
+      CALLER_LANE,
+    );
   });
 
   // ── list: shared / my_role / member_count augmentation ──────────────────
@@ -475,9 +836,14 @@ describe("chat-threads shared rooms", () => {
     );
 
     expect(res.statusCode).toBe(200);
-    const threads = (res.body as { threads: Array<Record<string, unknown>> }).threads;
+    const threads = (res.body as { threads: Array<Record<string, unknown>> })
+      .threads;
     const solo = threads.find((t) => t.id === SOLO_ID);
-    expect(solo).toMatchObject({ shared: false, my_role: "owner", member_count: 1 });
+    expect(solo).toMatchObject({
+      shared: false,
+      my_role: "owner",
+      member_count: 1,
+    });
   });
 
   it("list marks a shared room as shared=true with member_count>1 and the caller's role", async () => {
@@ -487,8 +853,16 @@ describe("chat-threads shared rooms", () => {
       ownedThreads: [{ id: ROOM_OWNED_ID, kind: "council" }],
       memberThreadIds: [],
       batchedMembers: [
-        { thread_id: ROOM_OWNED_ID, member_lane_hash: CALLER_LANE, role: "owner" },
-        { thread_id: ROOM_OWNED_ID, member_lane_hash: "lane_other", role: "member" },
+        {
+          thread_id: ROOM_OWNED_ID,
+          member_lane_hash: CALLER_LANE,
+          role: "owner",
+        },
+        {
+          thread_id: ROOM_OWNED_ID,
+          member_lane_hash: "lane_other",
+          role: "member",
+        },
       ],
     };
     stubFetch(cfg);
@@ -499,9 +873,14 @@ describe("chat-threads shared rooms", () => {
     );
 
     expect(res.statusCode).toBe(200);
-    const threads = (res.body as { threads: Array<Record<string, unknown>> }).threads;
+    const threads = (res.body as { threads: Array<Record<string, unknown>> })
+      .threads;
     const room = threads.find((t) => t.id === ROOM_OWNED_ID);
-    expect(room).toMatchObject({ shared: true, my_role: "owner", member_count: 2 });
+    expect(room).toMatchObject({
+      shared: true,
+      my_role: "owner",
+      member_count: 2,
+    });
   });
 
   it("list reports the caller's membership role for a room owned by someone else", async () => {
@@ -512,8 +891,16 @@ describe("chat-threads shared rooms", () => {
       memberThreadIds: [ROOM_MEMBER_ID],
       joinedThreads: [{ id: ROOM_MEMBER_ID, kind: "council" }],
       batchedMembers: [
-        { thread_id: ROOM_MEMBER_ID, member_lane_hash: "lane_owner", role: "owner" },
-        { thread_id: ROOM_MEMBER_ID, member_lane_hash: CALLER_LANE, role: "member" },
+        {
+          thread_id: ROOM_MEMBER_ID,
+          member_lane_hash: "lane_owner",
+          role: "owner",
+        },
+        {
+          thread_id: ROOM_MEMBER_ID,
+          member_lane_hash: CALLER_LANE,
+          role: "member",
+        },
       ],
     };
     stubFetch(cfg);
@@ -524,9 +911,14 @@ describe("chat-threads shared rooms", () => {
     );
 
     expect(res.statusCode).toBe(200);
-    const threads = (res.body as { threads: Array<Record<string, unknown>> }).threads;
+    const threads = (res.body as { threads: Array<Record<string, unknown>> })
+      .threads;
     const room = threads.find((t) => t.id === ROOM_MEMBER_ID);
-    expect(room).toMatchObject({ shared: true, my_role: "member", member_count: 2 });
+    expect(room).toMatchObject({
+      shared: true,
+      my_role: "member",
+      member_count: 2,
+    });
   });
 
   // ── leave ───────────────────────────────────────────────────────────────
@@ -539,13 +931,20 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "leave" }, headers: auth, body: { thread_id: "thread-1" } } as never,
+      {
+        method: "POST",
+        query: { action: "leave" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toMatchObject({ success: true });
-    const patch = cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"));
+    const patch = cfg.calls.find(
+      (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+    );
     expect(patch).toBeTruthy();
     expect(patch!.url).toContain(`member_lane_hash=eq.${CALLER_LANE}`);
     expect(patch!.body).toMatchObject({ status: "left" });
@@ -560,14 +959,23 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "leave" }, headers: auth, body: { thread_id: "thread-1" } } as never,
+      {
+        method: "POST",
+        query: { action: "leave" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(409);
     expect(res.body).toMatchObject({ error: "owner_cannot_leave" });
     // No membership PATCH should be issued for the owner.
-    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+      ),
+    ).toBeUndefined();
   });
 
   it("leave returns 404 not_a_member when the caller has no membership row", async () => {
@@ -579,12 +987,21 @@ describe("chat-threads shared rooms", () => {
     stubFetch(cfg);
     const res = createResponse();
     await handler(
-      { method: "POST", query: { action: "leave" }, headers: auth, body: { thread_id: "thread-1" } } as never,
+      {
+        method: "POST",
+        query: { action: "leave" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
       res as never,
     );
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toMatchObject({ error: "not_a_member" });
-    expect(cfg.calls.find((c) => c.method === "PATCH" && c.url.includes("/chat_room_members"))).toBeUndefined();
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+      ),
+    ).toBeUndefined();
   });
 });

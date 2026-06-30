@@ -11,15 +11,19 @@
 // Circle links) so you can add them to the room.
 //
 // Each AI seat runs on the operator's own key. Human members are added
-// from the existing cross-account connection graph; live messaging with
-// them is a later slice, so they appear here as present in the room.
+// from the existing cross-account connection graph and can receive normal
+// room messages without invoking any AI provider.
 // ============================================================
 
 import { useEffect, useState } from "react";
 import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Combobox, type ComboOption } from "@/components/admin/Combobox";
 import {
   CHAT_PROVIDERS,
@@ -27,7 +31,10 @@ import {
   fetchOpenRouterModels,
   type ChatModelOption,
 } from "@/components/admin/chatTransportConfig";
-import { fetchConnectedMembers, type HumanMember } from "@/components/admin/chatMembers";
+import {
+  fetchConnectedMembers,
+  type HumanMember,
+} from "@/components/admin/chatMembers";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -45,10 +52,16 @@ export interface AiSeat {
 function MemberAvatar({ member }: { member: HumanMember }) {
   if (member.avatarUrl) {
     return (
-      <img src={member.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+      <img
+        src={member.avatarUrl}
+        alt=""
+        className="h-7 w-7 shrink-0 rounded-full object-cover"
+      />
     );
   }
-  const initials = (member.label || member.email || "?").slice(0, 2).toUpperCase();
+  const initials = (member.label || member.email || "?")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-500/15 text-[10px] font-medium text-sky-300">
       {initials}
@@ -66,7 +79,9 @@ function AddSeatForm({
   connectedSlugs: string[];
   onAdd: (slug: string, model: string) => void;
 }) {
-  const connectedProviders = CHAT_PROVIDERS.filter((p) => connectedSlugs.includes(p.slug));
+  const connectedProviders = CHAT_PROVIDERS.filter((p) =>
+    connectedSlugs.includes(p.slug),
+  );
   const first = connectedProviders[0];
 
   const [slug, setSlug] = useState(first?.slug ?? "");
@@ -121,7 +136,8 @@ function AddSeatForm({
     value: p.slug,
     label: p.label,
   }));
-  const modelOptions: ComboOption[] = slug === "openrouter" && live ? live : provider?.models ?? [];
+  const modelOptions: ComboOption[] =
+    slug === "openrouter" && live ? live : (provider?.models ?? []);
 
   return (
     <div className="flex w-[min(18rem,90vw)] flex-col gap-2 p-3">
@@ -215,7 +231,9 @@ function InviteMemberForm({
       <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
         Your connections
       </p>
-      {loading && <p className="px-1 py-2 text-sm text-muted-foreground">Loading...</p>}
+      {loading && (
+        <p className="px-1 py-2 text-sm text-muted-foreground">Loading...</p>
+      )}
       {!loading && available.length === 0 && (
         <p className="px-1 py-2 text-xs leading-relaxed text-muted-foreground">
           No connected members to add yet. Connect with people in{" "}
@@ -236,7 +254,9 @@ function InviteMemberForm({
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-body">{m.label}</span>
             {m.email && m.email !== m.label && (
-              <span className="block truncate text-[10px] text-muted-foreground">{m.email}</span>
+              <span className="block truncate text-[10px] text-muted-foreground">
+                {m.email}
+              </span>
             )}
           </span>
           <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -251,9 +271,11 @@ export function ChatMemberRail({
   accessToken,
   seats,
   activeSeatId,
+  activeHumanMemberId,
   workingSeatIds,
   humanMembers,
   onSelectSeat,
+  onSelectHumanMember,
   onAddSeat,
   onRemoveSeat,
   onToggleSeatActive,
@@ -264,9 +286,11 @@ export function ChatMemberRail({
   accessToken: string | null;
   seats: AiSeat[];
   activeSeatId: string | null;
+  activeHumanMemberId: string | null;
   workingSeatIds?: string[];
   humanMembers: HumanMember[];
   onSelectSeat: (seat: AiSeat) => void;
+  onSelectHumanMember: (member: HumanMember) => void;
   onAddSeat: (slug: string, model: string) => void;
   onRemoveSeat: (id: string) => void;
   onToggleSeatActive: (id: string) => void;
@@ -285,7 +309,9 @@ export function ChatMemberRail({
       return;
     }
     let cancelled = false;
-    fetch("/api/ai-provider-key", { headers: { Authorization: `Bearer ${accessToken}` } })
+    fetch("/api/ai-provider-key", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((body) => {
         if (cancelled || !body) return;
@@ -294,7 +320,10 @@ export function ChatMemberRail({
           new Set(
             rows
               .map((p: { platform_slug?: string }) => p.platform_slug)
-              .filter((s: unknown): s is string => typeof s === "string" && s.length > 0),
+              .filter(
+                (s: unknown): s is string =>
+                  typeof s === "string" && s.length > 0,
+              ),
           ),
         ) as string[];
         setConnectedSlugs(slugs);
@@ -322,23 +351,55 @@ export function ChatMemberRail({
           </div>
         </div>
 
-        {humanMembers.map((m) => (
-          <div key={m.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5">
-            <MemberAvatar member={m} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-body">{m.label}</p>
-              <p className="truncate text-[10px] text-muted-foreground">member - messaging soon</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => onRemoveHumanMember(m.id)}
-              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-              aria-label={`Remove ${m.label}`}
+        {humanMembers.map((m) => {
+          const isSelected = activeHumanMemberId === m.id;
+          return (
+            <div
+              key={m.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectHumanMember(m)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectHumanMember(m);
+                }
+              }}
+              className={cn(
+                "group flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
+                isSelected
+                  ? "border-primary/35 bg-primary/10 shadow-[0_0_0_1px_rgba(45,212,191,0.08)]"
+                  : "border-transparent hover:bg-card/50",
+              )}
             >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
+              <MemberAvatar member={m} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-body">{m.label}</p>
+                <p className="truncate text-[10px] text-muted-foreground">
+                  {isSelected
+                    ? "selected"
+                    : m.role === "owner"
+                      ? "room owner"
+                      : "member"}
+                </p>
+              </div>
+              {isSelected && (
+                <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveHumanMember(m.id);
+                }}
+                className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                aria-label={`Remove ${m.label}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })}
 
         {seats.map((s) => {
           const isSelected = activeSeatId === s.id;
@@ -387,7 +448,9 @@ export function ChatMemberRail({
                         : "bg-primary/15 text-primary",
                   )}
                 >
-                  <Bot className={cn("h-4 w-4", isWorking && "animate-pulse")} />
+                  <Bot
+                    className={cn("h-4 w-4", isWorking && "animate-pulse")}
+                  />
                 </span>
               </span>
               <div className="min-w-0 flex-1">
@@ -395,10 +458,17 @@ export function ChatMemberRail({
                 <p className="flex min-h-4 items-center gap-1 truncate text-[10px] text-muted-foreground">
                   <span className="truncate">@{s.handle}</span>
                   <span className="shrink-0">
-                    {isWorking ? "- thinking" : s.active ? "- called in" : "- benched"}
+                    {isWorking
+                      ? "- thinking"
+                      : s.active
+                        ? "- called in"
+                        : "- standby"}
                   </span>
                   {isWorking && (
-                    <span className="ml-0.5 flex shrink-0 items-end gap-0.5" aria-hidden="true">
+                    <span
+                      className="ml-0.5 flex shrink-0 items-end gap-0.5"
+                      aria-hidden="true"
+                    >
                       {[0, 1, 2].map((i) => (
                         <span
                           key={i}
@@ -422,8 +492,14 @@ export function ChatMemberRail({
                     ? "text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
                     : "text-muted-foreground opacity-0 hover:bg-card/60 hover:text-body group-hover:opacity-100",
                 )}
-                aria-label={s.active ? `Bench ${s.label}` : `Call in ${s.label}`}
-                title={s.active ? "Bench (stop auto-responding)" : "Call in (auto-respond)"}
+                aria-label={
+                  s.active ? `Bench ${s.label}` : `Call in ${s.label}`
+                }
+                title={
+                  s.active
+                    ? "Bench (stop auto-responding)"
+                    : "Call in (auto-respond)"
+                }
               >
                 <Power className="h-3.5 w-3.5" />
               </button>

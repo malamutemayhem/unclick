@@ -12,7 +12,10 @@ import {
 } from "@/lib/chatAttachments";
 import { getApiKey } from "@/lib/apiKeyStore";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
-import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
+import {
+  ChatSessionList,
+  type ChatThread,
+} from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import { StartSharedRoomButton } from "@/components/admin/StartSharedRoomButton";
 import {
@@ -21,6 +24,7 @@ import {
   type HandshakeBlock,
 } from "@/components/admin/HandshakeBanner";
 import {
+  fetchRoomMembers,
   fetchPendingHandshakes,
   respondToHandshake,
   type HumanMember,
@@ -38,7 +42,9 @@ import {
 // rendering.
 function messageText(parts: { type: string }[]): string {
   return parts
-    .map((p) => (p.type === "text" ? (p as { type: "text"; text: string }).text : ""))
+    .map((p) =>
+      p.type === "text" ? (p as { type: "text"; text: string }).text : "",
+    )
     .join("");
 }
 
@@ -63,7 +69,8 @@ function messageToolNames(parts: { type: string }[]): string[] {
 function messageImageParts(parts: { type: string }[]): FileUIPart[] {
   return parts.filter(
     (p): p is FileUIPart =>
-      p.type === "file" && typeof (p as FileUIPart).mediaType === "string" &&
+      p.type === "file" &&
+      typeof (p as FileUIPart).mediaType === "string" &&
       (p as FileUIPart).mediaType.startsWith("image/"),
   );
 }
@@ -81,22 +88,56 @@ function makeHandle(label: string, taken: string[]): string {
 function newSeat(slug: string, model: string, taken: string[]): AiSeat {
   const provider = findChatProvider(slug);
   const label = provider?.models.find((m) => m.value === model)?.label ?? model;
-  return { id: crypto.randomUUID(), slug, model, label, handle: makeHandle(label, taken), active: false };
+  return {
+    id: crypto.randomUUID(),
+    slug,
+    model,
+    label,
+    handle: makeHandle(label, taken),
+    active: false,
+  };
+}
+
+function friendlyChatError(message: string): string {
+  try {
+    const parsed = JSON.parse(message) as {
+      error?: string;
+      message?: string;
+      provider?: string;
+    };
+    if (parsed.error === "provider_key_missing") {
+      return (
+        parsed.message ??
+        "That AI provider is not connected for this account yet."
+      );
+    }
+    if (parsed.error?.startsWith("no saved key")) {
+      return "That AI provider is not connected for this account yet. Add its API key, or choose a connected seat.";
+    }
+    return parsed.message || parsed.error || message;
+  } catch {
+    if (/no saved key/i.test(message)) {
+      return "That AI provider is not connected for this account yet. Add its API key, or choose a connected seat.";
+    }
+    return message;
+  }
 }
 
 const SEATS_STORAGE_KEY = "unclick_chat_seats";
 
-// Load saved seats. Seed one default seat ONLY on the very first visit (no
-// stored value yet) - after that the stored list wins, so a seat the user
-// removed stays removed instead of being re-seeded on every reload.
-function loadSeats(): AiSeat[] {
+function seatsStorageKey(userId: string | undefined): string | null {
+  return userId ? `${SEATS_STORAGE_KEY}:${userId}` : null;
+}
+
+// Load this account's saved seats. New accounts start empty; seats appear only
+// after the user adds them, so a demo/provider seat cannot bleed between
+// accounts in the same browser.
+function loadSeats(storageKey: string | null): AiSeat[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(SEATS_STORAGE_KEY);
-    if (raw === null) {
-      const p = CHAT_PROVIDERS[0];
-      return [newSeat(p.slug, p.models[0].value, [])];
-    }
+    if (!storageKey) return [];
+    const raw = window.localStorage.getItem(storageKey);
+    if (raw === null) return [];
     const parsed = JSON.parse(raw) as AiSeat[];
     if (!Array.isArray(parsed)) return [];
     return parsed.map((s) => ({ ...s, active: s.active ?? false }));
@@ -114,8 +155,15 @@ export default function AdminChatPage() {
   // to the account lane (see api/chat.ts + api/lib/account-lane.ts).
   const apiKey = accessToken;
 
-  const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
+  const seatStoreKey = seatsStorageKey(user?.id);
+  const [seats, setSeats] = useState<AiSeat[]>([]);
+  const [loadedSeatStoreKey, setLoadedSeatStoreKey] = useState<string | null>(
+    null,
+  );
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
+  const [activeHumanMemberId, setActiveHumanMemberId] = useState<string | null>(
+    () => null,
+  );
   const [workingSeatIds, setWorkingSeatIds] = useState<string[]>([]);
   const [input, setInput] = useState("");
 
@@ -131,9 +179,13 @@ export default function AdminChatPage() {
   // Incoming Circle requests waiting on the operator (loud top banner), and a
   // one-off "you need to connect first" block raised when starting a shared
   // room could not add the contact yet.
-  const [pendingHandshakes, setPendingHandshakes] = useState<PendingHandshake[]>([]);
+  const [pendingHandshakes, setPendingHandshakes] = useState<
+    PendingHandshake[]
+  >([]);
   const [handshakeBusyId, setHandshakeBusyId] = useState<string | null>(null);
-  const [handshakeBlock, setHandshakeBlock] = useState<HandshakeBlock | null>(null);
+  const [handshakeBlock, setHandshakeBlock] = useState<HandshakeBlock | null>(
+    null,
+  );
 
   // Persisted chat sessions (threads). The page lists the account's
   // sessions in the left rail and keeps the active thread's messages in sync.
@@ -142,13 +194,48 @@ export default function AdminChatPage() {
   const activeThreadRef = useRef<string | null>(null);
   const didInit = useRef(false);
 
-  const transport = useMemo(() => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }), []);
-  const { messages, setMessages, sendMessage, status, stop, error } = useChat({ transport });
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }),
+    [],
+  );
+  const { messages, setMessages, sendMessage, status, stop, error } = useChat({
+    transport,
+  });
   const busy = status === "submitted" || status === "streaming";
+  const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
 
   useEffect(() => {
     if (!busy) setWorkingSeatIds([]);
   }, [busy]);
+
+  useEffect(() => {
+    if (!seatStoreKey) {
+      setSeats([]);
+      setLoadedSeatStoreKey(null);
+      setActiveSeatId(null);
+      setWorkingSeatIds([]);
+      return;
+    }
+    setSeats(loadSeats(seatStoreKey));
+    setLoadedSeatStoreKey(seatStoreKey);
+    setActiveSeatId(null);
+    setWorkingSeatIds([]);
+  }, [seatStoreKey]);
+
+  function stripLeadingMention(text: string): string {
+    return text.replace(/^@\S+\s*/, "");
+  }
+
+  function memberHandle(member: HumanMember): string {
+    const source = member.label || member.email || "member";
+    return source.replace(/[^A-Za-z0-9.]/g, "") || "member";
+  }
+
+  function clearSelectionFromInput() {
+    setInput((prev) => stripLeadingMention(prev));
+    setActiveSeatId(null);
+    setActiveHumanMemberId(null);
+  }
 
   // Auth headers for the chat-threads endpoint, using the logged-in session.
   function authHeaders(json = false): Record<string, string> {
@@ -167,7 +254,9 @@ export default function AdminChatPage() {
   async function refreshThreads() {
     if (!accessToken) return;
     try {
-      const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+      const r = await fetch("/api/chat-threads?action=list", {
+        headers: authHeaders(),
+      });
       if (!r.ok) return;
       const b = (await r.json()) as { threads?: ChatThread[] };
       setThreads(Array.isArray(b.threads) ? b.threads : []);
@@ -185,9 +274,34 @@ export default function AdminChatPage() {
     if (rows) setPendingHandshakes(rows);
   }
 
+  async function refreshRoomMembers(threadId: string) {
+    if (!accessToken) {
+      setHumanMembers([]);
+      return;
+    }
+    const rows = await fetchRoomMembers(accessToken, threadId);
+    if (!rows) return;
+    setHumanMembers(
+      rows.filter((member) => {
+        if (member.userId && user?.id && member.userId === user.id)
+          return false;
+        if (
+          member.email &&
+          user?.email &&
+          member.email.toLowerCase() === user.email.toLowerCase()
+        )
+          return false;
+        return true;
+      }),
+    );
+  }
+
   // Accept or decline an incoming request inline, then refresh both the banner
   // and the sessions list (an accepted contact can now be added to rooms).
-  async function answerHandshake(linkId: string, decision: "accept" | "decline") {
+  async function answerHandshake(
+    linkId: string,
+    decision: "accept" | "decline",
+  ) {
     if (!accessToken || handshakeBusyId) return;
     setHandshakeBusyId(linkId);
     try {
@@ -222,6 +336,9 @@ export default function AdminChatPage() {
     if (!accessToken) return;
     setActiveThread(id);
     setWorkingSeatIds([]);
+    setActiveSeatId(null);
+    setActiveHumanMemberId(null);
+    setInput("");
     try {
       const r = await fetch(
         `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(id)}`,
@@ -244,6 +361,7 @@ export default function AdminChatPage() {
         }
       }
       setSeatByMsg(attribution);
+      await refreshRoomMembers(id);
     } catch {
       /* ignore */
     }
@@ -255,6 +373,10 @@ export default function AdminChatPage() {
     setMessages([]);
     setSeatByMsg({});
     setWorkingSeatIds([]);
+    setHumanMembers([]);
+    setActiveSeatId(null);
+    setActiveHumanMemberId(null);
+    setInput("");
     try {
       const r = await fetch("/api/chat-threads?action=create", {
         method: "POST",
@@ -311,6 +433,10 @@ export default function AdminChatPage() {
         setMessages([]);
         setSeatByMsg({});
         setWorkingSeatIds([]);
+        setHumanMembers([]);
+        setActiveSeatId(null);
+        setActiveHumanMemberId(null);
+        setInput("");
       }
       await refreshThreads();
     } catch {
@@ -332,6 +458,10 @@ export default function AdminChatPage() {
         setMessages([]);
         setSeatByMsg({});
         setWorkingSeatIds([]);
+        setHumanMembers([]);
+        setActiveSeatId(null);
+        setActiveHumanMemberId(null);
+        setInput("");
       }
       await refreshThreads();
     } catch {
@@ -346,7 +476,9 @@ export default function AdminChatPage() {
     didInit.current = true;
     (async () => {
       try {
-        const r = await fetch("/api/chat-threads?action=list", { headers: authHeaders() });
+        const r = await fetch("/api/chat-threads?action=list", {
+          headers: authHeaders(),
+        });
         if (!r.ok) return;
         const b = (await r.json()) as { threads?: ChatThread[] };
         const list = Array.isArray(b.threads) ? b.threads : [];
@@ -360,7 +492,41 @@ export default function AdminChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  const activeSeat = seats.find((s) => s.id === activeSeatId) ?? seats[0] ?? null;
+  const calledInSeat = seats.find((s) => s.active) ?? null;
+  const activeSeat =
+    seats.find((s) => s.id === activeSeatId) ?? calledInSeat ?? null;
+  const activeHumanMember =
+    humanMembers.find((m) => m.id === activeHumanMemberId) ?? null;
+  const canMessageRoomWithoutBot = Boolean(
+    activeThread?.shared || humanMembers.length > 0,
+  );
+
+  useEffect(() => {
+    const m = input.match(/^@(\S+)\s*/);
+    if (!m) {
+      if (activeSeatId) setActiveSeatId(null);
+      if (activeHumanMemberId) setActiveHumanMemberId(null);
+      return;
+    }
+    const handle = m[1];
+    const mentionedSeat = seats.find((s) => s.handle === handle);
+    if (mentionedSeat) {
+      if (activeSeatId !== mentionedSeat.id) setActiveSeatId(mentionedSeat.id);
+      if (activeHumanMemberId) setActiveHumanMemberId(null);
+      return;
+    }
+    const mentionedHuman = humanMembers.find(
+      (member) => memberHandle(member) === handle,
+    );
+    if (mentionedHuman) {
+      if (activeHumanMemberId !== mentionedHuman.id)
+        setActiveHumanMemberId(mentionedHuman.id);
+      if (activeSeatId) setActiveSeatId(null);
+      return;
+    }
+    if (activeSeatId) setActiveSeatId(null);
+    if (activeHumanMemberId) setActiveHumanMemberId(null);
+  }, [activeHumanMemberId, activeSeatId, humanMembers, input, seats]);
 
   // Attribute each assistant turn to the seat it was sent to, as it arrives.
   useEffect(() => {
@@ -380,11 +546,23 @@ export default function AdminChatPage() {
   // Persist seats so a removed seat stays removed across reloads.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try { window.localStorage.setItem(SEATS_STORAGE_KEY, JSON.stringify(seats)); } catch { /* ignore */ }
-  }, [seats]);
+    if (!seatStoreKey || loadedSeatStoreKey !== seatStoreKey) return;
+    try {
+      window.localStorage.setItem(seatStoreKey, JSON.stringify(seats));
+    } catch {
+      /* ignore */
+    }
+  }, [loadedSeatStoreKey, seatStoreKey, seats]);
 
   function addSeat(slug: string, model: string) {
-    setSeats((prev) => [...prev, newSeat(slug, model, prev.map((s) => s.handle))]);
+    setSeats((prev) => [
+      ...prev,
+      newSeat(
+        slug,
+        model,
+        prev.map((s) => s.handle),
+      ),
+    ]);
   }
 
   function removeSeat(id: string) {
@@ -396,38 +574,85 @@ export default function AdminChatPage() {
   function toggleSeatActive(id: string) {
     setSeats((prev) => {
       const nextActive = !(prev.find((s) => s.id === id)?.active ?? false);
-      return prev.map((s) => ({ ...s, active: s.id === id ? nextActive : false }));
+      return prev.map((s) => ({
+        ...s,
+        active: s.id === id ? nextActive : false,
+      }));
     });
   }
 
-  function addHumanMember(member: HumanMember) {
-    setHumanMembers((prev) => (prev.some((m) => m.id === member.id) ? prev : [...prev, member]));
+  async function addHumanMember(member: HumanMember) {
+    if (!accessToken || !activeThreadId || !member.userId) {
+      setHumanMembers((prev) =>
+        prev.some((m) => m.id === member.id) ? prev : [...prev, member],
+      );
+      return;
+    }
+    try {
+      const r = await fetch("/api/chat-threads?action=add_member", {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({
+          thread_id: activeThreadId,
+          member_user_id: member.userId,
+        }),
+      });
+      if (r.ok) await refreshRoomMembers(activeThreadId);
+      else
+        setHumanMembers((prev) =>
+          prev.some((m) => m.id === member.id) ? prev : [...prev, member],
+        );
+    } catch {
+      setHumanMembers((prev) =>
+        prev.some((m) => m.id === member.id) ? prev : [...prev, member],
+      );
+    }
   }
 
   function removeHumanMember(id: string) {
     setHumanMembers((prev) => prev.filter((m) => m.id !== id));
+    setActiveHumanMemberId((cur) => (cur === id ? null : cur));
   }
 
   function selectSeat(seat: AiSeat) {
+    if (activeSeatId === seat.id) {
+      clearSelectionFromInput();
+      return;
+    }
     setActiveSeatId(seat.id);
+    setActiveHumanMemberId(null);
     targetSeatRef.current = seat;
     setInput((prev) => {
-      const stripped = prev.replace(/^@\S+\s*/, "");
+      const stripped = stripLeadingMention(prev);
       return `@${seat.handle} ${stripped}`;
+    });
+  }
+
+  function selectHumanMember(member: HumanMember) {
+    if (activeHumanMemberId === member.id) {
+      clearSelectionFromInput();
+      return;
+    }
+    setActiveHumanMemberId(member.id);
+    setActiveSeatId(null);
+    setInput((prev) => {
+      const stripped = stripLeadingMention(prev);
+      return `@${memberHandle(member)} ${stripped}`;
     });
   }
 
   // Decide which seat answers: a leading @handle always overrides to force a
   // specific seat for one turn. Without a mention, the called-in seat
-  // auto-responds. When no seat is called in, the selected rail seat answers
-  // (classic manual behavior).
-  const calledInSeat = seats.find((s) => s.active) ?? null;
+  // auto-responds. When no seat is selected or called in, a shared room message
+  // is human-only and does not invoke a provider.
 
   function resolveTarget(text: string): { seat: AiSeat | null; text: string } {
     const m = text.match(/^@(\S+)\s*/);
     if (m) {
       const seat = seats.find((s) => s.handle === m[1]);
       if (seat) return { seat, text: text.slice(m[0].length) };
+      const member = humanMembers.find((human) => memberHandle(human) === m[1]);
+      if (member) return { seat: null, text };
     }
     if (calledInSeat) return { seat: calledInSeat, text };
     return { seat: activeSeat, text };
@@ -461,7 +686,8 @@ export default function AdminChatPage() {
   // paste-image path) without blocking a normal text paste.
   async function onPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
     const dt = e.clipboardData;
-    const files: File[] = dt.files && dt.files.length > 0 ? Array.from(dt.files) : [];
+    const files: File[] =
+      dt.files && dt.files.length > 0 ? Array.from(dt.files) : [];
     if (files.length === 0 && dt.items) {
       for (const item of Array.from(dt.items)) {
         if (item.kind === "file") {
@@ -484,10 +710,11 @@ export default function AdminChatPage() {
     const pending = attachments;
     if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
     const { seat, text } = resolveTarget(raw);
-    if (!seat) return;
+    if (!seat && !canMessageRoomWithoutBot) return;
     targetSeatRef.current = seat;
-    setActiveSeatId(seat.id);
-    setWorkingSeatIds([seat.id]);
+    if (seat) setActiveSeatId(seat.id);
+    setActiveHumanMemberId(null);
+    setWorkingSeatIds(seat ? [seat.id] : []);
     setInput("");
     setAttachments([]);
 
@@ -511,11 +738,15 @@ export default function AdminChatPage() {
       .map((a) => `\n\n--- ${a.name} ---\n${a.text}`);
     const unsupportedNotes = pending
       .filter((a) => a.kind === "unsupported")
-      .map((a) => `\n\n[attachment ${a.name}: ${a.error ?? "could not be read"}]`);
+      .map(
+        (a) => `\n\n[attachment ${a.name}: ${a.error ?? "could not be read"}]`,
+      );
 
     // Keep typed text first, then inlined file text. This is the human turn's
     // content for both the model call and the persisted thread history.
-    const combined = [typedText, ...textBlocks, ...unsupportedNotes].filter(Boolean).join("");
+    const combined = [typedText, ...textBlocks, ...unsupportedNotes]
+      .filter(Boolean)
+      .join("");
 
     // Ensure a thread exists (create one on the first turn of a session).
     let threadId = activeThreadRef.current;
@@ -524,7 +755,7 @@ export default function AdminChatPage() {
         const r = await fetch("/api/chat-threads?action=create", {
           method: "POST",
           headers: authHeaders(true),
-          body: JSON.stringify({}),
+          body: JSON.stringify(seat ? {} : { kind: "human" }),
         });
         if (r.ok) {
           const b = (await r.json()) as { id?: string };
@@ -553,6 +784,12 @@ export default function AdminChatPage() {
       }
     }
 
+    if (!seat) {
+      if (threadId) await selectThread(threadId);
+      await refreshThreads();
+      return;
+    }
+
     // Chat authenticates with the logged-in session (Authorization). The cached
     // UnClick key, when present, rides along in a dedicated header ONLY so the
     // seat can reach connected apps (connector creds are zero-knowledge and a
@@ -560,27 +797,39 @@ export default function AdminChatPage() {
     // account lane before use; absent it, memory + chat still work and
     // connectors degrade gracefully. The key never goes in the request body.
     const connectorKey = getApiKey();
-    const sendHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}` };
+    const sendHeaders: Record<string, string> = {
+      Authorization: `Bearer ${apiKey}`,
+    };
     if (connectorKey) sendHeaders["X-UnClick-Connector-Key"] = connectorKey;
 
     // AI SDK v3 sendMessage: the { text, files } overload accepts FileUIPart[]
     // for `files`; the server forwards image file parts to the model as vision
     // via convertToModelMessages (see api/chat.ts).
     sendMessage(
-      imageParts.length > 0 ? { text: combined, files: imageParts } : { text: combined },
+      imageParts.length > 0
+        ? { text: combined, files: imageParts }
+        : { text: combined },
       {
         headers: sendHeaders,
-        body: { slug: seat.slug, model: seat.model, lane: "api", thread_id: threadId ?? undefined },
+        body: {
+          slug: seat.slug,
+          model: seat.model,
+          lane: "api",
+          thread_id: threadId ?? undefined,
+        },
       },
     );
 
     await refreshThreads();
   }
 
-  const totalTokens = messages.reduce((sum, m) => sum + estimateTokens(messageText(m.parts)), 0);
+  const totalTokens = messages.reduce(
+    (sum, m) => sum + estimateTokens(messageText(m.parts)),
+    0,
+  );
   const canSend =
     Boolean(apiKey) &&
-    Boolean(activeSeat) &&
+    (Boolean(activeSeat) || canMessageRoomWithoutBot) &&
     !processing &&
     (input.trim().length > 0 || attachments.length > 0);
 
@@ -588,12 +837,18 @@ export default function AdminChatPage() {
     <div className="space-y-4">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-heading">Chat</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-heading">
+            Chat
+          </h1>
           <p className="mt-1 text-sm text-body">
-            A room for you and your AI seats. Call in one seat so it auto-responds, or @mention one to direct a single turn. Each seat runs on your own provider key.
+            A room for you and your AI seats. Call in one seat so it
+            auto-responds, or @mention one to direct a single turn. Each seat
+            runs on your own provider key.
           </p>
         </div>
-        <div className="shrink-0 text-xs text-muted-foreground">~{totalTokens} tokens (est)</div>
+        <div className="shrink-0 text-xs text-muted-foreground">
+          ~{totalTokens} tokens (est)
+        </div>
       </header>
 
       {!apiKey && <CacheKeyPrompt />}
@@ -607,6 +862,8 @@ export default function AdminChatPage() {
           workingSeatIds={workingSeatIds}
           humanMembers={humanMembers}
           onSelectSeat={selectSeat}
+          activeHumanMemberId={activeHumanMemberId}
+          onSelectHumanMember={selectHumanMember}
           onAddSeat={addSeat}
           onRemoveSeat={removeSeat}
           onToggleSeatActive={toggleSeatActive}
@@ -616,11 +873,17 @@ export default function AdminChatPage() {
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 md:min-h-0">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Link to="/admin/agents/api" className="text-primary hover:underline">
+            <Link
+              to="/admin/agents/api"
+              className="text-primary hover:underline"
+            >
               Set up API keys
             </Link>
             <span className="text-border">|</span>
-            <Link to="/admin/agents/local" className="text-primary hover:underline">
+            <Link
+              to="/admin/agents/local"
+              className="text-primary hover:underline"
+            >
               Local models
             </Link>
           </div>
@@ -633,7 +896,10 @@ export default function AdminChatPage() {
           />
 
           {handshakeBlock && (
-            <NeedsHandshakePrompt block={handshakeBlock} onDismiss={() => setHandshakeBlock(null)} />
+            <NeedsHandshakePrompt
+              block={handshakeBlock}
+              onDismiss={() => setHandshakeBlock(null)}
+            />
           )}
 
           <div className="min-h-[46vh] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 md:min-h-0">
@@ -643,7 +909,9 @@ export default function AdminChatPage() {
                   ? calledInSeat
                     ? `${calledInSeat.label} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
                     : `Ask ${activeSeat.label} anything, or @mention another seat. Call in a seat to skip the @mention. Replies show which seat answered and an estimated token cost.`
-                  : "Add an AI seat from the members panel to start."}
+                  : canMessageRoomWithoutBot
+                    ? "Send a room message, or select an AI seat when you want a bot to answer."
+                    : "Add an AI seat from the members panel to start."}
               </p>
             )}
             {messages.map((m) => {
@@ -666,7 +934,9 @@ export default function AdminChatPage() {
                     </div>
                   )}
                   {images.length > 0 && (
-                    <div className={`mb-1 flex flex-wrap gap-2 ${isUser ? "justify-end" : ""}`}>
+                    <div
+                      className={`mb-1 flex flex-wrap gap-2 ${isUser ? "justify-end" : ""}`}
+                    >
                       {images.map((img, i) => (
                         <img
                           key={`${m.id}-img-${i}`}
@@ -680,7 +950,9 @@ export default function AdminChatPage() {
                   {(text || (!isUser && busy)) && (
                     <div
                       className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-[13px] leading-relaxed ${
-                        isUser ? "bg-primary/10 text-foreground" : "bg-card/60 text-body"
+                        isUser
+                          ? "bg-primary/10 text-foreground"
+                          : "bg-card/60 text-body"
                       }`}
                     >
                       {text || (busy ? "..." : "")}
@@ -688,13 +960,18 @@ export default function AdminChatPage() {
                   )}
                   {!isUser && text && (
                     <div className="mt-0.5 text-[10px] text-muted-foreground">
-                      {seatByMsg[m.id] ?? "AI"} - ~{estimateTokens(text)} tokens (est)
+                      {seatByMsg[m.id] ?? "AI"} - ~{estimateTokens(text)} tokens
+                      (est)
                     </div>
                   )}
                 </div>
               );
             })}
-            {error && <div className="text-xs text-red-400">Error: {error.message}</div>}
+            {error && (
+              <div className="text-xs text-red-400">
+                {friendlyChatError(error.message)}
+              </div>
+            )}
           </div>
 
           {(attachments.length > 0 || processing) && (
@@ -703,7 +980,11 @@ export default function AdminChatPage() {
                 <div key={a.id} className="relative">
                   {a.kind === "image" && a.dataUrl ? (
                     <div className="relative h-16 w-16 overflow-hidden rounded-md border border-border/50">
-                      <img src={a.dataUrl} alt={a.name} className="h-full w-full object-cover" />
+                      <img
+                        src={a.dataUrl}
+                        alt={a.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                   ) : (
                     <div
@@ -716,7 +997,9 @@ export default function AdminChatPage() {
                       <FileText className="h-3.5 w-3.5 shrink-0 opacity-70" />
                       <span className="truncate">
                         {a.name}
-                        {a.kind === "unsupported" && a.error ? ` - ${a.error}` : ""}
+                        {a.kind === "unsupported" && a.error
+                          ? ` - ${a.error}`
+                          : ""}
                       </span>
                     </div>
                   )}
@@ -751,7 +1034,11 @@ export default function AdminChatPage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              disabled={!apiKey || !activeSeat || processing}
+              disabled={
+                !apiKey ||
+                (!activeSeat && !canMessageRoomWithoutBot) ||
+                processing
+              }
               aria-label="Attach files"
               title="Attach images, text, PDF, or DOCX"
               className="rounded-md border border-border/50 bg-card/40 p-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
@@ -773,10 +1060,14 @@ export default function AdminChatPage() {
                 apiKey
                   ? activeSeat
                     ? `Message ${activeSeat.label}`
-                    : "Add an AI seat to chat"
+                    : activeHumanMember
+                      ? `Message ${activeHumanMember.label}`
+                      : canMessageRoomWithoutBot
+                        ? "Message the room"
+                        : "Add an AI seat to chat"
                   : "Set your UnClick key to chat"
               }
-              disabled={!apiKey || !activeSeat}
+              disabled={!apiKey || (!activeSeat && !canMessageRoomWithoutBot)}
               className="flex-1 resize-none rounded-md border border-border/50 bg-card/40 px-3 py-2 text-[13px] text-body outline-none placeholder:text-muted-foreground/40 focus:border-primary/50"
             />
             {busy ? (
