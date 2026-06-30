@@ -40,10 +40,24 @@ describe("extractConnectorKeyHeader", () => {
 });
 
 describe("safeInternalOrigin", () => {
-  it("allows production and preview UnClick hosts", () => {
+  it("allows production hosts", () => {
     expect(safeInternalOrigin("unclick.world")).toBe("https://unclick.world");
     expect(safeInternalOrigin("www.unclick.world")).toBe("https://www.unclick.world");
-    expect(safeInternalOrigin("unclick-git-abc123-chris.vercel.app")).toBe(
+  });
+
+  it("allows only the exact Vercel deployment host from VERCEL_URL", () => {
+    expect(
+      safeInternalOrigin(
+        "unclick-git-abc123-chris.vercel.app",
+        "unclick-git-abc123-chris.vercel.app",
+      ),
+    ).toBe("https://unclick-git-abc123-chris.vercel.app");
+    expect(
+      safeInternalOrigin(
+        "unclick-git-abc123-chris.vercel.app",
+        "https://unclick-git-abc123-chris.vercel.app/dashboard",
+      ),
+    ).toBe(
       "https://unclick-git-abc123-chris.vercel.app",
     );
   });
@@ -56,7 +70,9 @@ describe("safeInternalOrigin", () => {
   it("rejects unknown or forged hosts (connectors disabled, not redirected)", () => {
     expect(safeInternalOrigin("evil.example.com")).toBe("");
     expect(safeInternalOrigin("unclick.world.evil.com")).toBe("");
+    expect(safeInternalOrigin("unclick-git-abc123-attacker.vercel.app")).toBe("");
     expect(safeInternalOrigin("notvercel.app.evil.com")).toBe("");
+    expect(safeInternalOrigin("unclick.world/path")).toBe("");
     expect(safeInternalOrigin(undefined)).toBe("");
     expect(safeInternalOrigin("")).toBe("");
   });

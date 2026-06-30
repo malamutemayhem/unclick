@@ -40,6 +40,8 @@ describe("isReadOnlyEndpointId", () => {
 
   it("denies ambiguous endpoints (read-first is conservative)", () => {
     expect(isReadOnlyEndpointId("foo.bar")).toBe(false);
+    expect(isReadOnlyEndpointId("attendance.check_in")).toBe(false);
+    expect(isReadOnlyEndpointId("calendar.checkin")).toBe(false);
     expect(isReadOnlyEndpointId("")).toBe(false);
   });
 });

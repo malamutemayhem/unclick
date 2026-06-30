@@ -39,8 +39,6 @@ export interface AiSeat {
   active: boolean;
 }
 
-export type ResponderPolicy = "mention" | "round_table" | "routed" | "crew";
-
 // A small avatar for a human member: their picture if we have one, else
 // initials. Keeps the rail readable without coupling to UserAvatar's
 // full Supabase User shape (we only hold email + avatar for members).
@@ -248,25 +246,16 @@ function InviteMemberForm({
   );
 }
 
-const POLICY_LABELS: Record<ResponderPolicy, string> = {
-  mention: "@mention only",
-  round_table: "Round table",
-  routed: "Best-fit routing",
-  crew: "Crew (coordinated)",
-};
-
 export function ChatMemberRail({
   user,
   accessToken,
   seats,
   activeSeatId,
   humanMembers,
-  responderPolicy,
   onSelectSeat,
   onAddSeat,
   onRemoveSeat,
   onToggleSeatActive,
-  onResponderPolicyChange,
   onAddHumanMember,
   onRemoveHumanMember,
 }: {
@@ -275,12 +264,10 @@ export function ChatMemberRail({
   seats: AiSeat[];
   activeSeatId: string | null;
   humanMembers: HumanMember[];
-  responderPolicy: ResponderPolicy;
   onSelectSeat: (seat: AiSeat) => void;
   onAddSeat: (slug: string, model: string) => void;
   onRemoveSeat: (id: string) => void;
   onToggleSeatActive: (id: string) => void;
-  onResponderPolicyChange: (policy: ResponderPolicy) => void;
   onAddHumanMember: (member: HumanMember) => void;
   onRemoveHumanMember: (id: string) => void;
 }) {
@@ -413,23 +400,6 @@ export function ChatMemberRail({
           </div>
         ))}
       </div>
-
-      {seats.filter((s) => s.active).length >= 2 && (
-        <div className="mt-2 border-t border-border/40 pt-2">
-          <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
-            Multi-AI policy
-          </p>
-          <select
-            value={responderPolicy}
-            onChange={(e) => onResponderPolicyChange(e.target.value as ResponderPolicy)}
-            className="w-full rounded-md border border-border/50 bg-card/40 px-2 py-1.5 text-xs text-body outline-none focus:border-primary/50"
-          >
-            {(Object.keys(POLICY_LABELS) as ResponderPolicy[]).map((p) => (
-              <option key={p} value={p}>{POLICY_LABELS[p]}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       <div className="mt-2 space-y-1 border-t border-border/40 pt-2">
         <Popover open={addOpen} onOpenChange={setAddOpen}>

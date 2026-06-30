@@ -119,7 +119,7 @@ export async function internalMcpCall(
 
 // Leaf actions that READ. Read-first is conservative: anything not clearly a
 // read is denied.
-const READ_PREFIX = /^(get|list|search|browse|fetch|read|view|describe|lookup|query|status|info|find|count|check)/i;
+const READ_PREFIX = /^(get|list|search|browse|fetch|read|view|describe|lookup|query|status|info|find|count)/i;
 
 // Leaf actions that mutate, send, or otherwise act on the world. These are
 // explicitly NOT read even if they happen to start with a read-ish word.

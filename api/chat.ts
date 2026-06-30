@@ -67,21 +67,37 @@ export function extractConnectorKeyHeader(headerValue: string | string[] | undef
   return token;
 }
 
+function cleanVercelHost(vercelUrl: string | undefined): string | null {
+  const raw = (vercelUrl ?? "").trim();
+  if (!raw) return null;
+  const host = raw
+    .replace(/^https?:\/\//i, "")
+    .split(/[/?#]/)[0]
+    .split(":")[0]
+    .toLowerCase();
+  return host.endsWith(".vercel.app") ? host : null;
+}
+
 // Derive the internal /api/mcp origin from the trusted request host, pinned to
 // known UnClick hosts. On Vercel the platform sets `host`, but pinning is
 // defense-in-depth: a forged Host header can never redirect the internal
-// connector call (which carries the user's key) to an attacker origin. An
-// unrecognized host yields "" so connectors are simply disabled (memory + chat
-// keep working) rather than calling out to an untrusted destination.
-export function safeInternalOrigin(host: string | undefined): string {
-  const h = (host ?? "").trim().toLowerCase();
-  if (!h) return "";
-  const hostname = h.split(":")[0];
+// connector call (which carries the user's key) to an attacker origin. Preview
+// deployments are allowed only when the host exactly matches VERCEL_URL.
+// An unrecognized host yields "" so connectors are simply disabled (memory +
+// chat keep working) rather than calling out to an untrusted destination.
+export function safeInternalOrigin(
+  host: string | undefined,
+  vercelUrl = process.env.VERCEL_URL,
+): string {
+  const raw = (host ?? "").trim();
+  if (!raw || !/^[A-Za-z0-9.-]+(?::\d+)?$/.test(raw)) return "";
+  const hostname = raw.split(":")[0].toLowerCase();
+  const previewHost = cleanVercelHost(vercelUrl);
   const allowed =
     hostname === "unclick.world" ||
     hostname.endsWith(".unclick.world") ||
-    hostname.endsWith(".vercel.app");
-  return allowed ? `https://${host}` : "";
+    (previewHost !== null && hostname === previewHost);
+  return allowed ? `https://${raw}` : "";
 }
 
 export interface ChatRequest {
