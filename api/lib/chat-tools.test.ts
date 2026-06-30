@@ -70,6 +70,8 @@ describe("internalMcpCall", () => {
     expect(url).toBe("https://example.test/api/mcp");
     expect(init.method).toBe("POST");
     expect(init.headers.Authorization).toBe("Bearer uc_abc");
+    expect(init.headers.Accept).toBe("application/json, text/event-stream");
+    expect(init.headers["Content-Type"]).toBe("application/json");
     const body = JSON.parse(init.body);
     expect(body.jsonrpc).toBe("2.0");
     expect(body.method).toBe("tools/call");

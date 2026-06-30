@@ -79,6 +79,7 @@ export async function internalMcpCall(
       method: "POST",
       headers: {
         Authorization: `Bearer ${bearer}`,
+        Accept: "application/json, text/event-stream",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
