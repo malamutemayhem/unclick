@@ -87,6 +87,7 @@ export default function AdminToolsPage() {
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
   // One filter state, two controls: the rail and the chips both read/write
@@ -183,6 +184,16 @@ export default function AdminToolsPage() {
     void persist(on ? new Set() : new Set(APP_CATALOG.map((a) => a.slug)));
   }
 
+  async function handleRefreshStatus() {
+    setRefreshing(true);
+    setSaveError(null);
+    try {
+      await refreshStatus();
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
@@ -192,8 +203,11 @@ export default function AdminToolsPage() {
     if (c.credential?.connection_state === "pending") {
       return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
+    if (c.credential?.connection_state === "stale") {
+      return { label: "Stale", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    }
     if (c.credential?.is_valid) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+      return { label: "Needs check", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -390,12 +404,13 @@ export default function AdminToolsPage() {
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
+        onRefreshStatus={() => void handleRefreshStatus()}
         statusOf={statusOf}
         onStatusClick={handleStatusClick}
         actionOf={actionOf}
         disconnectOf={disconnectActionOf}
         noteOf={noteOf}
-        busy={saving}
+        busy={saving || refreshing}
       />
 
       {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (

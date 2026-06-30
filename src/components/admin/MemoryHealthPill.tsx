@@ -53,7 +53,7 @@ export default function MemoryHealthPill() {
   const [errored, setErrored] = useState(false);
   const [checking, setChecking] = useState(false);
   const { session } = useSession();
-  const apiKey = useMemo(() => {
+  const storedApiKey = useMemo(() => {
     try {
       return localStorage.getItem(API_KEY_STORAGE) ?? "";
     } catch {
@@ -62,6 +62,7 @@ export default function MemoryHealthPill() {
   }, []);
 
   const token = session?.access_token;
+  const apiKey = token ? "" : storedApiKey;
 
   const fetchOnce = useCallback(async () => {
     if (!apiKey && !token) return;
@@ -126,9 +127,9 @@ export default function MemoryHealthPill() {
     tone === "unknown"
       ? "Memory status unknown - last check did not return. Click Check now to retry."
       : data
-      ? `${label}. Identity: ${data.context_count}. Facts: ${data.fact_count}. Last session ${shortTime(
-          data.last_session ?? data.last_used_at
-        )} ago.`
+      ? `${label}. Identity: ${data.context_count}. Facts: ${data.fact_count}. Last session ${
+          data.last_session ?? data.last_used_at ? `${shortTime(data.last_session ?? data.last_used_at)} ago` : "never"
+        }.`
       : "Memory status unknown";
 
   return (
