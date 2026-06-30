@@ -50,6 +50,8 @@ jobs:
         run: npm run test:rotatepass-redaction
       - name: CompliancePass receipt guard
         run: npm run test:compliancepass-receipt
+      - name: App connection readiness guard
+        run: npm run test:app-connections
 
   mcp-server:
     name: MCP server package
