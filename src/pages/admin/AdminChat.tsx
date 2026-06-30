@@ -479,7 +479,7 @@ export default function AdminChatPage() {
 
           <div className="min-h-[46vh] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 md:min-h-0">
             {messages.length === 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {activeSeat
                   ? `Ask ${activeSeat.label} anything, or @mention another seat. Replies show which seat answered and an estimated token cost.`
                   : "Add an AI seat from the members panel to start."}
@@ -491,7 +491,7 @@ export default function AdminChatPage() {
               return (
                 <div key={m.id} className={isUser ? "text-right" : "text-left"}>
                   <div
-                    className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
+                    className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-[13px] leading-relaxed ${
                       isUser ? "bg-primary/10 text-foreground" : "bg-card/60 text-body"
                     }`}
                   >
@@ -505,7 +505,7 @@ export default function AdminChatPage() {
                 </div>
               );
             })}
-            {error && <div className="text-sm text-red-400">Error: {error.message}</div>}
+            {error && <div className="text-xs text-red-400">Error: {error.message}</div>}
           </div>
 
           <div className="flex items-end gap-2">
@@ -522,18 +522,18 @@ export default function AdminChatPage() {
               placeholder={
                 apiKey
                   ? activeSeat
-                    ? `Message ${activeSeat.label}... (@mention to switch seat, Enter to send)`
+                    ? `Message ${activeSeat.label}`
                     : "Add an AI seat to chat"
                   : "Set your UnClick key to chat"
               }
               disabled={!apiKey || !activeSeat}
-              className="flex-1 resize-none rounded-md border border-border/50 bg-card/40 px-3 py-2 text-sm text-body outline-none focus:border-primary/50"
+              className="flex-1 resize-none rounded-md border border-border/50 bg-card/40 px-3 py-2 text-[13px] text-body outline-none placeholder:text-muted-foreground/40 focus:border-primary/50"
             />
             {busy ? (
               <button
                 type="button"
                 onClick={() => stop()}
-                className="rounded-md border border-border/50 px-4 py-2 text-sm font-medium text-body hover:bg-card/40"
+                className="rounded-md border border-border/50 px-4 py-1.5 text-xs font-medium text-body hover:bg-card/40"
               >
                 Stop
               </button>
@@ -542,7 +542,7 @@ export default function AdminChatPage() {
                 type="button"
                 onClick={onSend}
                 disabled={!canSend}
-                className="rounded-md bg-primary/90 px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-40"
+                className="rounded-md bg-primary/90 px-4 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary disabled:opacity-40"
               >
                 Send
               </button>
