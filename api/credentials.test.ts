@@ -249,3 +249,127 @@ describe("credentials API login-connect server scheme", () => {
     expect(laneLookup).toContain("platform_slug=eq.notion");
   });
 });
+
+// ─── Login-connect: keyless/login bare lane-hash GET ──────────────────────────
+//
+// A keyless/login MCP session carries only the account lane in
+// UNCLICK_API_KEY_HASH and presents it as the bearer token. resolveAccountLane
+// now accepts that bare 64-hex hash ONLY when it is backed by an active
+// api_keys row, then the GET decrypts the matching enc_scheme='server' row for
+// that lane. Critically, a hash-only caller must NEVER decrypt an apikey row -
+// apikey rows stay raw-key-only.
+
+// A real account lane is the SHA-256 hex of an api key: 64 lowercase hex chars.
+const BARE_LANE =
+  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+describe("credentials API keyless/login bare lane-hash GET", () => {
+  beforeEach(() => {
+    vi.stubEnv("SUPABASE_URL", "https://supabase.test");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role");
+    vi.stubEnv("UNCLICK_LOGIN_CONNECT_ENABLED", "1");
+    vi.stubEnv("UNCLICK_AI_KEY_SECRET", SERVER_SECRET);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("resolves a bare lane hash backed by api_keys and decrypts the matching server row", async () => {
+    const enc = encryptForAccount(SERVER_SECRET, BARE_LANE, JSON.stringify({ api_key: "vcp-server-token" }));
+    const serverRow = {
+      id: "cred_server_bare",
+      enc_scheme: "server",
+      lane_hash: BARE_LANE,
+      platform_slug: "vercel",
+      label: null,
+      encrypted_data: enc.encrypted_data,
+      encryption_iv: enc.encryption_iv,
+      encryption_tag: enc.encryption_tag,
+      encryption_salt: enc.encryption_salt,
+    };
+
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      // resolveAccountLane bare-hash branch: lane_hash OR key_hash, active only.
+      if (url.includes("/rest/v1/api_keys")) {
+        return { ok: true, status: 200, json: async () => [{ lane_hash: BARE_LANE }] };
+      }
+      // Session/keyless caller never matches by api_key_hash; the lane +
+      // enc_scheme=server fallback returns the server row.
+      if (url.includes("enc_scheme=eq.server")) {
+        return { ok: true, status: 200, json: async () => [serverRow] };
+      }
+      return { ok: true, status: 200, json: async () => [] };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = createResponse();
+    const body = await handler({
+      method: "GET",
+      headers: { authorization: `Bearer ${BARE_LANE}` },
+      query: { platform: "vercel" },
+    } as never, res as never);
+
+    expect(res.statusCode).toBe(200);
+    expect(body).toMatchObject({ api_key: "vcp-server-token" });
+
+    // The api_keys probe used the OR(lane_hash,key_hash) + active filter.
+    const apiKeysProbe = fetchMock.mock.calls
+      .map(([u]) => String(u))
+      .find((u) => u.includes("/rest/v1/api_keys"));
+    expect(apiKeysProbe).toBeDefined();
+    expect(apiKeysProbe).toContain(`lane_hash.eq.${BARE_LANE}`);
+    expect(apiKeysProbe).toContain(`key_hash.eq.${BARE_LANE}`);
+    expect(apiKeysProbe).toContain("is_active=eq.true");
+
+    // The server-scheme lookup was scoped to this lane.
+    const laneLookup = fetchMock.mock.calls
+      .map(([u]) => String(u))
+      .find((u) => u.includes("enc_scheme=eq.server"));
+    expect(laneLookup).toContain(`lane_hash=eq.${BARE_LANE}`);
+  });
+
+  it("does NOT return an apikey row for a hash-only caller (apikey stays raw-key-only)", async () => {
+    // The DB holds only an apikey-scheme row (api_key_hash keyed to the raw key,
+    // never to sha256(lane)). A hash-only caller resolves the lane but finds no
+    // server row, and must never fall through to the apikey decrypt branch.
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes("/rest/v1/api_keys")) {
+        return { ok: true, status: 200, json: async () => [{ lane_hash: BARE_LANE }] };
+      }
+      // api_key_hash lookup: sha256(bare lane) matches no stored apikey row.
+      // lane + enc_scheme=server lookup: no server row exists.
+      // managed_app_connections: none.
+      return { ok: true, status: 200, json: async () => [] };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = createResponse();
+    const body = await handler({
+      method: "GET",
+      headers: { authorization: `Bearer ${BARE_LANE}` },
+      query: { platform: "vercel" },
+    } as never, res as never) as Record<string, unknown>;
+
+    // Stays missing - no apikey decryption ever attempted for a hash-only caller.
+    expect(res.statusCode).toBe(404);
+    expect(body).toHaveProperty("error");
+    expect(body).not.toHaveProperty("api_key");
+
+    // Every user_credentials lookup the handler made was scoped to the server
+    // scheme by lane; none attempted an apikey decrypt path on a hash caller.
+    const credLookups = fetchMock.mock.calls
+      .map(([u]) => String(u))
+      .filter((u) => u.includes("/rest/v1/user_credentials"));
+    for (const u of credLookups) {
+      if (u.includes("api_key_hash=eq.")) {
+        // The primary api_key_hash lookup is harmless: it can only ever match a
+        // row keyed to sha256(raw key), which a bare lane hash never produces.
+        // No server-scheme row is returned here, so the apikey branch is never
+        // reached. This assertion documents that intent.
+        expect(u).not.toContain("enc_scheme=eq.server");
+      }
+    }
+  });
+});

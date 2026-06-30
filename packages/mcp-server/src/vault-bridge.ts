@@ -28,6 +28,17 @@ export function credentialResolvedFromUnClick(args: Record<string, unknown>): bo
   return args[UNCLICK_CREDENTIAL_SOURCE] === "user_credentials";
 }
 
+// Client-side mirror of the server UNCLICK_LOGIN_CONNECT_ENABLED flag (default
+// OFF), same string convention as the api/ side. When ON it unlocks the
+// keyless/login fallback below: a session that holds only UNCLICK_API_KEY_HASH
+// (the stable account lane, never the plaintext key) can still resolve its
+// server-scheme credentials. With it OFF the fallback is skipped entirely and
+// the plaintext-only behaviour is unchanged.
+function loginConnectMirrorEnabled(): boolean {
+  const v = String(process.env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
 export async function markCredentialLiveTested(slug: string): Promise<void> {
   const apiKey = process.env.UNCLICK_API_KEY?.trim();
   if (!apiKey) return;
@@ -100,17 +111,28 @@ async function tryResolveFromUnClickApi(
   resolved: Record<string, unknown>,
   stillMissing: ConnectorConfig["credentialFields"],
 ): Promise<ConnectorConfig["credentialFields"]> {
-  const apiKey  = process.env.UNCLICK_API_KEY?.trim();
-  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+  const apiKey   = process.env.UNCLICK_API_KEY?.trim();
+  const apiBase  = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 
-  if (!apiKey) return stillMissing;
+  // Auth token for the credentials GET. The plaintext api key always wins and
+  // keeps the original behaviour unchanged. Only when no plaintext key is
+  // present do we fall back to the keyless/login lane in UNCLICK_API_KEY_HASH
+  // (the bare account lane), and only when the login-connect flag mirror is on.
+  // The GET resolves that lane (see api/lib/account-lane.ts) and decrypts the
+  // matching enc_scheme='server' row; apikey rows stay raw-key-only.
+  const apiKeyHash = process.env.UNCLICK_API_KEY_HASH?.trim();
+  const bearer = apiKey
+    ? apiKey
+    : (apiKeyHash && loginConnectMirrorEnabled() ? apiKeyHash : undefined);
+
+  if (!bearer) return stillMissing;
   // BackstagePass vault toggle: when OFF, skip the vault lookup so inline /
   // env / local creds stand on their own (still functional, fewer benefits).
   if (!(await isBackstagePassVaultEnabled())) return stillMissing;
 
   try {
     const res = await fetch(`${apiBase}/api/credentials?platform=${encodeURIComponent(slug)}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: { Authorization: `Bearer ${bearer}` },
     });
     if (res.ok) {
       const data = (await res.json()) as Record<string, unknown>;
