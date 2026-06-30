@@ -21,6 +21,9 @@ describe("vault bridge credential resolution", () => {
     vi.unstubAllGlobals();
     delete process.env.UNCLICK_API_KEY;
     delete process.env.UNCLICK_API_URL;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
   });
 
   it("prefers the saved web-login credential over a legacy single-key row for OAuth connectors", async () => {
@@ -52,5 +55,97 @@ describe("vault bridge credential resolution", () => {
     expect(result.access_token).toBe("legacy-supabase-token");
     expect(credentialResolvedFromUnClick(result)).toBe(false);
     expect(mocks.keychainGetCredential).toHaveBeenCalledWith("supabase");
+  });
+});
+
+// ─── Keyless login session: MCP OAuth session-token fallback ─────────────────
+//
+// When there is NO plaintext UNCLICK_API_KEY but a verifiable MCP OAuth access
+// token is present in UNCLICK_MCP_SESSION_TOKEN AND the login-connect flag is on,
+// the credentials read is authorized with that token (Bearer <session token>).
+// The bare lane hash (UNCLICK_API_KEY_HASH) is NEVER forwarded as a credential.
+
+describe("vault bridge session-token fallback (keyless login)", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.UNCLICK_API_URL;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
+  });
+
+  it("authorizes the credentials read with the session token when no plaintext key is present", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "1";
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.oauth.access.token";
+    process.env.UNCLICK_API_KEY_HASH = "lane_hash_must_not_leak";
+    mocks.keychainGetCredential.mockResolvedValue("");
+
+    const seenAuth: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const auth = (init?.headers as Record<string, string> | undefined)?.Authorization ?? "";
+      seenAuth.push(auth);
+      expect(String(input)).toBe("https://unclick.test/api/credentials?platform=supabase");
+      return jsonResponse({ access_token: "session-resolved-token" });
+    }));
+
+    const { credentialResolvedFromUnClick, resolveCredentials } = await import("./vault-bridge.js");
+    const result = await resolveCredentials("supabase", {});
+
+    expect(result.access_token).toBe("session-resolved-token");
+    expect(credentialResolvedFromUnClick(result)).toBe(true);
+    // The session token authorized the read.
+    expect(seenAuth).toContain("Bearer mcp.oauth.access.token");
+    // The bare lane hash must never be sent as a credential.
+    for (const auth of seenAuth) {
+      expect(auth).not.toContain("lane_hash_must_not_leak");
+    }
+  });
+
+  it("does NOT use the session token when the login-connect flag is off", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    // flag intentionally unset (default OFF)
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.oauth.access.token";
+    mocks.keychainGetCredential.mockResolvedValue("");
+
+    const fetchMock = vi.fn(async () => jsonResponse({ access_token: "should-not-be-used" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { credentialResolvedFromUnClick, resolveCredentials } = await import("./vault-bridge.js");
+    const result = await resolveCredentials("supabase", {});
+
+    // No plaintext key and flag off -> the UnClick API read is never attempted.
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(credentialResolvedFromUnClick(result)).toBe(false);
+    expect("error" in result).toBe(true);
+  });
+
+  it("does NOT fall back to the session token when a plaintext key is present (plaintext wins)", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "1";
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.oauth.access.token";
+    mocks.keychainGetCredential.mockResolvedValue("");
+
+    const seenAuth: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_input: string | URL, init?: RequestInit) => {
+      const auth = (init?.headers as Record<string, string> | undefined)?.Authorization ?? "";
+      seenAuth.push(auth);
+      return jsonResponse({ access_token: "plaintext-resolved-token" });
+    }));
+
+    const { resolveCredentials } = await import("./vault-bridge.js");
+    const result = await resolveCredentials("supabase", {});
+
+    expect(result.access_token).toBe("plaintext-resolved-token");
+    // The plaintext api key authorized the read, not the session token.
+    expect(seenAuth).toContain("Bearer uc_test");
+    for (const auth of seenAuth) {
+      expect(auth).not.toContain("mcp.oauth.access.token");
+    }
   });
 });
