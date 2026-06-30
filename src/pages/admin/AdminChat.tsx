@@ -6,7 +6,18 @@ import { useSession } from "@/lib/auth";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
 import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
-import type { HumanMember } from "@/components/admin/chatMembers";
+import { StartSharedRoomButton } from "@/components/admin/StartSharedRoomButton";
+import {
+  PendingHandshakeBanner,
+  NeedsHandshakePrompt,
+  type HandshakeBlock,
+} from "@/components/admin/HandshakeBanner";
+import {
+  fetchPendingHandshakes,
+  respondToHandshake,
+  type HumanMember,
+  type PendingHandshake,
+} from "@/components/admin/chatMembers";
 import {
   CHAT_PROVIDERS,
   CHAT_API_ENDPOINT,
@@ -73,6 +84,13 @@ export default function AdminChatPage() {
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatRef = useRef<AiSeat | null>(null);
 
+  // Incoming Circle requests waiting on the operator (loud top banner), and a
+  // one-off "you need to connect first" block raised when starting a shared
+  // room could not add the contact yet.
+  const [pendingHandshakes, setPendingHandshakes] = useState<PendingHandshake[]>([]);
+  const [handshakeBusyId, setHandshakeBusyId] = useState<string | null>(null);
+  const [handshakeBlock, setHandshakeBlock] = useState<HandshakeBlock | null>(null);
+
   // Persisted chat sessions (threads). The page lists the account's
   // sessions in the left rail and keeps the active thread's messages in sync.
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -108,6 +126,37 @@ export default function AdminChatPage() {
     } catch {
       /* ignore */
     }
+  }
+
+  // Pull the operator's incoming connection requests (pending Circle links
+  // they have not answered) for the loud top banner. Best-effort: a null
+  // result (any failure) just leaves the banner empty.
+  async function refreshPendingHandshakes() {
+    if (!accessToken) return;
+    const rows = await fetchPendingHandshakes(accessToken);
+    if (rows) setPendingHandshakes(rows);
+  }
+
+  // Accept or decline an incoming request inline, then refresh both the banner
+  // and the sessions list (an accepted contact can now be added to rooms).
+  async function answerHandshake(linkId: string, decision: "accept" | "decline") {
+    if (!accessToken || handshakeBusyId) return;
+    setHandshakeBusyId(linkId);
+    try {
+      await respondToHandshake(accessToken, linkId, decision);
+      await refreshPendingHandshakes();
+      await refreshThreads();
+    } finally {
+      setHandshakeBusyId(null);
+    }
+  }
+
+  // The new room created by StartSharedRoomButton: select it and refresh the
+  // sessions list so it appears under Shared Sessions.
+  async function onSharedRoomStarted(threadId: string) {
+    setHandshakeBlock(null);
+    await selectThread(threadId);
+    await refreshThreads();
   }
 
   // Row shape returned by ?action=messages.
@@ -238,7 +287,8 @@ export default function AdminChatPage() {
     }
   }
 
-  // On first load, list sessions and reopen the most recent one.
+  // On first load, list sessions and reopen the most recent one, and pull any
+  // incoming connection requests for the loud top banner.
   useEffect(() => {
     if (didInit.current || !accessToken) return;
     didInit.current = true;
@@ -254,6 +304,7 @@ export default function AdminChatPage() {
         /* ignore */
       }
     })();
+    void refreshPendingHandshakes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
@@ -415,6 +466,17 @@ export default function AdminChatPage() {
             </Link>
           </div>
 
+          <PendingHandshakeBanner
+            pending={pendingHandshakes}
+            busyId={handshakeBusyId}
+            onAccept={(id) => answerHandshake(id, "accept")}
+            onDecline={(id) => answerHandshake(id, "decline")}
+          />
+
+          {handshakeBlock && (
+            <NeedsHandshakePrompt block={handshakeBlock} onDismiss={() => setHandshakeBlock(null)} />
+          )}
+
           <div className="min-h-[46vh] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 md:min-h-0">
             {messages.length === 0 && (
               <p className="text-sm text-muted-foreground">
@@ -497,6 +559,14 @@ export default function AdminChatPage() {
           onTogglePin={togglePin}
           onDelete={deleteThread}
           onLeave={leaveThread}
+          startSharedRoom={
+            <StartSharedRoomButton
+              accessToken={accessToken}
+              authHeaders={() => authHeaders(true)}
+              onStarted={onSharedRoomStarted}
+              onBlocked={setHandshakeBlock}
+            />
+          }
         />
       </div>
     </div>
