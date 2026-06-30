@@ -50,7 +50,7 @@ import {
   fetchManagedConnectionCredentials,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
-import { needsRefresh, refreshOAuthCredential } from "./lib/oauth-refresh.js";
+import { needsRefresh, refreshOAuthCredentialResult } from "./lib/oauth-refresh.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
 import {
   decryptForAccount,
@@ -182,11 +182,41 @@ async function refreshStoredCredential(params: {
   try {
     if (!needsRefresh(platform, credentials, force)) return credentials;
 
-    const refreshed = await refreshOAuthCredential(platform, credentials, process.env);
-    if (!refreshed) return credentials;
+    const result = await refreshOAuthCredentialResult(platform, credentials, process.env);
+    if (!result.ok || !result.credentials) {
+      // Observability only: the access token needed a refresh and the refresh
+      // failed. Surface WHY (a short reason code, never a token/secret) instead
+      // of silently handing back a dead token. Best-effort and non-blocking: we
+      // still return the stored credential so a connector call gets its one
+      // last try, and the operator gets a precise "Needs reconnect" reason on
+      // the Apps page instead of an opaque late "reauth required".
+      const reason = result.reason ?? "unknown";
+      // Single structured line. NEVER log token values or secrets.
+      console.warn(`[oauth-refresh] failed platform=${platform} rowId=${rowId || "none"} reason=${reason}`);
+      if (rowId) {
+        try {
+          await supabaseFetch(
+            `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(rowId)}`,
+            "PATCH",
+            { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
+            {
+              last_refresh_error:    reason,
+              last_refresh_error_at: new Date().toISOString(),
+            }
+          );
+        } catch {
+          // Recording the reason is best-effort and must never block or throw.
+        }
+      }
+      return credentials;
+    }
+
+    const refreshed = result.credentials;
 
     // Persist the rotated token so the next read is already fresh, and stamp the
-    // proof fields (a successful refresh proves the credential is live).
+    // proof fields (a successful refresh proves the credential is live). Clearing
+    // last_refresh_error here is cheap (we are already PATCHing) so a recovered
+    // connection drops its "Needs reconnect" note immediately.
     if (rowId) {
       try {
         let enc: EncryptedCredential;
@@ -213,13 +243,15 @@ async function refreshStoredCredential(params: {
           "PATCH",
           { ...supabaseHeaders(serviceRoleKey), Prefer: "return=minimal" },
           {
-            encrypted_data:  enc.encrypted_data,
-            encryption_iv:   enc.encryption_iv,
-            encryption_tag:  enc.encryption_tag,
-            encryption_salt: enc.encryption_salt,
-            is_valid:        true,
-            last_tested_at:  now,
-            updated_at:      now,
+            encrypted_data:        enc.encrypted_data,
+            encryption_iv:         enc.encryption_iv,
+            encryption_tag:        enc.encryption_tag,
+            encryption_salt:       enc.encryption_salt,
+            is_valid:              true,
+            last_tested_at:        now,
+            last_refresh_error:    null,
+            last_refresh_error_at: null,
+            updated_at:            now,
           }
         );
       } catch {

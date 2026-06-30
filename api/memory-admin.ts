@@ -5585,7 +5585,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data: userCreds } = await supabase
           .from("user_credentials")
-          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
           .eq("api_key_hash", tenant.apiKeyHash);
 
         // Login-connect path (flag-gated): credentials saved while logged in are
@@ -5602,7 +5602,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (lane && lane !== tenant.apiKeyHash) {
             const serverQ = await supabase
               .from("user_credentials")
-              .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+              .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
               .eq("lane_hash", lane)
               .eq("enc_scheme", "server");
             serverCreds = serverQ.error ? [] : (serverQ.data ?? []);
@@ -5631,6 +5631,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           source: AdminCredentialSource;
           created_at: string | null;
           updated_at: string | null;
+          // Why the last OAuth refresh failed (short reason code, never a token).
+          // Lets the Apps page tell the user exactly what to reconnect.
+          last_refresh_error: string | null;
+          last_refresh_error_at: string | null;
           managed?: {
             provider: string;
             provider_config_key: string | null;
@@ -5693,6 +5697,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "platform_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
           });
         }
 
@@ -5705,6 +5711,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "user_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
           });
         }
 
@@ -5720,6 +5728,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "user_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
           });
         }
 
@@ -5732,6 +5742,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "managed_app_connections",
             created_at: row.created_at ?? null,
             updated_at: row.updated_at ?? null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
             managed: {
               provider: row.provider ?? "nango",
               provider_config_key: row.provider_config_key ?? null,
