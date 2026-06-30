@@ -35,21 +35,39 @@ export function credentialResolvedFromUnClick(args: Record<string, unknown>): bo
 // OFF). The keyless session-token fallback to /api/credentials is only taken
 // when this is on, so with it off behaviour is byte-identical to the api-key
 // only original. Matches the api/ flag readers (oauth-init.ts, credentials.ts).
-function loginConnectEnabled(): boolean {
+export function loginConnectEnabled(): boolean {
   const v = String(process.env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
   return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
-export async function markCredentialLiveTested(slug: string): Promise<void> {
+// Single source of truth for the bearer that reads /api/credentials. The
+// plaintext UnClick api key wins first: it unlocks the apikey-scheme PBKDF2 rows
+// (the zero-knowledge agent path). Only when NO plaintext key is present do we
+// fall back to a verifiable MCP OAuth access token (UNCLICK_MCP_SESSION_TOKEN)
+// minted for a keyless login session, and only when the login-connect flag is
+// on. That token resolves the caller's lane SERVER-SIDE (after cryptographic
+// verification) and reaches the enc_scheme='server' rows only. We NEVER forward
+// UNCLICK_API_KEY_HASH: a bare lane/hash must never authorize a decrypt (it
+// leaks via room membership). Connectors with their own /api/credentials read
+// (e.g. higgsfield-tool.ts) reuse this so the rule stays in one place.
+export function unclickCredentialsBearer(): string | null {
   const apiKey = process.env.UNCLICK_API_KEY?.trim();
-  if (!apiKey) return;
+  if (apiKey) return apiKey;
+  const sessionToken = process.env.UNCLICK_MCP_SESSION_TOKEN?.trim();
+  if (sessionToken && loginConnectEnabled()) return sessionToken;
+  return null;
+}
+
+export async function markCredentialLiveTested(slug: string): Promise<void> {
+  const bearer = unclickCredentialsBearer();
+  if (!bearer) return;
 
   const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
   try {
     await fetch(`${apiBase}/api/credentials`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${bearer}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ platform: slug }),
@@ -112,24 +130,12 @@ async function tryResolveFromUnClickApi(
   resolved: Record<string, unknown>,
   stillMissing: ConnectorConfig["credentialFields"],
 ): Promise<ConnectorConfig["credentialFields"]> {
-  const apiKey  = process.env.UNCLICK_API_KEY?.trim();
   const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
 
-  // Authorization for the credentials read. The plaintext UnClick api key wins
-  // first: it unlocks the apikey-scheme PBKDF2 rows (the zero-knowledge agent
-  // path). Only when NO plaintext key is present do we fall back to a verifiable
-  // MCP OAuth access token (UNCLICK_MCP_SESSION_TOKEN) minted for a keyless login
-  // session, and only when the login-connect flag is on. That token resolves the
-  // caller's lane SERVER-SIDE (after cryptographic verification) and reaches the
-  // enc_scheme='server' rows only. We NEVER forward UNCLICK_API_KEY_HASH: a bare
-  // lane/hash must never authorize a decrypt (it leaks via room membership).
-  let bearer = apiKey;
-  if (!bearer) {
-    const sessionToken = process.env.UNCLICK_MCP_SESSION_TOKEN?.trim();
-    if (sessionToken && loginConnectEnabled()) {
-      bearer = sessionToken;
-    }
-  }
+  // Authorization for the credentials read. unclickCredentialsBearer() prefers
+  // the plaintext UnClick api key (apikey-scheme rows), and only falls back to a
+  // verifiable MCP OAuth session token (server-scheme rows) when the flag is on.
+  const bearer = unclickCredentialsBearer();
   if (!bearer) return stillMissing;
 
   // BackstagePass vault toggle: when OFF, skip the vault lookup so inline /

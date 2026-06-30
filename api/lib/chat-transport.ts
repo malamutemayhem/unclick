@@ -81,5 +81,11 @@ export function resolveApiChatModel(input: ResolveApiChatModelInput) {
     );
   }
 
-  return createOpenAI({ apiKey: input.apiKey, baseURL })(input.model);
+  // Use the Chat Completions API explicitly. In @ai-sdk/openai v3 the default
+  // provider call (createOpenAI(...)(model)) targets the OpenAI Responses API
+  // (/v1/responses), which OpenAI-compatible hosts like OpenRouter, Groq,
+  // Together, Mistral and Perplexity do not implement - they return
+  // "Invalid Responses API request". .chat() pins /v1/chat/completions, which
+  // every provider on this branch (including OpenAI itself) supports.
+  return createOpenAI({ apiKey: input.apiKey, baseURL }).chat(input.model);
 }
