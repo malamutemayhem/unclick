@@ -362,7 +362,7 @@ async function resolveTenant(
   // stranding their credentials in a separate tenant lane.
   const qUrl =
     `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
-    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash,api_key&limit=1`;
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash&limit=1`;
   const { ok, data } = await supaFetch(qUrl, "GET", supaHeaders(serviceRoleKey));
   if (!ok) return null;
   const rows = (data as Array<{ key_hash?: string | null; api_key?: string | null }>) ?? [];
