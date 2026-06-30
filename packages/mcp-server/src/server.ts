@@ -1583,7 +1583,17 @@ type RuntimeToolSchema = {
   name: string;
   description?: string;
   inputSchema?: unknown;
+  securitySchemes?: ToolSecurityScheme[];
+  _meta?: Record<string, unknown>;
 };
+
+type ToolSecurityScheme =
+  | { type: "oauth2"; scopes: string[] }
+  | { type: "noauth" };
+
+const UNCLICK_OAUTH_SECURITY_SCHEMES: ToolSecurityScheme[] = [
+  { type: "oauth2", scopes: ["unclick:mcp"] },
+];
 
 type RuntimeValidationError = {
   code: "validation_error";
@@ -1768,8 +1778,22 @@ export function advertiseToolSchema<T extends { inputSchema?: unknown }>(tool: T
   return { ...tool, inputSchema: copy };
 }
 
+function advertiseToolAuth(tool: RuntimeToolSchema): RuntimeToolSchema {
+  const securitySchemes = tool.securitySchemes ?? UNCLICK_OAUTH_SECURITY_SCHEMES;
+  return {
+    ...tool,
+    securitySchemes,
+    _meta: {
+      ...(tool._meta ?? {}),
+      securitySchemes,
+    },
+  };
+}
+
 /** The advertise-safe tool list actually sent in tools/list responses. */
-export const ADVERTISED_TOOLS_SAFE = ADVERTISED_TOOLS.map(advertiseToolSchema);
+export const ADVERTISED_TOOLS_SAFE = ADVERTISED_TOOLS.map(advertiseToolSchema).map(
+  advertiseToolAuth,
+);
 
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
