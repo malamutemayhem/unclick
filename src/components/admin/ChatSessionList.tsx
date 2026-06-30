@@ -221,6 +221,7 @@ export function ChatSessionList({
   onTogglePin,
   onDelete,
   onLeave,
+  startSharedRoom,
 }: {
   threads: ChatThread[];
   activeThreadId: string | null;
@@ -230,6 +231,9 @@ export function ChatSessionList({
   onTogglePin: (id: string, pinned: boolean) => void;
   onDelete: (id: string) => void;
   onLeave: (id: string) => void;
+  // Optional control (the "New shared room" picker) rendered just under
+  // "New session". Injected by the parent so this rail stays presentational.
+  startSharedRoom?: React.ReactNode;
 }) {
   // Split into the two groups. The server already orders pinned-first then
   // updated_at desc, so we keep arrival order within each group.
@@ -258,6 +262,8 @@ export function ChatSessionList({
       >
         <Plus className="h-4 w-4 shrink-0" /> New session
       </button>
+
+      {startSharedRoom}
 
       <div className="-mx-1 flex-1 space-y-3 overflow-y-auto px-1">
         {threads.length === 0 && (
