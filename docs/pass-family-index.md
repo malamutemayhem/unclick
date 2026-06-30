@@ -43,9 +43,11 @@ These cannot dogfood in public the same way. They use the boundary sweep, which 
 
 | Pass | Brief | Promotes through | XPass routes here when |
 | --- | --- | --- | --- |
-| RotatePass | [`docs/rotatepass-chunk-2-prd.md`](./rotatepass-chunk-2-prd.md), [`docs/rotatepass-local-phase0.md`](./rotatepass-local-phase0.md) | public-safe boundary sweep | the target is a credential rotation, connector hygiene check, provider OAuth/token fallback change, or a redaction-guard request |
+| RotatePass | [`docs/rotatepass-chunk-2-prd.md`](./rotatepass-chunk-2-prd.md), [`docs/rotatepass-local-phase0.md`](./rotatepass-local-phase0.md), [`docs/connectors/credential-key-learnings-runbook.md`](./connectors/credential-key-learnings-runbook.md) (credential/key knowledge surface) | public-safe boundary sweep | the target is a credential rotation, connector hygiene check, provider OAuth/token fallback change, a credential/key read or decryption-scheme bug, or a redaction-guard request |
 | WakePass (boundary) | [`docs/prd/wakepass.md`](./prd/wakepass.md) | public-safe boundary sweep | the target is an action-needed dispatch or missed-ACK visibility check that should appear in the boundary receipt |
 | CompliancePass | [`docs/compliancepass-product-brief.md`](./compliancepass-product-brief.md), [`docs/compliancepass-control-index.md`](./compliancepass-control-index.md) | readiness-only output, no certification | the target needs a future-regret readiness snapshot that cross-references other Pass receipts |
+
+Connector credential, encryption-scheme, and key-handling questions route to RotatePass, which owns the boundary-safe credential lifecycle. Its credential/key knowledge surface is [`docs/connectors/credential-key-learnings-runbook.md`](./connectors/credential-key-learnings-runbook.md): the catalogue of credential read, decryption-scheme, and key-scoping traps, alongside the wiring-readiness contract in [`docs/connectors/app-connection-readiness.md`](./connectors/app-connection-readiness.md).
 
 ## Archived or parked
 

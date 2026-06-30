@@ -458,7 +458,6 @@ const ADMIN_SUBMENU = [
   { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
-  { path: "/admin/app-testing",   label: "AppTesting",            icon: FlaskConical },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
