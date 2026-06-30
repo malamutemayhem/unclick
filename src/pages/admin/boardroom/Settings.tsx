@@ -174,8 +174,8 @@ export default function BoardroomSettings({
                 })}
               </div>
               <p className="mt-1 text-[10px] text-[#555]">
-                Muted agents are hidden from Now Playing, the feed, and the
-                roster.
+                Muted agents are hidden everywhere on this page: Now Playing,
+                the feed, the chatter lanes, and the roster.
               </p>
             </fieldset>
           )}

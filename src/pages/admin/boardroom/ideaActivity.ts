@@ -50,7 +50,22 @@ export function partitionIdeas<T extends IdeaActivity>(
   for (const idea of ideas) {
     out[ideaBucket(idea, nowMs)].push(idea);
   }
+  out.active = sortIdeasByActivity(out.active);
+  out.stale = sortIdeasByActivity(out.stale);
+  out.resolved = sortIdeasByActivity(out.resolved);
   return out;
+}
+
+/**
+ * Newest activity first, so the ideas people are actually discussing sit at
+ * the top of each bucket instead of API insertion order.
+ */
+export function sortIdeasByActivity<T extends IdeaActivity>(ideas: T[]): T[] {
+  return [...ideas].sort((a, b) => {
+    const aMs = new Date(a.updated_at).getTime();
+    const bMs = new Date(b.updated_at).getTime();
+    return (Number.isFinite(bMs) ? bMs : 0) - (Number.isFinite(aMs) ? aMs : 0);
+  });
 }
 
 /** Short, plain-English age label, e.g. "3d ago" or "just now". */

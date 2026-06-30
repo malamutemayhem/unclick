@@ -92,7 +92,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
 | src/pages/admin/AdminBackstagePass.tsx | 783eb21efbf6 | 8807 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
-| src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
+| src/pages/admin/Boardroom.tsx | 1a8d42f54b16 | 37932 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |

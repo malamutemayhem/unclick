@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_VIEW_PREFS,
   filterFeedByPrefs,
+  filterMessagesByMute,
   filterProfilesByPrefs,
   isAgentMuted,
 } from "./prefs";
@@ -61,5 +62,27 @@ describe("Boardroom view prefs", () => {
     const prefs = { ...DEFAULT_VIEW_PREFS, mutedAgentIds: ["a"] };
     expect(isAgentMuted(prefs, null)).toBe(false);
     expect(isAgentMuted(prefs, "a")).toBe(true);
+  });
+
+  it("filterMessagesByMute drops muted authors but ignores tag filters", () => {
+    const prefs = {
+      ...DEFAULT_VIEW_PREFS,
+      mutedAgentIds: ["noisy"],
+      tagFilters: ["decision"],
+    };
+    const messages = [
+      msg("noisy", ["heartbeat"]),
+      msg("quiet", ["heartbeat"]),
+      msg(null, ["event"]),
+    ];
+    expect(filterMessagesByMute(messages, prefs)).toEqual([
+      msg("quiet", ["heartbeat"]),
+      msg(null, ["event"]),
+    ]);
+  });
+
+  it("filterMessagesByMute returns the same array when nothing is muted", () => {
+    const messages = [msg("a", ["heartbeat"])];
+    expect(filterMessagesByMute(messages, DEFAULT_VIEW_PREFS)).toBe(messages);
   });
 });
