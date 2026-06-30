@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { extractApiKey, extractConnectorKeyHeader, validateChatRequest } from "./chat";
+import {
+  extractApiKey,
+  extractConnectorKeyHeader,
+  safeInternalOrigin,
+  validateChatRequest,
+} from "./chat";
 
 describe("extractApiKey", () => {
   it("accepts a Bearer uc_/agt_ key", () => {
@@ -31,6 +36,29 @@ describe("extractConnectorKeyHeader", () => {
     expect(extractConnectorKeyHeader("")).toBeNull();
     expect(extractConnectorKeyHeader("Bearer uc_abc")).toBeNull(); // bare key only, no prefix
     expect(extractConnectorKeyHeader("sk-openai-key")).toBeNull();
+  });
+});
+
+describe("safeInternalOrigin", () => {
+  it("allows production and preview UnClick hosts", () => {
+    expect(safeInternalOrigin("unclick.world")).toBe("https://unclick.world");
+    expect(safeInternalOrigin("www.unclick.world")).toBe("https://www.unclick.world");
+    expect(safeInternalOrigin("unclick-git-abc123-chris.vercel.app")).toBe(
+      "https://unclick-git-abc123-chris.vercel.app",
+    );
+  });
+
+  it("preserves the original host casing/port in the returned origin", () => {
+    // Allowlist check is case-insensitive, but the fetch target keeps the raw host.
+    expect(safeInternalOrigin("UnClick.world")).toBe("https://UnClick.world");
+  });
+
+  it("rejects unknown or forged hosts (connectors disabled, not redirected)", () => {
+    expect(safeInternalOrigin("evil.example.com")).toBe("");
+    expect(safeInternalOrigin("unclick.world.evil.com")).toBe("");
+    expect(safeInternalOrigin("notvercel.app.evil.com")).toBe("");
+    expect(safeInternalOrigin(undefined)).toBe("");
+    expect(safeInternalOrigin("")).toBe("");
   });
 });
 

@@ -67,6 +67,23 @@ export function extractConnectorKeyHeader(headerValue: string | string[] | undef
   return token;
 }
 
+// Derive the internal /api/mcp origin from the trusted request host, pinned to
+// known UnClick hosts. On Vercel the platform sets `host`, but pinning is
+// defense-in-depth: a forged Host header can never redirect the internal
+// connector call (which carries the user's key) to an attacker origin. An
+// unrecognized host yields "" so connectors are simply disabled (memory + chat
+// keep working) rather than calling out to an untrusted destination.
+export function safeInternalOrigin(host: string | undefined): string {
+  const h = (host ?? "").trim().toLowerCase();
+  if (!h) return "";
+  const hostname = h.split(":")[0];
+  const allowed =
+    hostname === "unclick.world" ||
+    hostname.endsWith(".unclick.world") ||
+    hostname.endsWith(".vercel.app");
+  return allowed ? `https://${host}` : "";
+}
+
 export interface ChatRequest {
   slug: string;
   model: string;
@@ -274,10 +291,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   //    a key, else from X-UnClick-Connector-Key - and use it ONLY after it
   //    resolves to the SAME account lane (proof of possession; a stale or
   //    cross-account key is ignored and connectors degrade gracefully).
-  // The origin for the internal /api/mcp call is the trusted request host,
-  // never user body input.
-  const host = req.headers.host;
-  const origin = host ? `https://${host}` : "";
+  // The origin for the internal /api/mcp call is the trusted request host
+  // (never user body input), pinned to known UnClick hosts as defense-in-depth.
+  const origin = safeInternalOrigin(req.headers.host);
 
   let connectorKey = extractApiKey(req.headers.authorization);
   if (!connectorKey) {
