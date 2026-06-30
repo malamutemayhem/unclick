@@ -116,6 +116,7 @@ export default function AdminChatPage() {
 
   const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
+  const [workingSeatIds, setWorkingSeatIds] = useState<string[]>([]);
   const [input, setInput] = useState("");
 
   // Pending attachments waiting to be sent with the next turn, plus a flag
@@ -144,6 +145,10 @@ export default function AdminChatPage() {
   const transport = useMemo(() => new DefaultChatTransport({ api: CHAT_API_ENDPOINT }), []);
   const { messages, setMessages, sendMessage, status, stop, error } = useChat({ transport });
   const busy = status === "submitted" || status === "streaming";
+
+  useEffect(() => {
+    if (!busy) setWorkingSeatIds([]);
+  }, [busy]);
 
   // Auth headers for the chat-threads endpoint, using the logged-in session.
   function authHeaders(json = false): Record<string, string> {
@@ -216,6 +221,7 @@ export default function AdminChatPage() {
   async function selectThread(id: string) {
     if (!accessToken) return;
     setActiveThread(id);
+    setWorkingSeatIds([]);
     try {
       const r = await fetch(
         `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(id)}`,
@@ -248,6 +254,7 @@ export default function AdminChatPage() {
     if (!accessToken) return;
     setMessages([]);
     setSeatByMsg({});
+    setWorkingSeatIds([]);
     try {
       const r = await fetch("/api/chat-threads?action=create", {
         method: "POST",
@@ -303,6 +310,7 @@ export default function AdminChatPage() {
         setActiveThread(null);
         setMessages([]);
         setSeatByMsg({});
+        setWorkingSeatIds([]);
       }
       await refreshThreads();
     } catch {
@@ -323,6 +331,7 @@ export default function AdminChatPage() {
         setActiveThread(null);
         setMessages([]);
         setSeatByMsg({});
+        setWorkingSeatIds([]);
       }
       await refreshThreads();
     } catch {
@@ -381,6 +390,7 @@ export default function AdminChatPage() {
   function removeSeat(id: string) {
     setSeats((prev) => prev.filter((s) => s.id !== id));
     setActiveSeatId((cur) => (cur === id ? null : cur));
+    setWorkingSeatIds((prev) => prev.filter((seatId) => seatId !== id));
   }
 
   function toggleSeatActive(id: string) {
@@ -477,6 +487,7 @@ export default function AdminChatPage() {
     if (!seat) return;
     targetSeatRef.current = seat;
     setActiveSeatId(seat.id);
+    setWorkingSeatIds([seat.id]);
     setInput("");
     setAttachments([]);
 
@@ -593,6 +604,7 @@ export default function AdminChatPage() {
           accessToken={accessToken}
           seats={seats}
           activeSeatId={activeSeat?.id ?? null}
+          workingSeatIds={workingSeatIds}
           humanMembers={humanMembers}
           onSelectSeat={selectSeat}
           onAddSeat={addSeat}

@@ -16,7 +16,7 @@
 // ============================================================
 
 import { useEffect, useState } from "react";
-import { Plus, X, Bot, UserPlus, Power } from "lucide-react";
+import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -251,6 +251,7 @@ export function ChatMemberRail({
   accessToken,
   seats,
   activeSeatId,
+  workingSeatIds,
   humanMembers,
   onSelectSeat,
   onAddSeat,
@@ -263,6 +264,7 @@ export function ChatMemberRail({
   accessToken: string | null;
   seats: AiSeat[];
   activeSeatId: string | null;
+  workingSeatIds?: string[];
   humanMembers: HumanMember[];
   onSelectSeat: (seat: AiSeat) => void;
   onAddSeat: (slug: string, model: string) => void;
@@ -338,67 +340,107 @@ export function ChatMemberRail({
           </div>
         ))}
 
-        {seats.map((s) => (
-          <div
-            key={s.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onSelectSeat(s)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelectSeat(s);
-              }
-            }}
-            className={cn(
-              "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors",
-              activeSeatId === s.id ? "bg-primary/10" : "hover:bg-card/50",
-            )}
-          >
-            <span
-              className={cn(
-                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                s.active ? "bg-emerald-500/20 text-emerald-400" : "bg-primary/15 text-primary",
-              )}
-            >
-              <Bot className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-body">{s.label}</p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                @{s.handle} {s.active ? "- called in" : "- benched"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleSeatActive(s.id);
+        {seats.map((s) => {
+          const isSelected = activeSeatId === s.id;
+          const isWorking = Boolean(workingSeatIds?.includes(s.id));
+          return (
+            <div
+              key={s.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectSeat(s)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectSeat(s);
+                }
               }}
               className={cn(
-                "shrink-0 rounded p-1 transition-colors",
+                "group relative flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
                 s.active
-                  ? "text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300"
-                  : "text-muted-foreground opacity-0 hover:bg-card/60 hover:text-body group-hover:opacity-100",
+                  ? "border-emerald-300/45 bg-emerald-500/10 shadow-[0_0_0_1px_rgba(52,211,153,0.08),0_10px_26px_rgba(16,185,129,0.08)]"
+                  : isSelected
+                    ? "border-primary/25 bg-primary/10"
+                    : "border-transparent hover:bg-card/50",
+                isWorking && "border-cyan-300/60 bg-cyan-400/10",
               )}
-              aria-label={s.active ? `Bench ${s.label}` : `Call in ${s.label}`}
-              title={s.active ? "Bench (stop auto-responding)" : "Call in (auto-respond)"}
             >
-              <Power className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveSeat(s.id);
-              }}
-              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-              aria-label={`Remove ${s.label}`}
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
+              {s.active && (
+                <span
+                  className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 text-[9px] text-slate-950 shadow-sm"
+                  aria-hidden="true"
+                >
+                  <Check className="h-2.5 w-2.5" />
+                </span>
+              )}
+              <span className="relative flex h-7 w-7 shrink-0 items-center justify-center">
+                {isWorking && (
+                  <span className="absolute inset-0 rounded-full border border-cyan-300/60 animate-ping" />
+                )}
+                <span
+                  className={cn(
+                    "relative flex h-7 w-7 items-center justify-center rounded-full",
+                    isWorking
+                      ? "bg-cyan-400/20 text-cyan-200"
+                      : s.active
+                        ? "bg-emerald-500/20 text-emerald-300"
+                        : "bg-primary/15 text-primary",
+                  )}
+                >
+                  <Bot className={cn("h-4 w-4", isWorking && "animate-pulse")} />
+                </span>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-body">{s.label}</p>
+                <p className="flex min-h-4 items-center gap-1 truncate text-[10px] text-muted-foreground">
+                  <span className="truncate">@{s.handle}</span>
+                  <span className="shrink-0">
+                    {isWorking ? "- thinking" : s.active ? "- called in" : "- benched"}
+                  </span>
+                  {isWorking && (
+                    <span className="ml-0.5 flex shrink-0 items-end gap-0.5" aria-hidden="true">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="h-1 w-1 rounded-full bg-cyan-300 animate-bounce"
+                          style={{ animationDelay: `${i * 110}ms` }}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSeatActive(s.id);
+                }}
+                className={cn(
+                  "shrink-0 rounded p-1 transition-colors",
+                  s.active
+                    ? "text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                    : "text-muted-foreground opacity-0 hover:bg-card/60 hover:text-body group-hover:opacity-100",
+                )}
+                aria-label={s.active ? `Bench ${s.label}` : `Call in ${s.label}`}
+                title={s.active ? "Bench (stop auto-responding)" : "Call in (auto-respond)"}
+              >
+                <Power className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveSeat(s.id);
+                }}
+                className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                aria-label={`Remove ${s.label}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-2 space-y-1 border-t border-border/40 pt-2">
