@@ -259,8 +259,10 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/controltower", label: "Control Tower", icon: TowerControl },
-  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
+  // XGate (pre-execution gates) sits above XPass (after-action proof): prechecks
+  // run before the work, so they read first in the list.
   { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
+  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
