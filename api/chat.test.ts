@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractApiKey, validateChatRequest } from "./chat";
+import { extractApiKey, extractConnectorKeyHeader, validateChatRequest } from "./chat";
 
 describe("extractApiKey", () => {
   it("accepts a Bearer uc_/agt_ key", () => {
@@ -12,6 +12,25 @@ describe("extractApiKey", () => {
     expect(extractApiKey("")).toBeNull();
     expect(extractApiKey("Bearer sk-openai-key")).toBeNull();
     expect(extractApiKey("Basic dXNlcjpwYXNz")).toBeNull();
+  });
+});
+
+describe("extractConnectorKeyHeader", () => {
+  it("accepts a bare uc_/agt_ key (no Bearer prefix)", () => {
+    expect(extractConnectorKeyHeader("uc_abc123")).toBe("uc_abc123");
+    expect(extractConnectorKeyHeader("agt_xyz")).toBe("agt_xyz");
+    expect(extractConnectorKeyHeader("  uc_padded  ")).toBe("uc_padded");
+  });
+
+  it("takes the first value when the header arrives as an array", () => {
+    expect(extractConnectorKeyHeader(["uc_first", "uc_second"])).toBe("uc_first");
+  });
+
+  it("rejects missing, empty, or non-UnClick values", () => {
+    expect(extractConnectorKeyHeader(undefined)).toBeNull();
+    expect(extractConnectorKeyHeader("")).toBeNull();
+    expect(extractConnectorKeyHeader("Bearer uc_abc")).toBeNull(); // bare key only, no prefix
+    expect(extractConnectorKeyHeader("sk-openai-key")).toBeNull();
   });
 });
 

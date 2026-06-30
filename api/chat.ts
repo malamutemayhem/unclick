@@ -7,8 +7,11 @@
 // both are rejected here.
 //
 // Security invariants (do not weaken):
-//  - The raw UnClick api key arrives in the Authorization header, never
-//    the body, and is never logged.
+//  - The caller authenticates in the Authorization header (a logged-in
+//    session JWT, or a raw uc_/agt_ key). An OPTIONAL connector key may
+//    arrive in the X-UnClick-Connector-Key header for connector access
+//    only; it is validated to the SAME account lane before use and is
+//    never logged. No raw key is ever read from the request BODY.
 //  - The decrypted provider key lives only in this handler scope, is used
 //    only for the upstream model call, and is never returned, logged,
 //    streamed, or placed in process.env.
@@ -23,7 +26,8 @@ import { resolveApiChatModel } from "./lib/chat-transport.js";
 import { sha256hex, readProviderKey, readProviderKeyForAccount, type EncryptedCredential } from "./lib/chat-crypto.js";
 import { decideChatProviderCall } from "./lib/chat-spend.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
-import { fetchMemoryBlock } from "./lib/chat-memory.js";
+import { fetchMemoryBlock, buildChatMemory } from "./lib/chat-memory.js";
+import { buildChatTools } from "./lib/chat-tools.js";
 
 const MAX_STEPS = 5;
 
@@ -33,7 +37,12 @@ const UNCLICK_SEAT_PREAMBLE =
   "You are an AI seat running inside UnClick, the user's AI operating system. " +
   "You are connected to the user's UnClick workspace, and the memory shown below is theirs: treat it as authoritative context about who they are, their standing rules, and what they are working on. " +
   "If asked whether you are connected to UnClick, the answer is yes - you are running inside their UnClick account with their memory loaded. " +
-  "Use the memory naturally; do not recite it verbatim unless asked.";
+  "Use the memory naturally; do not recite it verbatim unless asked.\n\n" +
+  "You have tools to read the user's UnClick memory and their connected apps. " +
+  "Use search_memory to recall what the user told you before, and save_memory to remember new durable facts about them. " +
+  "To use a connected app, first call find_tools to discover the relevant connector (for example gmail, google-drive, dropbox, onedrive), then tool_info to learn its exact endpoint_id and parameters, then call_tool to run a READ or list endpoint. " +
+  "Write and send actions are NOT enabled yet (read-first mode), so do not attempt to send, create, update, or delete anything in a connected app; call_tool will refuse those. " +
+  "Never fabricate tool results: if a tool returns a 'tool error' or empty result, tell the user plainly that the tool failed instead of inventing an answer.";
 
 // ─── pure, testable helpers ──────────────────────────────────────
 
@@ -42,6 +51,18 @@ const UNCLICK_SEAT_PREAMBLE =
 export function extractApiKey(authHeader: string | undefined): string | null {
   if (!authHeader) return null;
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!token.startsWith("uc_") && !token.startsWith("agt_")) return null;
+  return token;
+}
+
+// Extract an OPTIONAL connector key from the dedicated header. The website
+// authenticates chat with the logged-in session JWT and sends the user's cached
+// uc_/agt_ key here purely so the seat can reach connected apps. It is validated
+// to the caller's lane before use (see handler) and never logged. Returns null
+// for a missing or non-uc_/agt_ value.
+export function extractConnectorKeyHeader(headerValue: string | string[] | undefined): string | null {
+  const raw = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+  const token = (raw ?? "").trim();
   if (!token.startsWith("uc_") && !token.startsWith("agt_")) return null;
   return token;
 }
@@ -168,7 +189,7 @@ async function persistAssistantTurn(opts: {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-UnClick-Connector-Key");
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "POST required" });
 
@@ -244,10 +265,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .filter(Boolean)
     .join("\n\n");
 
+  // Build the read-first tool surface.
+  //  - Memory tools run DIRECTLY against the caller's lane-scoped backend, so
+  //    they work on the logged-in session alone (no cached key needed).
+  //  - Connector tools need the user's raw uc_/agt_ key (connector creds are
+  //    zero-knowledge; a session JWT cannot decrypt them). We accept an OPTIONAL
+  //    connector key - from the Authorization header when the caller authed with
+  //    a key, else from X-UnClick-Connector-Key - and use it ONLY after it
+  //    resolves to the SAME account lane (proof of possession; a stale or
+  //    cross-account key is ignored and connectors degrade gracefully).
+  // The origin for the internal /api/mcp call is the trusted request host,
+  // never user body input.
+  const host = req.headers.host;
+  const origin = host ? `https://${host}` : "";
+
+  let connectorKey = extractApiKey(req.headers.authorization);
+  if (!connectorKey) {
+    const headerKey = extractConnectorKeyHeader(req.headers["x-unclick-connector-key"]);
+    if (headerKey) {
+      const keyLane = await resolveAccountLane(`Bearer ${headerKey}`, supabaseUrl, serviceKey);
+      if (keyLane && keyLane === lane) connectorKey = headerKey;
+    }
+  }
+
+  const chatTools = buildChatTools({
+    origin,
+    connectorKey: origin ? connectorKey : null,
+    memory: buildChatMemory(supabaseUrl, serviceKey, apiKeyHash),
+  });
+
   const result = streamText({
     model,
     system: groundedSystem,
     messages: modelMessages,
+    tools: chatTools,
     stopWhen: stepCountIs(MAX_STEPS),
     onError({ error }) {
       // Log the error shape only - never the key, the body, or the prompt.

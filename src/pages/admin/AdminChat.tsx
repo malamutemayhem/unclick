@@ -10,6 +10,7 @@ import {
   processFile,
   type ProcessedAttachment,
 } from "@/lib/chatAttachments";
+import { getApiKey } from "@/lib/apiKeyStore";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
 import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
@@ -32,11 +33,30 @@ import {
   estimateTokens,
 } from "@/components/admin/chatTransportConfig";
 
-// Join the text parts of a UI message into a single string.
+// Join the text parts of a UI message into a single string. Non-text parts
+// (tool calls, files, reasoning) are ignored, so a tool-call step never breaks
+// rendering.
 function messageText(parts: { type: string }[]): string {
   return parts
     .map((p) => (p.type === "text" ? (p as { type: "text"; text: string }).text : ""))
     .join("");
+}
+
+// Names of any tools the seat invoked in this message, derived from AI SDK tool
+// parts. Typed tools arrive as `type: "tool-<name>"`; dynamic tools as
+// `type: "dynamic-tool"` carrying a `toolName`. Used only for a tiny "used X"
+// chip; anything unrecognised is skipped.
+function messageToolNames(parts: { type: string }[]): string[] {
+  const names: string[] = [];
+  for (const p of parts) {
+    if (p.type === "dynamic-tool") {
+      const name = (p as { toolName?: string }).toolName;
+      if (name) names.push(name);
+    } else if (p.type.startsWith("tool-")) {
+      names.push(p.type.slice("tool-".length));
+    }
+  }
+  return names;
 }
 
 // Image file parts attached to a message (for thumbnail rendering in bubbles).
@@ -508,13 +528,23 @@ export default function AdminChatPage() {
       }
     }
 
+    // Chat authenticates with the logged-in session (Authorization). The cached
+    // UnClick key, when present, rides along in a dedicated header ONLY so the
+    // seat can reach connected apps (connector creds are zero-knowledge and a
+    // session JWT cannot decrypt them). The server validates it to the same
+    // account lane before use; absent it, memory + chat still work and
+    // connectors degrade gracefully. The key never goes in the request body.
+    const connectorKey = getApiKey();
+    const sendHeaders: Record<string, string> = { Authorization: `Bearer ${apiKey}` };
+    if (connectorKey) sendHeaders["X-UnClick-Connector-Key"] = connectorKey;
+
     // AI SDK v3 sendMessage: the { text, files } overload accepts FileUIPart[]
     // for `files`; the server forwards image file parts to the model as vision
     // via convertToModelMessages (see api/chat.ts).
     sendMessage(
       imageParts.length > 0 ? { text: combined, files: imageParts } : { text: combined },
       {
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: sendHeaders,
         body: { slug: seat.slug, model: seat.model, lane: "api", thread_id: threadId ?? undefined },
       },
     );
@@ -592,8 +622,21 @@ export default function AdminChatPage() {
               const text = messageText(m.parts);
               const isUser = m.role === "user";
               const images = isUser ? messageImageParts(m.parts) : [];
+              const toolNames = isUser ? [] : messageToolNames(m.parts);
               return (
                 <div key={m.id} className={isUser ? "text-right" : "text-left"}>
+                  {toolNames.length > 0 && (
+                    <div className="mb-1 flex flex-wrap gap-1">
+                      {toolNames.map((name, i) => (
+                        <span
+                          key={`${m.id}-tool-${i}`}
+                          className="rounded-full border border-border/40 bg-card/40 px-2 py-0.5 text-[10px] text-muted-foreground"
+                        >
+                          used {name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {images.length > 0 && (
                     <div className={`mb-1 flex flex-wrap gap-2 ${isUser ? "justify-end" : ""}`}>
                       {images.map((img, i) => (
