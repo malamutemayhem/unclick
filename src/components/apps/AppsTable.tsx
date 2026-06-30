@@ -45,6 +45,8 @@ interface AppsTableProps {
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** Admin mode: shown in expanded connected rows so unlinking an app is discoverable. */
   disconnectOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
+  /** Admin mode: a short muted note (e.g. "Needs reconnect: ...") with a Reconnect link, shown when a token refresh failed. */
+  noteOf?: (app: AppEntry) => { text: string; reconnectTo: string } | null;
   /** admin: makes the status pill a button (used to open the connect wizard). */
   onStatusClick?: (app: AppEntry) => void;
   busy?: boolean;
@@ -69,7 +71,7 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, disconnectOf, busy }: AppsTableProps) {
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, disconnectOf, noteOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showRaw, setShowRaw] = useState(false);
@@ -205,6 +207,7 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           const status = statusOf?.(app) ?? null;
           const action = actionOf?.(app) ?? null;
           const disconnect = disconnectOf?.(app) ?? null;
+          const note = isAdmin ? (noteOf?.(app) ?? null) : null;
           const hasConnectionControls = action?.label === "Manage" && Boolean(disconnect);
           const statusIsConnected = status?.label === "Connected";
           const quality = levelLabel(app.level);
@@ -303,6 +306,20 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
               {open && (
                 <div className={`grid ${cols} gap-3 bg-white/[0.015] px-3 pb-2`}>
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
+                    {/* A token refresh failed: say exactly why and offer Reconnect,
+                        instead of letting the row keep looking connected. */}
+                    {note && (
+                      <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] text-amber-200/70">
+                        <span>{note.text}</span>
+                        <Link
+                          to={note.reconnectTo}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-semibold text-amber-100 underline-offset-2 hover:underline"
+                        >
+                          Reconnect
+                        </Link>
+                      </div>
+                    )}
                     {/* Full, untruncated description first, so nothing is lost to the
                         single-line row above. The internet badge rides along. */}
                     {isAdmin && hasConnectionControls && (
