@@ -1272,6 +1272,34 @@ async function resolveSessionUser(
   }
 }
 
+/**
+ * Authorization for opening a single TestPass run by id.
+ *
+ * A run is viewable when EITHER:
+ *  - the caller owns it (run.actor_user_id === session user id), OR
+ *  - it belongs to a built-in/system pack (pack.owner_user_id === null).
+ *
+ * The second clause exists because scheduled cron runs (e.g. testpass-core,
+ * fired every 5 minutes) are stamped with TESTPASS_CRON_USER_ID, not the
+ * viewing admin's id. Those system packs are already world-readable
+ * (list_testpass_packs returns owner_user_id IS NULL packs to everyone), so a
+ * run that an admin was shown in the list must also open in detail.
+ *
+ * It deliberately does NOT widen access to another user's PRIVATE-pack runs:
+ * the run id is a guessable/shareable UUID, so dropping the owner check entirely
+ * would expose private runs by id enumeration. packOwnerUserId must be exactly
+ * null (a real system pack), never merely missing/undefined.
+ */
+export function canViewTestpassRun(args: {
+  runActorUserId: string | null | undefined;
+  sessionUserId: string;
+  packOwnerUserId: string | null | undefined;
+  packFound: boolean;
+}): boolean {
+  if (args.runActorUserId && args.runActorUserId === args.sessionUserId) return true;
+  return args.packFound && args.packOwnerUserId === null;
+}
+
 export type ChannelStatusAuthOutcome =
   | { kind: "authorized" }
   | { kind: "soft_unconfigured" }
@@ -8795,12 +8823,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const runId = (req.query.run_id ?? req.body?.run_id ?? "") as string;
         if (!runId) return res.status(400).json({ error: "run_id required" });
+        // Resolve the run by id first (no actor filter), then authorize. A run
+        // is viewable if the caller owns it OR it belongs to a system pack
+        // (owner_user_id IS NULL) - e.g. the scheduled testpass-core cron runs,
+        // which are stamped with TESTPASS_CRON_USER_ID rather than the viewing
+        // admin's id. Without this, runs an admin was shown in the list 404 on
+        // open. See canViewTestpassRun for the (id-enumeration-safe) rule.
         const [runRes, itemsRes] = await Promise.all([
           supabase
             .from("testpass_runs")
             .select("*")
             .eq("id", runId)
-            .eq("actor_user_id", user.id)
             .maybeSingle(),
           supabase
             .from("testpass_items")
@@ -8810,6 +8843,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
+        // Authorize the open. Own run -> allowed without a pack lookup; otherwise
+        // only a system-pack (world-readable) run may be opened by id.
+        let packFound = false;
+        let packOwnerUserId: string | null | undefined;
+        if (runRes.data.actor_user_id !== user.id && runRes.data.pack_id) {
+          const packRes = await supabase
+            .from("testpass_packs")
+            .select("owner_user_id")
+            .eq("id", runRes.data.pack_id)
+            .maybeSingle();
+          if (packRes.error) throw packRes.error;
+          if (packRes.data) {
+            packFound = true;
+            packOwnerUserId = packRes.data.owner_user_id as string | null;
+          }
+        }
+        if (!canViewTestpassRun({
+          runActorUserId: runRes.data.actor_user_id as string | null,
+          sessionUserId: user.id,
+          packOwnerUserId,
+          packFound,
+        })) {
+          return res.status(404).json({ error: "Run not found" });
+        }
         if (itemsRes.error) throw itemsRes.error;
         const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
         const evidenceRefs = Array.from(new Set(

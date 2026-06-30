@@ -265,7 +265,7 @@ function CheckCard({
 
 export default function RunDetail() {
   const { id: runId } = useParams<{ id: string }>();
-  const { session } = useSession();
+  const { session, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
   const token = session?.access_token;
   const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token]);
@@ -283,8 +283,17 @@ export default function RunDetail() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchRun = useCallback(async () => {
-    if (!runId || !token) {
+    if (!runId) {
       setLoading(false);
+      return null;
+    }
+    if (!token) {
+      // No token yet. If the session is still resolving, stay in the loading
+      // state rather than flashing "Run not found" before auth is ready (the
+      // session-readiness race that made listed runs look missing). Only once
+      // the session has finished loading with no token do we stop loading and
+      // let the signed-out branch render.
+      if (!sessionLoading) setLoading(false);
       return null;
     }
     try {
@@ -303,7 +312,7 @@ export default function RunDetail() {
     } finally {
       setLoading(false);
     }
-  }, [runId, token, authHeader]);
+  }, [runId, token, authHeader, sessionLoading]);
 
   useEffect(() => {
     const firstFetch = window.setTimeout(() => {
@@ -381,6 +390,17 @@ export default function RunDetail() {
     return (
       <div className="flex items-center justify-center gap-2 py-24 text-[#888]">
         <Loader2 className="h-5 w-5 animate-spin" /> Loading run...
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="py-24 text-center">
+        <p className="mb-4 text-sm text-[#888]">Sign in to view this run.</p>
+        <button onClick={() => navigate("/admin/testpass")} className="text-sm text-[#888] hover:text-white">
+          Back to TestPass
+        </button>
       </div>
     );
   }
