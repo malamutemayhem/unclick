@@ -11,7 +11,7 @@ import {
   type ProcessedAttachment,
 } from "@/lib/chatAttachments";
 import { getApiKey } from "@/lib/apiKeyStore";
-import { ChatMemberRail, type AiSeat, type ResponderPolicy } from "@/components/admin/ChatMemberRail";
+import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
 import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
 import { StartSharedRoomButton } from "@/components/admin/StartSharedRoomButton";
@@ -116,7 +116,6 @@ export default function AdminChatPage() {
 
   const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
-  const [responderPolicy, setResponderPolicy] = useState<ResponderPolicy>("mention");
   const [input, setInput] = useState("");
 
   // Pending attachments waiting to be sent with the next turn, plus a flag
@@ -385,7 +384,10 @@ export default function AdminChatPage() {
   }
 
   function toggleSeatActive(id: string) {
-    setSeats((prev) => prev.map((s) => (s.id === id ? { ...s, active: !s.active } : s)));
+    setSeats((prev) => {
+      const nextActive = !(prev.find((s) => s.id === id)?.active ?? false);
+      return prev.map((s) => ({ ...s, active: s.id === id ? nextActive : false }));
+    });
   }
 
   function addHumanMember(member: HumanMember) {
@@ -406,10 +408,10 @@ export default function AdminChatPage() {
   }
 
   // Decide which seat answers: a leading @handle always overrides to force a
-  // specific seat for one turn. Without a mention, active (called-in) seats
-  // auto-respond per the responder policy. When no seats are called in, the
-  // selected seat in the rail answers (classic manual behavior).
-  const calledInSeats = seats.filter((s) => s.active);
+  // specific seat for one turn. Without a mention, the called-in seat
+  // auto-responds. When no seat is called in, the selected rail seat answers
+  // (classic manual behavior).
+  const calledInSeat = seats.find((s) => s.active) ?? null;
 
   function resolveTarget(text: string): { seat: AiSeat | null; text: string } {
     const m = text.match(/^@(\S+)\s*/);
@@ -417,13 +419,7 @@ export default function AdminChatPage() {
       const seat = seats.find((s) => s.handle === m[1]);
       if (seat) return { seat, text: text.slice(m[0].length) };
     }
-    if (calledInSeats.length === 1) return { seat: calledInSeats[0], text };
-    if (calledInSeats.length >= 2) {
-      // v1: round_table sends to the first called-in seat; crew/routed are
-      // future slices that will coordinate multiple responses. For now all
-      // multi-seat policies pick the first called-in seat.
-      return { seat: calledInSeats[0], text };
-    }
+    if (calledInSeat) return { seat: calledInSeat, text };
     return { seat: activeSeat, text };
   }
 
@@ -583,7 +579,7 @@ export default function AdminChatPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-heading">Chat</h1>
           <p className="mt-1 text-sm text-body">
-            A room for you and your AI seats. Call in a seat so it auto-responds, or @mention one to direct a single turn. Each seat runs on your own provider key.
+            A room for you and your AI seats. Call in one seat so it auto-responds, or @mention one to direct a single turn. Each seat runs on your own provider key.
           </p>
         </div>
         <div className="shrink-0 text-xs text-muted-foreground">~{totalTokens} tokens (est)</div>
@@ -598,12 +594,10 @@ export default function AdminChatPage() {
           seats={seats}
           activeSeatId={activeSeat?.id ?? null}
           humanMembers={humanMembers}
-          responderPolicy={responderPolicy}
           onSelectSeat={selectSeat}
           onAddSeat={addSeat}
           onRemoveSeat={removeSeat}
           onToggleSeatActive={toggleSeatActive}
-          onResponderPolicyChange={setResponderPolicy}
           onAddHumanMember={addHumanMember}
           onRemoveHumanMember={removeHumanMember}
         />
@@ -634,8 +628,8 @@ export default function AdminChatPage() {
             {messages.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 {activeSeat
-                  ? calledInSeats.length > 0
-                    ? `${calledInSeats.map((s) => s.label).join(", ")} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
+                  ? calledInSeat
+                    ? `${calledInSeat.label} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
                     : `Ask ${activeSeat.label} anything, or @mention another seat. Call in a seat to skip the @mention. Replies show which seat answered and an estimated token cost.`
                   : "Add an AI seat from the members panel to start."}
               </p>
