@@ -1,10 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import {
   extractApiKey,
   extractConnectorKeyHeader,
+  resolveThreadPersistenceLane,
   safeInternalOrigin,
   validateChatRequest,
 } from "./chat";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("extractApiKey", () => {
   it("accepts a Bearer uc_/agt_ key", () => {
@@ -114,5 +119,95 @@ describe("validateChatRequest", () => {
       expect(r.system).toBe("be brief");
       expect(r.thread_id).toBe("t1");
     }
+  });
+});
+
+describe("resolveThreadPersistenceLane", () => {
+  const supabaseUrl = "https://supabase.test";
+  const serviceKey = "service-key";
+
+  function jsonResponse(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  function mockThreadFetch(opts: {
+    ownerLane?: string | null;
+    ownerStatus?: number;
+    memberRows?: Array<{ id: string }>;
+    memberStatus?: number;
+  }) {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/chat_threads?")) {
+        if (opts.ownerStatus && opts.ownerStatus >= 400) return jsonResponse({ error: "owner failed" }, opts.ownerStatus);
+        return jsonResponse(
+          opts.ownerLane ? [{ id: "thread-1", api_key_hash: opts.ownerLane }] : [],
+        );
+      }
+      if (url.includes("/chat_room_members?")) {
+        if (opts.memberStatus && opts.memberStatus >= 400) {
+          return jsonResponse({ error: "member failed" }, opts.memberStatus);
+        }
+        return jsonResponse(opts.memberRows ?? []);
+      }
+      return jsonResponse({ error: "unexpected url" }, 404);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("returns the owner lane when the caller owns the thread", async () => {
+    const fetchMock = mockThreadFetch({ ownerLane: "lane_owner" });
+
+    await expect(
+      resolveThreadPersistenceLane(supabaseUrl, serviceKey, "thread-1", "lane_owner"),
+    ).resolves.toBe("lane_owner");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns the owner lane when the caller is an active room member", async () => {
+    const fetchMock = mockThreadFetch({
+      ownerLane: "lane_owner",
+      memberRows: [{ id: "member-1" }],
+    });
+
+    await expect(
+      resolveThreadPersistenceLane(supabaseUrl, serviceKey, "thread-1", "lane_member"),
+    ).resolves.toBe("lane_owner");
+
+    const memberUrl = String(fetchMock.mock.calls[1]?.[0] ?? "");
+    expect(memberUrl).toContain("/chat_room_members?");
+    expect(memberUrl).toContain("member_lane_hash=eq.lane_member");
+    expect(memberUrl).toContain("status=eq.active");
+  });
+
+  it("fails closed when the caller is neither owner nor active member", async () => {
+    mockThreadFetch({ ownerLane: "lane_owner", memberRows: [] });
+
+    await expect(
+      resolveThreadPersistenceLane(supabaseUrl, serviceKey, "thread-1", "lane_stranger"),
+    ).resolves.toBeNull();
+  });
+
+  it("fails closed when the thread is missing", async () => {
+    const fetchMock = mockThreadFetch({ ownerLane: null });
+
+    await expect(
+      resolveThreadPersistenceLane(supabaseUrl, serviceKey, "thread-1", "lane_member"),
+    ).resolves.toBeNull();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed when a membership lookup errors", async () => {
+    mockThreadFetch({ ownerLane: "lane_owner", memberStatus: 500 });
+
+    await expect(
+      resolveThreadPersistenceLane(supabaseUrl, serviceKey, "thread-1", "lane_member"),
+    ).resolves.toBeNull();
   });
 });
