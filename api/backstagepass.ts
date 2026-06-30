@@ -64,7 +64,7 @@ import {
   type BackstagePassConnectionProbeProvider,
 } from "./lib/ai-provider-inventory.js";
 
-// ─── Crypto helpers (mirror api/credentials.ts exactly) ───────────────────
+// ─── Crypto helpers (mirror api/credentials.ts exactly) ─────────────────
 
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_BYTES         = 32;
@@ -120,7 +120,7 @@ function decrypt(
   ]).toString("utf8");
 }
 
-// ─── Connection probes ───────────────────────────────────────────────────
+// ─── Connection probes ───────────────────────────────────────────
 //
 // Lightweight authenticated GET per platform. The action=testConnection
 // handler decrypts the stored credential, looks up the probe by platform
@@ -293,7 +293,7 @@ function credentialRotationNote(row: Record<string, unknown>, metadata: Credenti
   return metadata.rotationNote;
 }
 
-// ─── Supabase REST helper ────────────────────────────────────────
+// ─── Supabase REST helper ──────────────────────────────────
 
 function supaHeaders(serviceRoleKey: string): Record<string, string> {
   return {
@@ -319,7 +319,7 @@ async function supaFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
-// ─── Auth: Supabase JWT + api_keys row resolution ───────────────────────
+// ─── Auth: Supabase JWT + api_keys row resolution ──────────────────────
 
 interface Tenant {
   userId:      string;
@@ -353,8 +353,10 @@ async function resolveTenant(
   const user = (await userRes.json()) as { id?: string; email?: string | null };
   if (!user.id) return null;
 
-  // Look up the user's api_keys row. Support both new-shape (key_hash
-  // column, Phase-2) and legacy (api_key plaintext column, Phase-1).
+  // Look up the user's api_keys row. public.api_keys stores only the SHA-256
+  // key_hash (the legacy plaintext api_key column was dropped), so select
+  // key_hash only - selecting a non-existent column 400s the whole request
+  // and would strand the tenant with zero connections.
   // Pick the SAME active key every other surface resolves to (mirror
   // validateSessionCookie() in api/mcp.ts): without an is_active filter and
   // a deterministic order, a user with more than one api_keys row could
@@ -362,10 +364,10 @@ async function resolveTenant(
   // stranding their credentials in a separate tenant lane.
   const qUrl =
     `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
-    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash,api_key&limit=1`;
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash&limit=1`;
   const { ok, data } = await supaFetch(qUrl, "GET", supaHeaders(serviceRoleKey));
   if (!ok) return null;
-  const rows = (data as Array<{ key_hash?: string | null; api_key?: string | null }>) ?? [];
+  const rows = (data as Array<{ key_hash?: string | null }>) ?? [];
   const row  = rows[0];
   if (!row) return null;
 
@@ -375,7 +377,7 @@ async function resolveTenant(
   // lane_hash) - otherwise a rotated account fails proof-of-possession and
   // cannot decrypt. Memory follows the stable account lane; secrets are
   // re-entered after a key rotation by design.
-  const keyHash = row.key_hash ?? (row.api_key ? sha256hex(row.api_key) : null);
+  const keyHash = row.key_hash ?? null;
   if (!keyHash) return null;
 
   return { userId: user.id, email: user.email ?? null, apiKeyHash: keyHash };
@@ -393,7 +395,7 @@ function clientUa(req: VercelRequest): string | null {
   return typeof ua === "string" ? ua : null;
 }
 
-// ─── Audit writer ────────────────────────────────────────────────
+// ─── Audit writer ───────────────────────────────────────
 
 async function writeAudit(params: {
   supabaseUrl:    string;
@@ -472,7 +474,7 @@ async function fetchConnectorMap(
   }
 }
 
-// ─── Handler ───────────────────────────────────────────────────────
+// ─── Handler ─────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -519,7 +521,7 @@ async function handleBackstagePass(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Not signed in." });
   }
 
-  // ── GET actions ─────────────────────────────────────────────────
+  // ── GET actions ─────────────────────────────────────
 
   if (req.method === "GET" && action === "list") {
     const url = `${supabaseUrl}/rest/v1/user_credentials`
@@ -582,7 +584,7 @@ async function handleBackstagePass(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ data: data ?? [] });
   }
 
-  // ── POST actions ────────────────────────────────────────────────
+  // ── POST actions ────────────────────────────────────
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed." });
