@@ -31,6 +31,17 @@ describe("public MCP pairing door", () => {
     expect(names).toContain("search_memory");
     expect(new Set(names).size).toBe(names.length);
     expect(tools.length).toBeGreaterThan(10);
+
+    const pairingTool = tools.find((tool) => tool.name === "unclick_start_pairing");
+    const loadMemoryTool = tools.find((tool) => tool.name === "load_memory");
+    expect(pairingTool?.securitySchemes).toEqual([{ type: "noauth" }]);
+    expect(pairingTool?._meta?.securitySchemes).toEqual([{ type: "noauth" }]);
+    expect(loadMemoryTool?.securitySchemes).toEqual([
+      { type: "oauth2", scopes: ["unclick:mcp"] },
+    ]);
+    expect(loadMemoryTool?._meta?.securitySchemes).toEqual([
+      { type: "oauth2", scopes: ["unclick:mcp"] },
+    ]);
   });
 
   it("builds a magic-link landing URL with a non-secret pair id", () => {

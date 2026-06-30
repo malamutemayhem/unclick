@@ -67,6 +67,7 @@ type JsonRpcId = string | number | null;
 
 const MCP_PROTOCOL_VERSION = "2025-03-26";
 const MCP_SERVER_INFO = { name: "@unclick/mcp-server", version: "0.3.0" };
+const PUBLIC_PAIRING_SECURITY_SCHEMES = [{ type: "noauth" }] as const;
 
 export const PUBLIC_PAIRING_TOOL = {
   name: "unclick_start_pairing",
@@ -83,6 +84,10 @@ export const PUBLIC_PAIRING_TOOL = {
           "Optional email address to pre-fill on the UnClick sign-in page.",
       },
     },
+  },
+  securitySchemes: PUBLIC_PAIRING_SECURITY_SCHEMES,
+  _meta: {
+    securitySchemes: PUBLIC_PAIRING_SECURITY_SCHEMES,
   },
 };
 
