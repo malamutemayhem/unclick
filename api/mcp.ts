@@ -87,12 +87,7 @@ export const PUBLIC_PAIRING_TOOL = {
 };
 
 export function publicToolsForUnpairedClient() {
-  return [
-    PUBLIC_PAIRING_TOOL,
-    ...ADVERTISED_TOOLS_SAFE.filter(
-      (tool) => tool.name !== PUBLIC_PAIRING_TOOL.name,
-    ),
-  ];
+  return [PUBLIC_PAIRING_TOOL];
 }
 
 function singleRpc(body: unknown): Record<string, unknown> | null {

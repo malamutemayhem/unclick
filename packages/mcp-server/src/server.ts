@@ -242,8 +242,9 @@ function formatToolSummary(tool: ToolDef): string {
 
 // ─── MCP Tool definitions ───────────────────────────────────────────────────
 
-// Internal tools: still callable for backwards compatibility, but not advertised
-// to reduce noise in the tool list. Users who know the names can still invoke them.
+// Catalog meta-tools: the compact bridge from a small MCP tool list to the full
+// generated endpoint catalog. These stay advertised so agents can discover and
+// call scoped capabilities without loading every generated connector schema.
 const INTERNAL_TOOLS = [
   {
     name: "unclick_search",
@@ -1730,17 +1731,16 @@ for (const tool of AUTOPILOT_VISIBLE_TOOLS) {
   registerToolInputSchema(tool);
 }
 
-// DraftRoom needs friendly connected-agent tools, while the rest of the
-// internal meta layer stays hidden from tools/list.
+// DraftRoom needs friendly connected-agent tools.
 const EXPRESSROOM_VISIBLE_TOOLS = INTERNAL_TOOLS.filter((tool) =>
   (EXPRESSROOM_VISIBLE_TOOL_NAMES as readonly string[]).includes(tool.name),
 );
 
 export const ADVERTISED_TOOLS: readonly RuntimeToolSchema[] = [
   ...(VISIBLE_TOOLS as unknown as RuntimeToolSchema[]),
+  ...(INTERNAL_TOOLS as unknown as RuntimeToolSchema[]),
   ...EXPRESSROOM_VISIBLE_TOOLS,
   ...AUTOPILOT_VISIBLE_TOOLS,
-  ...(ADDITIONAL_TOOLS as unknown as RuntimeToolSchema[]),
 ];
 
 /** Combinators the Anthropic API rejects at the TOP level of a tool schema. */
@@ -1928,12 +1928,11 @@ export function createServer(): Server {
     }
   );
 
-  // LIST TOOLS: advertise the core memory tools, the friendly DraftRoom
-  // bridge tools, plus every product + marketplace tool registered in
-  // ADDITIONAL_TOOLS (TestPass, Crews, and third-party integrations from
-  // tool-wiring.ts). Internal meta tools (unclick_search, unclick_browse,
-  // unclick_tool_info, unclick_call) and the small DIRECT_TOOLS utility set
-  // remain callable for backwards compatibility but stay hidden from tools/list.
+  // LIST TOOLS: advertise the core memory, coordination, and catalog meta-tool
+  // surface only. The generated connector catalog in ADDITIONAL_TOOLS and the
+  // small DIRECT_TOOLS utility set remain callable for backwards compatibility,
+  // but they stay out of tools/list so every request does not carry thousands of
+  // unused third-party tool definitions.
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Enforcement: hide tools belonging to apps this tenant turned off in the
     // admin Apps page. Fail-safe (empty set => no filtering).

@@ -17,21 +17,28 @@ describe("advertised tool schemas are Anthropic-API safe", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("the known catalog offenders are cleaned but keep their properties", () => {
+  it("the generated catalog offenders are not advertised by default", () => {
     const names = ["legalpass_run", "legalpass_save_pack", "flowpass_register_pack", "sloppass_run"];
+    const advertisedNames = new Set(ADVERTISED_TOOLS_SAFE.map((t: AdvertisedTool) => t.name));
     for (const name of names) {
-      const tool = ADVERTISED_TOOLS_SAFE.find((t: AdvertisedTool) => t.name === name);
-      expect(tool, `${name} should be advertised`).toBeTruthy();
-      const schema = tool!.inputSchema as Record<string, unknown>;
-      expect(hasTopLevelCombinator(schema)).toBe(false);
-      expect(schema.properties, `${name} should keep its properties`).toBeTruthy();
+      expect(advertisedNames.has(name), `${name} should stay behind unclick_call`).toBe(false);
     }
   });
 
-  it("does not mutate the original schemas (runtime validation stays intact)", () => {
-    // At least one original still carries the top-level anyOf used by AJV.
-    const original = ADVERTISED_TOOLS.find((t: AdvertisedTool) => t.name === "sloppass_run");
-    expect(hasTopLevelCombinator(original?.inputSchema)).toBe(true);
+  it("cleans top-level combinators without mutating the original schema", () => {
+    const original = {
+      name: "needs-cleaning",
+      inputSchema: {
+        type: "object",
+        anyOf: [{ required: ["url"] }, { required: ["html"] }],
+        properties: { url: { type: "string" }, html: { type: "string" } },
+      },
+    };
+    const safe = advertiseToolSchema(original);
+
+    expect(hasTopLevelCombinator(safe.inputSchema)).toBe(false);
+    expect((safe.inputSchema as Record<string, unknown>).properties).toBeTruthy();
+    expect(hasTopLevelCombinator(original.inputSchema)).toBe(true);
   });
 
   it("preserves nested combinators inside properties", () => {
