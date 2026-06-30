@@ -395,7 +395,7 @@ export function ChatMemberRail({
                 <p className="flex min-h-4 items-center gap-1 truncate text-[10px] text-muted-foreground">
                   <span className="truncate">@{s.handle}</span>
                   <span className="shrink-0">
-                    {isWorking ? "- thinking" : s.active ? "- called in" : "- benched"}
+                    {isWorking ? "- thinking" : s.active ? "- called in" : "- standby"}
                   </span>
                   {isWorking && (
                     <span className="ml-0.5 flex shrink-0 items-end gap-0.5" aria-hidden="true">
