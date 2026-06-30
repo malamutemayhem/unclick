@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
+import { Paperclip, X, Loader2, FileText } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import {
+  ACCEPT,
+  MAX_FILES,
+  processFile,
+  type ProcessedAttachment,
+} from "@/lib/chatAttachments";
 import { ChatMemberRail, type AiSeat } from "@/components/admin/ChatMemberRail";
 import { ChatSessionList, type ChatThread } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
@@ -30,6 +37,15 @@ function messageText(parts: { type: string }[]): string {
   return parts
     .map((p) => (p.type === "text" ? (p as { type: "text"; text: string }).text : ""))
     .join("");
+}
+
+// Image file parts attached to a message (for thumbnail rendering in bubbles).
+function messageImageParts(parts: { type: string }[]): FileUIPart[] {
+  return parts.filter(
+    (p): p is FileUIPart =>
+      p.type === "file" && typeof (p as FileUIPart).mediaType === "string" &&
+      (p as FileUIPart).mediaType.startsWith("image/"),
+  );
 }
 
 // A short, unique @handle derived from a model label, e.g.
@@ -80,6 +96,12 @@ export default function AdminChatPage() {
   const [seats, setSeats] = useState<AiSeat[]>(loadSeats);
   const [activeSeatId, setActiveSeatId] = useState<string | null>(() => null);
   const [input, setInput] = useState("");
+
+  // Pending attachments waiting to be sent with the next turn, plus a flag
+  // while files are being read/extracted.
+  const [attachments, setAttachments] = useState<ProcessedAttachment[]>([]);
+  const [processing, setProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [seatByMsg, setSeatByMsg] = useState<Record<string, string>>({});
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatRef = useRef<AiSeat | null>(null);
@@ -367,16 +389,88 @@ export default function AdminChatPage() {
     return { seat: activeSeat, text };
   }
 
+  // Run picked/pasted files through processFile and append the results to the
+  // pending tray. Caps the total at MAX_FILES so the tray never runs away.
+  async function ingestFiles(files: File[]) {
+    if (files.length === 0) return;
+    setProcessing(true);
+    try {
+      const room = Math.max(0, MAX_FILES - attachments.length);
+      const slice = files.slice(0, room);
+      const processed = await Promise.all(slice.map((f) => processFile(f)));
+      setAttachments((prev) => [...prev, ...processed].slice(0, MAX_FILES));
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  // Paperclip picker: process each chosen file, then reset the input value so
+  // re-picking the same file fires onChange again.
+  async function onPickFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const list = e.target.files;
+    const files = list ? Array.from(list) : [];
+    e.target.value = "";
+    await ingestFiles(files);
+  }
+
+  // Paste handler: pick up pasted files (and pasted image items, the
+  // paste-image path) without blocking a normal text paste.
+  async function onPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const dt = e.clipboardData;
+    const files: File[] = dt.files && dt.files.length > 0 ? Array.from(dt.files) : [];
+    if (files.length === 0 && dt.items) {
+      for (const item of Array.from(dt.items)) {
+        if (item.kind === "file") {
+          const f = item.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+    }
+    if (files.length === 0) return; // let normal text paste proceed
+    e.preventDefault();
+    await ingestFiles(files);
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
   async function onSend() {
     const raw = input.trim();
-    if (!raw || !apiKey || busy) return;
+    const pending = attachments;
+    if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
     const { seat, text } = resolveTarget(raw);
     if (!seat) return;
     targetSeatRef.current = seat;
     setActiveSeatId(seat.id);
     setInput("");
+    setAttachments([]);
 
-    const content = text.trim() || raw;
+    // The typed text after stripping any leading @handle (falls back to raw).
+    const typedText = (text.trim() || raw).trim();
+
+    // Image attachments become vision file parts the model can see.
+    const imageParts: FileUIPart[] = pending
+      .filter((a) => a.kind === "image" && a.dataUrl)
+      .map((a) => ({
+        type: "file",
+        mediaType: a.mediaType,
+        url: a.dataUrl as string,
+        filename: a.name,
+      }));
+
+    // Text attachments are inlined; unsupported ones leave a short note so the
+    // model (and the persisted history) knows a file could not be read.
+    const textBlocks = pending
+      .filter((a) => a.kind === "text" && a.text)
+      .map((a) => `\n\n--- ${a.name} ---\n${a.text}`);
+    const unsupportedNotes = pending
+      .filter((a) => a.kind === "unsupported")
+      .map((a) => `\n\n[attachment ${a.name}: ${a.error ?? "could not be read"}]`);
+
+    // Keep typed text first, then inlined file text. This is the human turn's
+    // content for both the model call and the persisted thread history.
+    const combined = [typedText, ...textBlocks, ...unsupportedNotes].filter(Boolean).join("");
 
     // Ensure a thread exists (create one on the first turn of a session).
     let threadId = activeThreadRef.current;
@@ -399,21 +493,26 @@ export default function AdminChatPage() {
       }
     }
 
-    // Persist the human turn (this auto-titles the thread server-side).
+    // Persist the human turn (this auto-titles the thread server-side). We
+    // persist `combined` (typed text + inlined file text); images are NOT
+    // saved to thread history in v1, so reopening a thread shows the text only.
     if (threadId) {
       try {
         await fetch("/api/chat-threads?action=append", {
           method: "POST",
           headers: authHeaders(true),
-          body: JSON.stringify({ thread_id: threadId, content }),
+          body: JSON.stringify({ thread_id: threadId, content: combined }),
         });
       } catch {
         /* ignore */
       }
     }
 
+    // AI SDK v3 sendMessage: the { text, files } overload accepts FileUIPart[]
+    // for `files`; the server forwards image file parts to the model as vision
+    // via convertToModelMessages (see api/chat.ts).
     sendMessage(
-      { text: content },
+      imageParts.length > 0 ? { text: combined, files: imageParts } : { text: combined },
       {
         headers: { Authorization: `Bearer ${apiKey}` },
         body: { slug: seat.slug, model: seat.model, lane: "api", thread_id: threadId ?? undefined },
@@ -424,7 +523,11 @@ export default function AdminChatPage() {
   }
 
   const totalTokens = messages.reduce((sum, m) => sum + estimateTokens(messageText(m.parts)), 0);
-  const canSend = Boolean(apiKey) && Boolean(activeSeat) && input.trim().length > 0;
+  const canSend =
+    Boolean(apiKey) &&
+    Boolean(activeSeat) &&
+    !processing &&
+    (input.trim().length > 0 || attachments.length > 0);
 
   return (
     <div className="space-y-4">
@@ -488,15 +591,30 @@ export default function AdminChatPage() {
             {messages.map((m) => {
               const text = messageText(m.parts);
               const isUser = m.role === "user";
+              const images = isUser ? messageImageParts(m.parts) : [];
               return (
                 <div key={m.id} className={isUser ? "text-right" : "text-left"}>
-                  <div
-                    className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-[13px] leading-relaxed ${
-                      isUser ? "bg-primary/10 text-foreground" : "bg-card/60 text-body"
-                    }`}
-                  >
-                    {text || (busy ? "..." : "")}
-                  </div>
+                  {images.length > 0 && (
+                    <div className={`mb-1 flex flex-wrap gap-2 ${isUser ? "justify-end" : ""}`}>
+                      {images.map((img, i) => (
+                        <img
+                          key={`${m.id}-img-${i}`}
+                          src={img.url}
+                          alt={img.filename ?? "attachment"}
+                          className="max-h-[40vh] max-w-[85%] rounded-lg border border-border/50 object-contain"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {(text || (!isUser && busy)) && (
+                    <div
+                      className={`inline-block max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-[13px] leading-relaxed ${
+                        isUser ? "bg-primary/10 text-foreground" : "bg-card/60 text-body"
+                      }`}
+                    >
+                      {text || (busy ? "..." : "")}
+                    </div>
+                  )}
                   {!isUser && text && (
                     <div className="mt-0.5 text-[10px] text-muted-foreground">
                       {seatByMsg[m.id] ?? "AI"} - ~{estimateTokens(text)} tokens (est)
@@ -508,10 +626,71 @@ export default function AdminChatPage() {
             {error && <div className="text-xs text-red-400">Error: {error.message}</div>}
           </div>
 
+          {(attachments.length > 0 || processing) && (
+            <div className="flex flex-wrap gap-2 rounded-md border border-border/50 bg-card/40 p-2">
+              {attachments.map((a) => (
+                <div key={a.id} className="relative">
+                  {a.kind === "image" && a.dataUrl ? (
+                    <div className="relative h-16 w-16 overflow-hidden rounded-md border border-border/50">
+                      <img src={a.dataUrl} alt={a.name} className="h-full w-full object-cover" />
+                    </div>
+                  ) : (
+                    <div
+                      className={`flex max-w-[200px] items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] ${
+                        a.kind === "unsupported"
+                          ? "border-amber-500/40 bg-amber-500/10 text-amber-200/90"
+                          : "border-border/50 bg-card/60 text-body"
+                      }`}
+                    >
+                      <FileText className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                      <span className="truncate">
+                        {a.name}
+                        {a.kind === "unsupported" && a.error ? ` - ${a.error}` : ""}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(a.id)}
+                    aria-label={`Remove ${a.name}`}
+                    className="absolute -right-1.5 -top-1.5 rounded-full border border-border/50 bg-card p-0.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {processing && (
+                <div className="flex items-center gap-1.5 rounded-md border border-border/50 bg-card/60 px-2 py-1.5 text-[11px] text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Reading files...
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-end gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPT}
+              onChange={onPickFiles}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!apiKey || !activeSeat || processing}
+              aria-label="Attach files"
+              title="Attach images, text, PDF, or DOCX"
+              className="rounded-md border border-border/50 bg-card/40 p-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+            >
+              <Paperclip className="h-4 w-4" />
+            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onPaste={onPaste}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
