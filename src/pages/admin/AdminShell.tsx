@@ -736,6 +736,11 @@ export default function AdminShell() {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && localStorage.getItem("admin-sidebar-collapsed") === "1",
   );
+  const location = useLocation();
+  // The chat page uses the full content width (sessions rail flush to the nav,
+  // members rail flush to the right edge), so it opts out of the centered
+  // max-width container every other admin page sits in.
+  const wideContent = location.pathname.startsWith("/admin/chat");
 
   useEffect(() => {
     localStorage.setItem("admin-sidebar-collapsed", collapsed ? "1" : "0");
@@ -906,7 +911,7 @@ export default function AdminShell() {
 
       {/* ── Main content ───────────────────── */}
       <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className={wideContent ? "px-3 py-4 sm:px-4 lg:px-5" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"}>
           <Outlet />
         </div>
       </main>
