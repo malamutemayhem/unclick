@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, RefreshCw, Search } from "lucide-react";
 import {
   actionLabel,
   APP_CATEGORIES,
@@ -40,6 +40,7 @@ interface AppsTableProps {
   enabled?: Record<string, boolean>;
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
+  onRefreshStatus?: () => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
   /** Admin mode: the single status-column chip. It says the action until connected (Connect / Open setup / Add key), then the proven status label. null = built-in, falls back to the plain status pill. */
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
@@ -71,10 +72,10 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, disconnectOf, noteOf, busy }: AppsTableProps) {
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, onRefreshStatus, statusOf, onStatusClick, actionOf, disconnectOf, noteOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [showRaw, setShowRaw] = useState(false);
+  const showRaw = false;
   const isAdmin = mode === "admin";
 
   const isOn = (slug: string) => (enabled ? enabled[slug] !== false : true);
@@ -154,19 +155,20 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           </select>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-white/40">
-          <label className="flex cursor-pointer select-none items-center gap-1.5">
-            <input
-              type="checkbox"
-              checked={showRaw}
-              onChange={(e) => setShowRaw(e.target.checked)}
-              className="h-3.5 w-3.5 accent-[#61C1C4]"
-              aria-label="Show technical names"
-            />
-            Show technical names
-          </label>
           {isAdmin ? (
             <>
               <span>{onCount} of {filtered.length} on</span>
+              {onRefreshStatus && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onRefreshStatus}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-2.5 py-1 font-semibold text-[#9FE0E2] transition-colors hover:bg-[#61C1C4]/15 disabled:opacity-50"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Refresh status
+                </button>
+              )}
               <button
                 type="button"
                 disabled={busy}

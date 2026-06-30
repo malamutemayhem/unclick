@@ -22,9 +22,9 @@ describe("AppsTable", () => {
     renderTable(<AppsTable apps={APPS} mode="public" />);
     expect(screen.getByText("GitHub").closest("a")).toHaveAttribute("href", "/apps/github");
     expect(screen.queryByRole("button", { name: /turn all on/i })).not.toBeInTheDocument();
-    // No per-app enable checkbox in public mode (the "Show technical names"
-    // display toggle is allowed in both modes and is not an admin control).
+    // No per-app enable checkbox in public mode.
     expect(screen.queryByLabelText(/^Turn /i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/show technical names/i)).not.toBeInTheDocument();
   });
 
   it("search filters by capability across both surfaces", () => {
@@ -179,6 +179,7 @@ describe("AppsTable", () => {
   it("admin mode shows checkboxes + bulk controls and fires toggle callbacks", () => {
     const onToggle = vi.fn();
     const onToggleAll = vi.fn();
+    const onRefreshStatus = vi.fn();
     renderTable(
       <AppsTable
         apps={APPS}
@@ -186,6 +187,7 @@ describe("AppsTable", () => {
         enabled={{ github: false }}
         onToggle={onToggle}
         onToggleAll={onToggleAll}
+        onRefreshStatus={onRefreshStatus}
         statusOf={() => null}
       />,
     );
@@ -196,6 +198,9 @@ describe("AppsTable", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /turn all off/i }));
     expect(onToggleAll).toHaveBeenCalledWith(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /refresh status/i }));
+    expect(onRefreshStatus).toHaveBeenCalledTimes(1);
 
     // GitHub is off in props -> its checkbox is unchecked -> clicking turns it on.
     const githubRow = screen.getByText("GitHub").closest("div.grid") as HTMLElement;
