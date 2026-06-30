@@ -54,3 +54,23 @@ describe("Boardroom profile post cadence", () => {
     expect(readCase).not.toContain("last_posted_at");
   });
 });
+
+describe("Orchestrator continuity bridge", () => {
+  it("mirrors subscription turns into the conversation log", () => {
+    const ingestCase = handlerCase("admin_conversation_turn_ingest", "admin_channel_status");
+
+    expect(ingestCase).toContain('.from("chat_messages")');
+    expect(ingestCase).toContain('.from("mc_conversation_log")');
+    expect(ingestCase).toContain("conversation_log_id: conversationLogReceiptId");
+  });
+
+  it("sanitizes free-text search before building PostgREST or filters", () => {
+    const contextReadCase = handlerCase("orchestrator_context_read", "orchestrator_log_read");
+    const logReadCase = handlerCase("orchestrator_log_read", "autopilot_zero_touch_metrics");
+
+    expect(memoryAdmin).toContain("function postgrestOrSafeIlikePattern(input: string)");
+    expect(memoryAdmin).toContain(".replace(/[(),]/g, \" \")");
+    expect(contextReadCase).toContain("postgrestOrSafeIlikePattern(searchQuery)");
+    expect(logReadCase).toContain("postgrestOrSafeIlikePattern(query)");
+  });
+});

@@ -2657,6 +2657,14 @@ function slugify(input: string): string {
     .slice(0, 60);
 }
 
+function postgrestOrSafeIlikePattern(input: string): string {
+  const clean = input
+    .replace(/[(),]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return `%${clean.replace(/[%_\\]/g, "\\$&")}%`;
+}
+
 // ─── Handler ───────────────────────────────────────────────────────────────
 
 /**
@@ -7910,6 +7918,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
         if (error) throw error;
 
+        let conversationLogReceiptId: string | null = null;
+        try {
+          const { data: conversationLogRow } = await supabase
+            .from("mc_conversation_log")
+            .insert({
+              api_key_hash: apiKeyHash,
+              session_id: sessionId,
+              role,
+              content: safeContent,
+              has_code: false,
+            })
+            .select("id")
+            .single();
+          conversationLogReceiptId = typeof conversationLogRow?.id === "string" ? conversationLogRow.id : null;
+        } catch {
+          // Best-effort continuity mirror; chat_messages remains the primary
+          // channel transport row and should not fail because of log debt.
+        }
+
         // Auto-capture (flag-gated, best-effort): mirror the MCP log_conversation
         // path so hosted web-chat turns also fill the code-dump and library
         // layers. Wrapped end-to-end so it can never break the turn ingest.
@@ -7941,6 +7968,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           turn_id: data.id,
+          conversation_log_id: conversationLogReceiptId,
           session_id: data.session_id,
           role: data.role,
           created_at: data.created_at,
@@ -10479,7 +10507,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           Math.max(Number.isFinite(requestedMaxSummaries) ? Math.floor(requestedMaxSummaries) : compact ? 20 : 36, 1),
           500,
         );
-        const searchPattern = searchQuery ? `%${searchQuery.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = searchQuery ? postgrestOrSafeIlikePattern(searchQuery) : "";
         const searchUuid = searchQuery.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [
@@ -10730,7 +10758,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const requestedLimit = Number(body.limit ?? req.query.limit ?? 120);
         const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 120, 20), 200);
         const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
-        const searchPattern = query ? `%${query.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = query ? postgrestOrSafeIlikePattern(query) : "";
         const searchUuid = query.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [
