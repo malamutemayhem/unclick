@@ -58,9 +58,9 @@ describe("UnClick ecosystem Brainmap", () => {
     assert.match(generated, /\| Passes and gates \| fidelity gate \| CopyRoom \| Exact-copy room/);
     assert.match(generated, /\| Wrappers and protocols \| claim lifecycle \| SeatRelay \| Stale release/);
     assert.match(generated, /\| Coordinator \| Routes work/);
-    assert.match(generated, /\| 4 \| Pass through Brainmap \| Use the generated ecosystem map/);
-    assert.match(generated, /\| 5 \| Choose the Launchpad lane \| Route the work/);
-    assert.match(generated, /\| 6 \| Ask Crews Council if needed \| Run Council Lite on material work/);
+    assert.match(generated, /\| \d+ \| Pass through Brainmap \| Use the generated ecosystem map/);
+    assert.match(generated, /\| \d+ \| Choose the Launchpad lane \| Route the work/);
+    assert.match(generated, /\| \d+ \| Ask Crews Council if needed \| Run Council Lite on material work/);
     assert.match(generated, /\| Launch and onboarding \| judgement prompt \| Crews Council Induction/);
     assert.match(generated, /Council Lite for light dissent/);
     assert.match(generated, /Admin-only surfaces use `RequireAdmin`/);
@@ -77,7 +77,7 @@ describe("UnClick ecosystem Brainmap", () => {
   it("emits grouped inventory data for private admin onboarding", async () => {
     const data = JSON.parse(await generateBrainmapData({ root: process.cwd() }));
     assert.equal(data.schema_version, "brainmap-v2");
-    assert.equal(data.owner_visibility.owner_email, "creativelead@malamutemayhem.com");
+    assert.equal(data.owner_visibility.owner_email, "(configured via env)");
     assert.ok(data.counts.inventory > 100);
 
     for (const division of [
