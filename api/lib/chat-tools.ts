@@ -309,10 +309,119 @@ const REFUSAL =
 const BUILD_REFUSAL =
   "That connector action is still blocked in Build mode. I can read/list/search and run non-destructive create/write/generate actions, but sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions need the next approval layer.";
 
+const TOOL_INFO_FALLBACK_PREFIX =
+  "tool_info did not find that built-in catalog slug, but integration tools can still be called directly by endpoint_id. Here are the matching integration results from find_tools. Use the exact tool name shown below as call_tool.endpoint_id; do not pass unclick_call as the endpoint_id.";
+
 // Returned by every connector tool when no valid connector key is available, so
 // the seat tells the user how to unlock connectors instead of failing silently.
 const NO_CONNECTOR_KEY =
   "Connected apps are not wired into this chat yet. Add your UnClick API key on the You page (/admin/you) and I can read your Gmail, Drive, Dropbox, and other connected apps here. Your saved memory still works without it.";
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+const META_CALL_ENDPOINTS = new Set([
+  "unclick_call",
+  "unclick.call",
+  "call_tool",
+  "tool_call",
+  "tools.call",
+  "tools_call",
+]);
+
+function isMetaCallEndpoint(endpointId: string): boolean {
+  return META_CALL_ENDPOINTS.has(endpointId.trim().toLowerCase());
+}
+
+function pickEndpointId(record: Record<string, unknown>): string | null {
+  for (const key of ["endpoint_id", "endpointId", "endpoint", "tool_name", "toolName", "name"]) {
+    const value = stringValue(record[key]);
+    if (value && !isMetaCallEndpoint(value)) return value;
+  }
+  return null;
+}
+
+function stripCallWrapperKeys(record: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (
+      [
+        "endpoint_id",
+        "endpointId",
+        "endpoint",
+        "tool_name",
+        "toolName",
+        "name",
+        "params",
+        "parameters",
+        "arguments",
+        "args",
+      ].includes(key)
+    ) {
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+function nestedParams(record: Record<string, unknown>): Record<string, unknown> {
+  const direct = record.params ?? record.parameters;
+  if (isPlainRecord(direct)) return direct;
+
+  const args = record.arguments ?? record.args;
+  if (isPlainRecord(args)) {
+    const fromArgs = args.params ?? args.parameters;
+    if (isPlainRecord(fromArgs)) return fromArgs;
+    return stripCallWrapperKeys(args);
+  }
+
+  return stripCallWrapperKeys(record);
+}
+
+function qualifyBareEndpoint(endpointId: string, params: Record<string, unknown>): string {
+  const clean = endpointId.trim();
+  if (!clean) return clean;
+  if (clean.includes(".")) return clean;
+
+  const app = stringValue(params.app) ?? stringValue(params.connector) ?? stringValue(params.platform);
+  if (!app) return clean;
+  const safeApp = app.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  const safeEndpoint = clean.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  if (!safeApp || !safeEndpoint || safeEndpoint.startsWith(`${safeApp}_`)) return clean;
+  return `${safeApp}_${safeEndpoint}`;
+}
+
+export function normalizeConnectorCall(
+  endpointId: string,
+  params: Record<string, unknown> | undefined,
+): { endpointId: string; params: Record<string, unknown> } {
+  let resolvedEndpointId = endpointId.trim();
+  let resolvedParams = params ?? {};
+
+  const args = isPlainRecord(resolvedParams.arguments) ? resolvedParams.arguments : null;
+  const nestedRecords = [resolvedParams, args].filter(isPlainRecord);
+  const nestedEndpoint = nestedRecords.map(pickEndpointId).find((value): value is string => Boolean(value));
+
+  if ((isMetaCallEndpoint(resolvedEndpointId) || !resolvedEndpointId) && nestedEndpoint) {
+    const source =
+      nestedRecords.find((record) => pickEndpointId(record) === nestedEndpoint) ?? resolvedParams;
+    resolvedEndpointId = nestedEndpoint;
+    resolvedParams = nestedParams(source);
+  }
+
+  resolvedEndpointId = qualifyBareEndpoint(resolvedEndpointId, resolvedParams);
+  return { endpointId: resolvedEndpointId, params: resolvedParams };
+}
+
+function shouldFallbackToolInfo(text: string): boolean {
+  return /^tool error:\s*Tool ".+" not found/i.test(text) || /Available slugs:/i.test(text);
+}
 
 /**
  * Minimal memory surface the chat tools need. api/chat.ts adapts a lane-scoped
@@ -341,7 +450,7 @@ export interface BuildChatToolsOpts {
 }
 
 /**
- * Build the read-first tool surface for a chat seat. Each tool's execute returns
+ * Build the permissioned tool surface for a chat seat. Each tool's execute returns
  * a string and never throws; on failure it returns a short error string so the
  * model surfaces the failure honestly instead of fabricating a result.
  */
@@ -412,14 +521,18 @@ export function buildChatTools({
 
     tool_info: tool({
       description:
-        "Get the endpoint IDs and parameters for a specific UnClick connector tool. Pass the tool slug from find_tools (e.g. 'gmail', 'google-drive'). Use this to learn the exact endpoint_id and params before call_tool.",
+        "Get endpoint IDs and parameters for a UnClick connector. Pass a slug or app/tool name from find_tools (e.g. 'gmail', 'dropbox', 'higgsfield'). For integration tools, use the exact tool name shown by find_tools as call_tool.endpoint_id.",
       inputSchema: z.object({
         tool: z.string().describe("The connector tool slug, e.g. 'gmail' or 'dropbox'"),
       }),
       execute: async ({ tool: toolSlug }) => {
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
-          return await internalMcpCall(origin, connectorKey, "unclick_tool_info", { slug: toolSlug });
+          const info = await internalMcpCall(origin, connectorKey, "unclick_tool_info", { slug: toolSlug });
+          if (!shouldFallbackToolInfo(info)) return info;
+          const fallback = await internalMcpCall(origin, connectorKey, "unclick_search", { query: toolSlug });
+          if (fallback.startsWith("tool error:")) return info;
+          return `${TOOL_INFO_FALLBACK_PREFIX}\n\n${fallback}`;
         } catch {
           return "tool error: tool_info failed";
         }
@@ -436,15 +549,18 @@ export function buildChatTools({
         params: z.record(z.unknown()).optional().describe("Parameters for the endpoint"),
       }),
       execute: async ({ endpoint_id, params }) => {
+        const normalized = normalizeConnectorCall(endpoint_id, params);
         // Permission guarantee is unconditional: refused endpoint classes are
         // denied whether or not a connector key is present.
-        const allowed = isBuildMode ? isBuildModeEndpointId(endpoint_id) : isReadOnlyEndpointId(endpoint_id);
+        const allowed = isBuildMode
+          ? isBuildModeEndpointId(normalized.endpointId)
+          : isReadOnlyEndpointId(normalized.endpointId);
         if (!allowed) return isBuildMode ? BUILD_REFUSAL : REFUSAL;
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
           return await internalMcpCall(origin, connectorKey, "unclick_call", {
-            endpoint_id,
-            params: params ?? {},
+            endpoint_id: normalized.endpointId,
+            params: normalized.params,
           });
         } catch {
           return "tool error: call_tool failed";

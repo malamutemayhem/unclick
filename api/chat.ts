@@ -43,7 +43,7 @@ import { fetchMemoryBlock, buildChatMemory } from "./lib/chat-memory.js";
 import { buildChatTools, type ChatToolMode } from "./lib/chat-tools.js";
 import { redactSensitive } from "./lib/orchestrator-context.js";
 
-const MAX_STEPS = 5;
+const MAX_STEPS = 10;
 
 // Prepended to every seat so it knows it is running inside UnClick and treats
 // the user's loaded memory as authoritative context (see fetchMemoryBlock).
@@ -55,8 +55,10 @@ function buildUnclickSeatPreamble(toolMode: ChatToolMode): string {
     "Use the memory naturally; do not recite it verbatim unless asked.\n\n" +
     "You have tools to read the user's UnClick memory and their connected apps. " +
     "Use search_memory to recall what the user told you before, and save_memory to remember new durable facts about them. " +
-    "To use a connected app, first call find_tools to discover the relevant connector (for example gmail, google-drive, dropbox, onedrive), then tool_info to learn its exact endpoint_id and parameters, then call_tool to run the endpoint. " +
-    "Endpoint IDs may be dotted or snake-case; read endpoints include gmail_search, drive_search, onedrive_list, and dropbox_list_folder. ";
+    "To use a connected app, use the chat tools exactly as named here: find_tools, tool_info, and call_tool. " +
+    "First call find_tools to discover the relevant connector or integration tool (for example gmail, google-drive, dropbox, onedrive, higgsfield), then tool_info when you need details, then call_tool to run the endpoint. " +
+    "If tool output mentions internal MCP names such as unclick_search, unclick_tool_info, or unclick_call, translate them to find_tools, tool_info, and call_tool; do not pass unclick_call as call_tool.endpoint_id. " +
+    "Endpoint IDs may be dotted or snake-case; examples include gmail_search, gmail.search, drive_search, onedrive_list, dropbox_list_folder, and higgsfield_generate_image. ";
 
   const policy =
     toolMode === "build"
