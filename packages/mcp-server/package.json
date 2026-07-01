@@ -42,7 +42,7 @@
     "csv-stringify": "^6.7.0",
     "fast-xml-parser": "^5.8.0",
     "imap": "0.8.19",
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^5.2.0",
     "marked": "^18.0.2",
     "nodemailer": "^9.0.1",
     "turndown": "^7.2.4",
