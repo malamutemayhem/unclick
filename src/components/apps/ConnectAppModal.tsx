@@ -4,7 +4,7 @@
 // platform's test endpoint BEFORE storing it:
 //   - test passes  -> stored, green "Connected, live-tested"
 //   - test fails   -> NOT stored, the provider's rejection is shown
-//   - no test path -> stored, amber "Saved, not yet proven"
+//   - no test path -> stored, shown as Connected while internal proof remains separate
 // So a green tick is always a proven connection, never an assumption.
 
 import { useState } from "react";
@@ -31,7 +31,11 @@ export interface ConnectableConnector {
   setup_url?: string | null;
   supports_managed_connection?: boolean;
   supports_hosted_mcp_connection?: boolean;
-  credential?: { is_valid: boolean; last_tested_at: string | null } | null;
+  credential?: {
+    is_valid: boolean;
+    last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
+  } | null;
 }
 
 interface ConnectAppModalProps {
@@ -92,9 +96,17 @@ export function ConnectAppModal({
   const needsFullConnectionPage = !isOAuth && fieldCount > 1;
   const usesManagedConnection = connector.supports_managed_connection === true && Boolean(onStartManagedConnection);
   const usesHostedMcpConnection = connector.supports_hosted_mcp_connection === true && !usesManagedConnection;
-  const hostedFallbackCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
-  const hostedFallbackSetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
-  const modalVerb = isConnected ? "Manage" : "Connect";
+  const hostedApiKeyCredentialLabel = app.slug === "higgsfield" ? "Cloud API key" : credentialLabel;
+  const hostedApiKeySetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
+  const hasSavedCredential = Boolean(connector.credential?.is_valid);
+  const hasSavedConnection = isConnected || hasSavedCredential;
+  // OAuth and hosted-MCP logins can expire silently, so the sign-in path must
+  // stay reachable even when we show the connection as live. These families
+  // always offer a Reconnect action that re-runs the same sign-in flow.
+  const offersReconnect = isOAuth || needsFullConnectionPage || usesManagedConnection || usesHostedMcpConnection;
+  const modalVerb = hasSavedConnection ? "Manage" : "Connect";
+  const savedStatusTitle = statusLabel ?? "Connected";
+  const savedStatusBody = `${app.name} is connected in UnClick. UnClick can use this connection across your devices.`;
 
   async function submit() {
     const apiKey = readLocalApiKey();
@@ -184,7 +196,7 @@ export function ConnectAppModal({
     }
   }
 
-  const disconnectButton = isConnected && onDisconnect ? (
+  const disconnectButton = hasSavedConnection && onDisconnect ? (
     <button
       type="button"
       onClick={() => void disconnect()}
@@ -194,6 +206,16 @@ export function ConnectAppModal({
       {disconnectBusy ? "Disconnecting..." : "Disconnect"}
     </button>
   ) : null;
+
+  // Shown inside the green "Connected" banner for sign-in connectors so a user
+  // staring at a "Connected" badge still sees that they can re-auth if the
+  // upstream login has quietly expired.
+  const reconnectHint =
+    isConnected && offersReconnect ? (
+      <span className="mt-1 block text-emerald-100/80">
+        Login expired or switching accounts? Use Reconnect below to sign in again.
+      </span>
+    ) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
@@ -216,6 +238,16 @@ export function ConnectAppModal({
             <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
               <strong>{statusLabel ?? "Connected"}.</strong> {app.name} is available while this app stays turned on.
+              {reconnectHint}
+            </span>
+          </div>
+        )}
+
+        {!isConnected && hasSavedCredential && (
+          <div role="status" className="mb-3 flex items-start gap-2 rounded-lg border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-[11px] leading-4 text-emerald-100">
+            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              <strong>{savedStatusTitle}.</strong> {savedStatusBody}
             </span>
           </div>
         )}
@@ -223,7 +255,7 @@ export function ConnectAppModal({
         {usesManagedConnection ? (
           <div className="text-xs leading-5 text-white/60">
             <p>
-              {isConnected
+              {hasSavedConnection
                 ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
                 : `Connect ${app.name} once. It will work on every PC signed into UnClick.`}
             </p>
@@ -238,7 +270,7 @@ export function ConnectAppModal({
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90 disabled:opacity-50"
               >
                 {managedBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                {managedBusy ? "Opening..." : isConnected ? `Reconnect ${app.name}` : `Connect ${app.name}`}
+                {managedBusy ? "Opening..." : hasSavedConnection ? `Reconnect ${app.name}` : `Connect ${app.name}`}
                 {!managedBusy && <ExternalLink className="h-3.5 w-3.5" />}
               </button>
               {disconnectButton}
@@ -254,7 +286,7 @@ export function ConnectAppModal({
           <div className="space-y-3 text-xs leading-5 text-white/60">
             <div className="rounded-lg border border-[#B8FF00]/20 bg-[#B8FF00]/[0.05] px-3 py-3">
               <p className="font-semibold text-white">
-                {isConnected ? `${app.name} MCP is connected` : `Connect with ${app.name}`}
+                {hasSavedConnection ? "Connected" : `Connect with ${app.name}`}
               </p>
               <p className="mt-1 text-white/55">
                 This opens a Higgsfield sign-in window. It uses your Higgsfield account, plan, and credits.
@@ -270,7 +302,7 @@ export function ConnectAppModal({
                   className="inline-flex items-center gap-1.5 rounded-md border border-[#B8FF00]/30 bg-[#B8FF00]/15 px-2.5 py-1.5 text-[11px] font-semibold text-[#D6FF57] transition-colors hover:bg-[#B8FF00]/20 disabled:opacity-50"
                 >
                   {hostedBusy && <Loader2 className="h-3 w-3 animate-spin" />}
-                  {hostedBusy ? "Opening..." : isConnected ? `Reconnect ${app.name}` : `Connect ${app.name}`}
+                  {hostedBusy ? "Opening..." : hasSavedConnection ? `Reconnect ${app.name}` : `Connect ${app.name}`}
                   {!hostedBusy && <ExternalLink className="h-3 w-3" />}
                 </button>
                 {disconnectButton}
@@ -295,25 +327,24 @@ export function ConnectAppModal({
             <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-3">
               <p className="font-semibold text-white">Use it across your AI apps</p>
               <p className="mt-1 text-white/55">
-                The login is saved to your UnClick account. UnClick can run Higgsfield image and video tools through
+                This connection is linked to your UnClick account. UnClick can run Higgsfield image and video tools through
                 this MCP connection on every device.
               </p>
             </div>
 
             <div className="rounded-lg border border-amber-300/15 bg-amber-300/[0.04] px-3 py-3">
-              <p className="font-semibold text-white">Cloud API key fallback</p>
+              <p className="font-semibold text-white">Cloud API key option</p>
               <p className="mt-1 text-white/55">
-                Use this only if you specifically prefer Higgsfield Cloud API billing, or if the account login path is
-                unavailable.
+                Use this only if you specifically prefer Higgsfield Cloud API billing instead of the account sign-in.
               </p>
-              {hostedFallbackSetupUrl && (
+              {hostedApiKeySetupUrl && (
                 <a
-                  href={hostedFallbackSetupUrl}
+                  href={hostedApiKeySetupUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#9be4e6] hover:underline"
                 >
-                  Where do I get my {hostedFallbackCredentialLabel}?
+                  Where do I get my {hostedApiKeyCredentialLabel}?
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -324,7 +355,7 @@ export function ConnectAppModal({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !busy) void submit();
                 }}
-                placeholder={`Paste ${hostedFallbackCredentialLabel} here`}
+                placeholder={`Paste ${hostedApiKeyCredentialLabel} here`}
                 className="mt-3 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-sm text-white placeholder:text-[#444] focus:border-[#E2B93B]/40 focus:outline-none"
               />
               {error && (
@@ -373,7 +404,7 @@ export function ConnectAppModal({
             <p>
               {needsFullConnectionPage
                 ? `${app.name} needs a few fields, so it uses the full connection page instead of this quick key box.`
-                : isConnected
+                : hasSavedConnection
                   ? `Reconnect ${app.name} if you want to refresh permissions or switch accounts.`
                   : `${app.name} connects with a provider sign-in instead of a pasted key.`}
             </p>
@@ -384,10 +415,10 @@ export function ConnectAppModal({
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#61C1C4] px-3 py-2 font-medium text-black hover:bg-[#61C1C4]/90"
               >
                 {needsFullConnectionPage
-                  ? isConnected
+                  ? hasSavedConnection
                     ? `Update ${app.name} connection`
                     : `Open ${app.name} connection page`
-                  : isConnected
+                  : hasSavedConnection
                     ? `Reconnect ${app.name}`
                     : `Continue to ${app.name} login`}
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -467,7 +498,7 @@ export function ConnectAppModal({
                   className="inline-flex items-center gap-1.5 rounded-lg bg-[#E2B93B] px-3 py-2 text-xs font-medium text-black hover:bg-[#E2B93B]/90 disabled:opacity-50"
                 >
                   {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {busy ? "Testing..." : isConnected ? "Test and update" : "Test and connect"}
+                  {busy ? "Testing..." : hasSavedConnection ? "Test and update" : "Test and connect"}
                 </button>
               </div>
             </div>

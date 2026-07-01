@@ -1433,6 +1433,20 @@ export default function AdminYou() {
                       </button>
                     </div>
                   </div>
+                  <div className="mt-3 flex flex-col gap-2 border-t border-[#E2B93B]/20 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[11px] leading-5 text-white/45">
+                      Rotating creates a fresh private key and retires the old one. Static compatibility URLs that used the old key stop working; the public MCP door is unchanged. Your memory follows the new key.
+                    </p>
+                    <button
+                      onClick={handleReissueKey}
+                      disabled={reissuing}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#E2B93B]/35 bg-[#E2B93B]/10 px-3 py-2 text-xs font-semibold text-[#E2B93B] transition-colors hover:bg-[#E2B93B]/15 disabled:opacity-50"
+                      title="Generate a new key and retire the old one"
+                    >
+                      {reissuing ? "Rotating..." : "Rotate key"}
+                    </button>
+                  </div>
+                  {reissueError && <p className="mt-2 text-[11px] text-red-400">{reissueError}</p>}
                 </div>
 
                 <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">

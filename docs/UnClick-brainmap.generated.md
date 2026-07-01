@@ -19,21 +19,21 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/agent-observability.md | bffd9f890c75 | 4629 |
 | docs/pinballwake-nudgeonly-api.md | d3a3b2c544e4 | 7566 |
 | docs/pinballwake-igniteonly-api.md | bea4d9c8fa21 | 7919 |
-| docs/fleet-worker-roles.md | 760883150b3f | 4888 |
+| docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 6de15e0af158 | 23631 |
-| src/pages/admin/AdminShell.tsx | f45353307141 | 33644 |
+| src/App.tsx | 0fd0c27849b9 | 24600 |
+| src/pages/admin/AdminShell.tsx | 58c7376858b1 | 34482 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
 | docs/prd/controltower.md | 83641285316d | 4571 |
 | src/pages/admin/AdminSkills.tsx | a3cf298f1eda | 4203 |
 | src/lib/skillLibrary.ts | 3a15b942a827 | 12515 |
 | src/lib/skillLibrarySeeds.ts | 51ca658707f8 | 652 |
-| .github/workflows/ci.yml | ee6e7f0dd609 | 2047 |
-| .github/workflows/brainmap-auto-update.yml | 4771ebdbdba3 | 1211 |
-| .github/workflows/continuous-improvement-watch.yml | d121a434a464 | 2358 |
-| package.json | c74377f4f488 | 7710 |
+| .github/workflows/ci.yml | 7c408b278dd4 | 2334 |
+| .github/workflows/brainmap-auto-update.yml | 8380e71aa526 | 2101 |
+| .github/workflows/continuous-improvement-watch.yml | ce90e4dcd5cb | 2358 |
+| package.json | 437e02a6846b | 7858 |
 | seed/skills/accessibility-audit.skill.md | 99984b1dccb7 | 1242 |
 | seed/skills/agent-handoff-packet-writer.skill.md | f9c498e48796 | 938 |
 | seed/skills/api-design-reviewer.skill.md | c58bf854f279 | 3561 |
@@ -79,20 +79,24 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminActivity.tsx | 6a69546e7223 | 14794 |
 | src/pages/admin/AdminSeatsApiRouting.tsx | 4caf939d9bed | 22147 |
 | src/pages/admin/AdminSeatsApiUsage.tsx | 5bfc0414856f | 16509 |
-| src/pages/admin/AdminSeatsApi.tsx | 0ba01613eeed | 37681 |
+| src/pages/admin/AdminSeatsApi.tsx | 9815b367ce89 | 40798 |
 | src/pages/admin/AdminSeatHeartbeat.tsx | 232071cb463f | 11711 |
 | src/pages/admin/AdminSeatsLocal.tsx | 720301565c67 | 37209 |
 | src/pages/admin/AdminSeatsSubscription.tsx | 8511bc4559db | 25328 |
 | src/pages/admin/AdminAgents.tsx | 6df58623daf6 | 49162 |
 | src/pages/admin/AdminAnalytics.tsx | dcc1351f518e | 10345 |
-| src/pages/admin/AdminAppTesting.tsx | 5ba37cf2abff | 11567 |
-| src/pages/admin/AdminTools.tsx | 1ba9964071b5 | 14135 |
+| src/pages/admin/AdminAppTesting.tsx | ca297a0e8311 | 16411 |
+| src/pages/admin/AdminTools.tsx | 8fcb06af3471 | 18478 |
 | src/pages/admin/AdminAuditLog.tsx | 905775a1985d | 1446 |
 | src/pages/admin/AdminExpressBuild.tsx | 883d77d7b764 | 22924 |
 | src/pages/admin/AdminEcosystemPages.tsx | 3d245def3231 | 13772 |
+| src/pages/admin/AdminBackstagePass.tsx | 210fd31b0962 | 9203 |
 | src/pages/admin/AdminBenchmarks.tsx | d3f1d4d1e298 | 25705 |
-| src/pages/admin/Boardroom.tsx | 61d332b5a15e | 37186 |
+| src/pages/admin/Boardroom.tsx | f3fa8e77bf8a | 39561 |
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
+| src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
+| src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
+| src/pages/admin/AdminChat.tsx | 666fff8092ea | 40934 |
 | src/pages/admin/AdminCircle.tsx | 76282f364efd | 16913 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
@@ -102,9 +106,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/crews/CrewsSettings.tsx | 9a2037783312 | 889 |
 | src/pages/admin/crews/CrewsCatalog.tsx | 2871e49013fa | 5931 |
 | src/pages/admin/AdminDashboard.tsx | e38f909e6d5b | 7090 |
+| src/pages/admin/AdminInduction.tsx | 9f8731027a85 | 13701 |
 | src/pages/admin/AdminJobs.tsx | 5d4ff9ca88ab | 75369 |
 | src/pages/admin/AdminJobsmith.tsx | fd2aad657f06 | 54734 |
-| src/pages/admin/AdminKeychain.tsx | d24135238f4d | 70823 |
+| src/pages/admin/AdminKeychain.tsx | 937a7f2833af | 73431 |
 | src/pages/admin/AdminMemory.tsx | 25b2ecae9ca8 | 10814 |
 | src/pages/admin/AdminModeration.tsx | 27cae956bcfd | 883 |
 | src/pages/admin/AdminOrchestratorLog.tsx | af0abb526002 | 12944 |
@@ -118,17 +123,18 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/NewRunWizard.tsx | ff6ef9aa1bfd | 10397 |
 | src/pages/admin/AdminTestPass.tsx | 22a59a8de00f | 27268 |
 | src/pages/admin/testpass/ReportDetail.tsx | 027acece2860 | 12392 |
-| src/pages/admin/testpass/RunDetail.tsx | 595aeee7decc | 21995 |
+| src/pages/admin/testpass/RunDetail.tsx | 0029d0d93d20 | 22801 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
 | src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | 4b186ef89df8 | 71460 |
-| src/pages/AppDetail.tsx | 41b547b88949 | 7479 |
+| src/pages/admin/AdminYou.tsx | 0d003cff06ff | 72598 |
+| src/pages/AppDetail.tsx | 7b0b653f2082 | 8200 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
 | src/pages/VerifyMfa.tsx | f5c6b05b7844 | 6545 |
-| src/pages/Connect.tsx | d77a6a1cf116 | 34634 |
+| src/pages/UnClickBrowser.tsx | 4761bb2bc945 | 11236 |
+| src/pages/Connect.tsx | d685cc35a47a | 37504 |
 | src/pages/Crews.tsx | d160a7924721 | 12800 |
 | src/pages/DeveloperDocs.tsx | 40631b01bc27 | 21214 |
 | src/pages/DeveloperSubmit.tsx | 8724b6d03268 | 12447 |
@@ -167,10 +173,10 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
 | src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
-| src/pages/Privacy.tsx | a8d0decbfea8 | 11446 |
+| src/pages/Privacy.tsx | c377de0c911d | 13282 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |
 | src/pages/SmartHome.tsx | a4a3a90a94bc | 17797 |
-| src/pages/Terms.tsx | 4613736d1aa8 | 9327 |
+| src/pages/Terms.tsx | fec94321205b | 9326 |
 | src/pages/tools/LinkInBio.tsx | 4f20852d63d4 | 7831 |
 | src/pages/tools/Scheduling.tsx | 3e54b020fe15 | 9647 |
 | src/pages/tools/Solve.tsx | 97da18319f81 | 13431 |
@@ -200,7 +206,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | scripts/pinballwake-rollback-room.mjs | c63e73fd2716 | 4158 |
 | scripts/pinballwake-stale-room.mjs | 8927de850588 | 3880 |
 | scripts/pinballwake-worker-registry-room.mjs | e8c9f4a764e3 | 20616 |
-| scripts/pinballwake-xpass-gate-room.mjs | 576e3adc43b6 | 34902 |
+| scripts/pinballwake-xpass-gate-room.mjs | 03f219e31d62 | 35439 |
 | packages/mcp-server/src/abn-tool.ts | 981031e37dee | 6329 |
 | packages/mcp-server/src/abstract-holidays-tool.ts | 3d58cdb9aa5a | 1559 |
 | packages/mcp-server/src/abuseipdb-tool.ts | c3c7f2d8566c | 6263 |
@@ -241,42 +247,43 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | packages/mcp-server/src/baseconvert-tool.ts | bbfa716f0f7c | 1246 |
 | packages/mcp-server/src/bellmanford-tool.ts | baef494b3f6a | 2955 |
 | packages/mcp-server/src/berlekamp-tool.ts | 5ac75aee3d2e | 2512 |
-| .github/workflows/apply-migrations.yml | d2ee87e75e7f | 1529 |
-| .github/workflows/auto-close-fishbowl-todo.yml | d11ec31e1d22 | 11599 |
-| .github/workflows/autonomous-runner.yml | 942080b620ac | 15338 |
-| .github/workflows/claude.yml | e8fc79a85b6c | 1085 |
-| .github/workflows/dirty-branch-hygiene.yml | d5ca538bd8a9 | 2190 |
-| .github/workflows/dogfood-report.yml | 65897c4393aa | 6605 |
-| .github/workflows/event-wake-router.yml | bfd53e324bb4 | 1453 |
-| .github/workflows/fleet-throughput-watch.yml | c5a08f4edf9b | 930 |
-| .github/workflows/openhands-test-mode.yml | 9aaef5273976 | 1137 |
-| .github/workflows/pr-scope-guard.yml | a130d252be9c | 1286 |
-| .github/workflows/publish-channel-package.yml | 5c9197848ca9 | 8046 |
-| .github/workflows/publish-mcp-package.yml | c029877aab11 | 6427 |
-| .github/workflows/publish-standalone-mcps.yml | ddd200e03a08 | 7228 |
-| .github/workflows/review-enforcement-warning.yml | 64b27fdddfe8 | 548 |
-| .github/workflows/scheduled-build-self-test.yml | 1362b535ff33 | 1024 |
-| .github/workflows/secret-scan.yml | 437fe35aa550 | 1158 |
-| .github/workflows/seed-vault.yml | 003a9bd13283 | 1246 |
-| .github/workflows/testpass-pr-check.yml | ab425e8d32b7 | 20467 |
-| .github/workflows/testpass-scheduled-smoke.yml | 46f9a65b1dbb | 1673 |
-| .github/workflows/tier2-auto-merge-queue-check.yml | 5abfca8c42dc | 830 |
-| .github/workflows/tier2-rollback.yml | 1468c05586fb | 1495 |
+| .github/workflows/apply-migrations.yml | f161a1681927 | 1529 |
+| .github/workflows/auto-close-fishbowl-todo.yml | ef725f3c66bd | 11599 |
+| .github/workflows/autonomous-runner.yml | f4c7f8f50345 | 15338 |
+| .github/workflows/branch-backup.yml | 4ea6e16a571c | 1365 |
+| .github/workflows/claude.yml | c2ce7aef4ab6 | 1085 |
+| .github/workflows/dirty-branch-hygiene.yml | 4cc47109d7d6 | 2190 |
+| .github/workflows/dogfood-report.yml | aaf67e6986dc | 6605 |
+| .github/workflows/event-wake-router.yml | 963c4ded4fd2 | 1453 |
+| .github/workflows/fleet-throughput-watch.yml | c88a11d2febc | 930 |
+| .github/workflows/openhands-test-mode.yml | 7b370199850b | 1137 |
+| .github/workflows/pr-scope-guard.yml | 19e8be817fe0 | 1286 |
+| .github/workflows/publish-channel-package.yml | 9e29989a203c | 8046 |
+| .github/workflows/publish-mcp-package.yml | 51027c8813fb | 6427 |
+| .github/workflows/publish-standalone-mcps.yml | 8b885b746b78 | 7228 |
+| .github/workflows/review-enforcement-warning.yml | 031755e14a8a | 548 |
+| .github/workflows/scheduled-build-self-test.yml | 45a6e8e5ebf0 | 1024 |
+| .github/workflows/secret-scan.yml | c58ff9888043 | 1158 |
+| .github/workflows/seed-vault.yml | 05666c146c8b | 1246 |
+| .github/workflows/testpass-pr-check.yml | fe6b03f9eb3e | 20467 |
+| .github/workflows/testpass-scheduled-smoke.yml | a13840c4e2d0 | 1673 |
+| .github/workflows/tier2-auto-merge-queue-check.yml | 01244fbd6249 | 830 |
+| .github/workflows/tier2-rollback.yml | 88bac610b855 | 1495 |
 
 ## Division Index
 
 | Division | Meaning | Items |
 | --- | --- | --- |
-| Admin surfaces | Private operator views and internal control panels. | 59 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 56 |
-| Tools | MCP and gateway capabilities available to seats. | 672 |
+| Admin surfaces | Private operator views and internal control panels. | 64 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 57 |
+| Tools | MCP and gateway capabilities available to seats. | 677 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
 | Wrappers and protocols | Thin harnesses, bridges, policies, and routing helpers. | 3 |
-| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 127 |
+| Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 128 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
-| Source of truth | Canonical state, queue, memory, and context surfaces. | 13 |
+| Source of truth | Canonical state, queue, memory, and context surfaces. | 14 |
 | Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
@@ -326,10 +333,14 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/audit-log | Admin Audit Log | Internal audit trail for sensitive admin actions. | src/pages/admin/AdminAuditLog.tsx |
 | /admin/autopilot/expressbuild | Admin Express Build | Admin surface for Admin Express Build. | src/pages/admin/AdminExpressBuild.tsx |
 | /admin/autopilot | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
+| /admin/backstagepass | Admin Backstage Pass | Admin surface for Admin Backstage Pass. | src/pages/admin/AdminBackstagePass.tsx |
 | /admin/benchmarks | Admin Benchmarks | Admin surface for Admin Benchmarks. | src/pages/admin/AdminBenchmarks.tsx |
 | /admin/billing | Admin Billing | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/boardroom | Boardroom | Admin surface for Boardroom. | src/pages/admin/Boardroom.tsx |
 | /admin/brainmap | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | src/pages/admin/AdminBrainmap.tsx |
+| /admin/browser | Admin Browser | Admin surface for Admin Browser. | src/pages/admin/AdminBrowser.tsx |
+| /admin/capability-balance | Admin Capability Balance | Admin surface for Admin Capability Balance. | src/pages/admin/AdminCapabilityBalance.tsx |
+| /admin/chat | Admin Chat | Admin surface for Admin Chat. | src/pages/admin/AdminChat.tsx |
 | /admin/checks/:productId | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/checks | Admin Checks | Admin surface for Admin Ecosystem Pages. | src/pages/admin/AdminEcosystemPages.tsx |
 | /admin/circle | Admin Circle | Admin surface for Admin Circle. | src/pages/admin/AdminCircle.tsx |
@@ -343,6 +354,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /admin/crews/settings | Crews Settings | Crews admin page for Crews Settings. | src/pages/admin/crews/CrewsSettings.tsx |
 | /admin/crews | Crews Catalog | Crews admin page for Crews Catalog. | src/pages/admin/crews/CrewsCatalog.tsx |
 | /admin/dashboard | Admin Dashboard | Front door for current operator state. | src/pages/admin/AdminDashboard.tsx |
+| /admin/induction | Admin Induction | Admin surface for Admin Induction. | src/pages/admin/AdminInduction.tsx |
 | /admin/jobs | Admin Jobs | Operational job and task queue. | src/pages/admin/AdminJobs.tsx |
 | /admin/jobsmith | Admin Jobsmith | Admin surface for Admin Jobsmith. | src/pages/admin/AdminJobsmith.tsx |
 | /admin/keychain | Admin Keychain | Passport and credential connection health. | src/pages/admin/AdminKeychain.tsx |
@@ -375,6 +387,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /apps | Apps | User-facing page for Apps. | src/pages/Apps.tsx |
 | /auth/callback | Auth Callback | User-facing page for Auth Callback. | src/pages/AuthCallback.tsx |
 | /auth/verify-mfa | Verify Mfa | User-facing page for Verify Mfa. | src/pages/VerifyMfa.tsx |
+| /browser | Un Click Browser | User-facing page for Un Click Browser. | src/pages/UnClickBrowser.tsx |
 | /connect/:platform | Connect | User-facing page for Connect. | src/pages/Connect.tsx |
 | /crews | Crews | Public Crews explanation and entry point. | src/pages/Crews.tsx |
 | /developers/docs | Developer Docs | Developer documentation. | src/pages/DeveloperDocs.tsx |
@@ -673,7 +686,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-emoji-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
+| gmail | gmail MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gmail-tool.ts |
 | goertzel | goertzel MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/goertzel-tool.ts |
+| google drive | google drive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/google-drive-tool.ts |
 | graph | graph MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graph-tool.ts |
 | graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graphcolor-tool.ts |
 | graycode | graycode MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/graycode-tool.ts |
@@ -835,6 +850,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | oeis | oeis MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/oeis-tool.ts |
 | officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/officialjoke-tool.ts |
 | omdb | omdb MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/omdb-tool.ts |
+| onedrive | onedrive MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/onedrive-tool.ts |
 | open elevation | open elevation MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/open-elevation-tool.ts |
 | openai | openai MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openai-tool.ts |
 | openalex | openalex MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/openalex-tool.ts |
@@ -1003,6 +1019,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | suffixauto | suffixauto MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/suffixauto-tool.ts |
 | suffixtree | suffixtree MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/suffixtree-tool.ts |
 | sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/sunrisesunset-tool.ts |
+| supabase | supabase MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/supabase-tool.ts |
 | supercell | supercell MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/supercell-tool.ts |
 | superhero | superhero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/superhero-tool.ts |
 | swapi | swapi MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/swapi-tool.ts |
@@ -1088,6 +1105,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | wordcount | wordcount MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordcount-tool.ts |
 | wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordfreq-tool.ts |
 | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/wordpress-tool.ts |
+| workspace | workspace MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/workspace-tool.ts |
 | worldbank | worldbank MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldbank-tool.ts |
 | worldtime | worldtime MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/worldtime-tool.ts |
 | xero | xero MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/xero-tool.ts |
@@ -1114,9 +1132,13 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin App Testing | Admin surface for Admin App Testing. | /admin/app-testing | src/pages/admin/AdminAppTesting.tsx |
 | Admin surfaces | admin page | Admin Audit Log | Internal audit trail for sensitive admin actions. | /admin/audit-log | src/pages/admin/AdminAuditLog.tsx |
 | Admin surfaces | admin page | Admin Autopilot | Admin surface for Admin Ecosystem Pages. | /admin/autopilot | src/pages/admin/AdminEcosystemPages.tsx |
+| Admin surfaces | admin page | Admin Backstage Pass | Admin surface for Admin Backstage Pass. | /admin/backstagepass | src/pages/admin/AdminBackstagePass.tsx |
 | Admin surfaces | admin page | Admin Benchmarks | Admin surface for Admin Benchmarks. | /admin/benchmarks | src/pages/admin/AdminBenchmarks.tsx |
 | Admin surfaces | admin page | Admin Billing | Admin surface for Admin Ecosystem Pages. | /admin/billing | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Brainmap | Generated ecosystem map that teaches seats what UnClick is. | /admin/brainmap | src/pages/admin/AdminBrainmap.tsx |
+| Admin surfaces | admin page | Admin Browser | Admin surface for Admin Browser. | /admin/browser | src/pages/admin/AdminBrowser.tsx |
+| Admin surfaces | admin page | Admin Capability Balance | Admin surface for Admin Capability Balance. | /admin/capability-balance | src/pages/admin/AdminCapabilityBalance.tsx |
+| Admin surfaces | admin page | Admin Chat | Admin surface for Admin Chat. | /admin/chat | src/pages/admin/AdminChat.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks/:productId | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Checks | Admin surface for Admin Ecosystem Pages. | /admin/checks | src/pages/admin/AdminEcosystemPages.tsx |
 | Admin surfaces | admin page | Admin Circle | Admin surface for Admin Circle. | /admin/circle | src/pages/admin/AdminCircle.tsx |
@@ -1124,6 +1146,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Admin surfaces | admin page | Admin Control Tower | Big-job coordinator that turns broad work into worker lanes and proof paths. | /admin/controltower | src/pages/admin/AdminControlTower.tsx |
 | Admin surfaces | admin page | Admin Dashboard | Front door for current operator state. | /admin/dashboard | src/pages/admin/AdminDashboard.tsx |
 | Admin surfaces | admin page | Admin Express Build | Admin surface for Admin Express Build. | /admin/autopilot/expressbuild | src/pages/admin/AdminExpressBuild.tsx |
+| Admin surfaces | admin page | Admin Induction | Admin surface for Admin Induction. | /admin/induction | src/pages/admin/AdminInduction.tsx |
 | Admin surfaces | admin page | Admin Jobs | Operational job and task queue. | /admin/jobs | src/pages/admin/AdminJobs.tsx |
 | Admin surfaces | admin page | Admin Jobsmith | Admin surface for Admin Jobsmith. | /admin/jobsmith | src/pages/admin/AdminJobsmith.tsx |
 | Admin surfaces | admin page | Admin Keychain | Passport and credential connection health. | /admin/keychain | src/pages/admin/AdminKeychain.tsx |
@@ -1274,6 +1297,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Automations | workflow | auto close fishbowl todo.yml | auto close fishbowl todo GitHub automation workflow. | - | .github/workflows/auto-close-fishbowl-todo.yml |
 | Automations | workflow | autonomous runner.yml | autonomous runner GitHub automation workflow. | - | .github/workflows/autonomous-runner.yml |
 | Automations | workflow | brainmap auto update.yml | Scheduled workflow that regenerates the ecosystem Brainmap. | - | .github/workflows/brainmap-auto-update.yml |
+| Automations | workflow | branch backup.yml | branch backup GitHub automation workflow. | - | .github/workflows/branch-backup.yml |
 | Automations | workflow | ci.yml | Continuous integration checks for build, tests, and proof safety. | - | .github/workflows/ci.yml |
 | Automations | workflow | claude.yml | claude GitHub automation workflow. | - | .github/workflows/claude.yml |
 | Automations | workflow | continuous improvement watch.yml | continuous improvement watch GitHub automation workflow. | - | .github/workflows/continuous-improvement-watch.yml |
@@ -1514,6 +1538,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Solve | Tool page for Solve. | /tools/solve | src/pages/tools/Solve.tsx |
 | Public surfaces | public page | Terms | Terms of service. | /terms | src/pages/Terms.tsx |
 | Public surfaces | public page | Tools | Public tools marketplace entry point. | /tools | src/pages/Tools.tsx |
+| Public surfaces | public page | Un Click Browser | User-facing page for Un Click Browser. | /browser | src/pages/UnClickBrowser.tsx |
 | Public surfaces | public page | Verify Mfa | User-facing page for Verify Mfa. | /auth/verify-mfa | src/pages/VerifyMfa.tsx |
 | Public surfaces | public page | Vibe Coding | User-facing page for Vibe Coding. | /developers/vibe-coding | src/pages/VibeCoding.tsx |
 | Public surfaces | public page | Why | User-facing page for Why. | /why | src/pages/Why.tsx |
@@ -1547,6 +1572,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Source of truth | state module | backfill typed memory events | backfill typed memory events UnClick module. | - | scripts/backfill-typed-memory-events.ts |
 | Source of truth | state module | boardroom compat | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-compat.ts |
 | Source of truth | state module | boardroom read bounds | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/boardroom-read-bounds.ts |
+| Source of truth | state module | chat memory | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/lib/chat-memory.ts |
 | Source of truth | state module | embed | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory/embed.ts |
 | Source of truth | state module | memory admin | Server endpoint or helper used by UnClick admin, memory, workers, or tools. | - | api/memory-admin.ts |
 | Source of truth | state module | memory Data Island | memory Data Island shared frontend logic. | - | src/lib/memoryDataIsland.ts |
@@ -1796,7 +1822,9 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
 | Tools | MCP tool | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-emoji-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |
+| Tools | MCP tool | gmail | gmail MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gmail-tool.ts |
 | Tools | MCP tool | goertzel | goertzel MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/goertzel-tool.ts |
+| Tools | MCP tool | google drive | google drive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/google-drive-tool.ts |
 | Tools | MCP tool | graph | graph MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graph-tool.ts |
 | Tools | MCP tool | graphcolor | graphcolor MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graphcolor-tool.ts |
 | Tools | MCP tool | graycode | graycode MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/graycode-tool.ts |
@@ -1958,6 +1986,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | oeis | oeis MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/oeis-tool.ts |
 | Tools | MCP tool | officialjoke | officialjoke MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/officialjoke-tool.ts |
 | Tools | MCP tool | omdb | omdb MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/omdb-tool.ts |
+| Tools | MCP tool | onedrive | onedrive MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/onedrive-tool.ts |
 | Tools | MCP tool | open elevation | open elevation MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/open-elevation-tool.ts |
 | Tools | MCP tool | openai | openai MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openai-tool.ts |
 | Tools | MCP tool | openalex | openalex MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/openalex-tool.ts |
@@ -2126,6 +2155,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | suffixauto | suffixauto MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/suffixauto-tool.ts |
 | Tools | MCP tool | suffixtree | suffixtree MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/suffixtree-tool.ts |
 | Tools | MCP tool | sunrisesunset | sunrisesunset MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/sunrisesunset-tool.ts |
+| Tools | MCP tool | supabase | supabase MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/supabase-tool.ts |
 | Tools | MCP tool | supercell | supercell MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/supercell-tool.ts |
 | Tools | MCP tool | superhero | superhero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/superhero-tool.ts |
 | Tools | MCP tool | swapi | swapi MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/swapi-tool.ts |
@@ -2211,6 +2241,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | wordcount | wordcount MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordcount-tool.ts |
 | Tools | MCP tool | wordfreq | wordfreq MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordfreq-tool.ts |
 | Tools | MCP tool | wordpress | wordpress MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/wordpress-tool.ts |
+| Tools | MCP tool | workspace | workspace MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/workspace-tool.ts |
 | Tools | MCP tool | worldbank | worldbank MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldbank-tool.ts |
 | Tools | MCP tool | worldtime | worldtime MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/worldtime-tool.ts |
 | Tools | MCP tool | xero | xero MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/xero-tool.ts |

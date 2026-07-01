@@ -32,6 +32,10 @@ function fakeWindow() {
     focus,
     windowRef: {
       open,
+      screenLeft: 100,
+      screenTop: 50,
+      outerWidth: 1200,
+      outerHeight: 900,
       location: { assign: windowAssign },
     } as unknown as Window,
     open,
@@ -63,12 +67,71 @@ describe("hostedMcpLogin", () => {
       fetcher,
       windowRef: fake.windowRef,
       readApiKey: () => "uc_cached_key",
+      loginConnectEnabled: false,
     });
 
     expect(popup).toBe(fake.popup);
     expect(fake.open).toHaveBeenCalledWith("", "unclick_connect_higgsfield", expect.stringContaining("popup=yes"));
+    expect(fake.open).toHaveBeenCalledWith("", "unclick_connect_higgsfield", expect.stringContaining("left=420,top=120"));
     expect(fake.popupAssign).toHaveBeenCalledWith("https://mcp.higgsfield.ai/oauth2/authorize?client_id=test");
     expect(fake.close).not.toHaveBeenCalled();
+  });
+
+  it("uses the session JWT and never asks for the browser key when login-connect is on", async () => {
+    const fake = fakeWindow();
+    // No cached key, and minting would throw on already_provisioned. With the
+    // flag on and a session, that gate must not be reached at all.
+    const readApiKey = vi.fn(() => "");
+    const fetcher = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(input)).toBe("/api/oauth-init");
+      expect(init).toEqual(expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer session-token" }),
+        body: JSON.stringify({ platform: "higgsfield" }),
+      }));
+      return Promise.resolve(jsonResponse({
+        authorization_url: "https://mcp.higgsfield.ai/oauth2/authorize?client_id=session",
+      }));
+    });
+
+    const popup = await startHostedMcpLogin({
+      slug: "higgsfield",
+      sessionAccessToken: "session-token",
+      fetcher,
+      windowRef: fake.windowRef,
+      readApiKey,
+      loginConnectEnabled: true,
+    });
+
+    expect(popup).toBe(fake.popup);
+    expect(readApiKey).not.toHaveBeenCalled();
+    // Only the oauth-init call; no generate_api_key minting round-trip.
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fake.popupAssign).toHaveBeenCalledWith("https://mcp.higgsfield.ai/oauth2/authorize?client_id=session");
+  });
+
+  it("falls back to the cached key path when login-connect is on but there is no session", async () => {
+    const fake = fakeWindow();
+    const fetcher = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(input)).toBe("/api/oauth-init");
+      expect(init).toEqual(expect.objectContaining({
+        body: JSON.stringify({ platform: "higgsfield", api_key: "uc_cached_key" }),
+      }));
+      return Promise.resolve(jsonResponse({
+        authorization_url: "https://mcp.higgsfield.ai/oauth2/authorize?client_id=test",
+      }));
+    });
+
+    await startHostedMcpLogin({
+      slug: "higgsfield",
+      sessionAccessToken: null,
+      fetcher,
+      windowRef: fake.windowRef,
+      readApiKey: () => "uc_cached_key",
+      loginConnectEnabled: true,
+    });
+
+    expect(fake.popupAssign).toHaveBeenCalledWith("https://mcp.higgsfield.ai/oauth2/authorize?client_id=test");
   });
 
   it("mints and stores an account key before starting OAuth when this browser has none", async () => {
@@ -103,6 +166,7 @@ describe("hostedMcpLogin", () => {
       fetcher,
       windowRef: fake.windowRef,
       readApiKey: () => "uc_cached_key",
+      loginConnectEnabled: false,
     })).rejects.toThrow(/provider down/i);
 
     expect(fake.close).toHaveBeenCalled();

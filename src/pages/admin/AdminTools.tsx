@@ -6,14 +6,15 @@ import { APP_CATALOG, APP_COUNT, TOOL_COUNT, type AppEntry } from "@/lib/appCata
 import { AppsTable, type AppStatus } from "@/components/apps/AppsTable";
 import { ConnectAppModal } from "@/components/apps/ConnectAppModal";
 import { AppLensBar } from "@/components/apps/AppLensBar";
-import { applyLens, lensCounts, actionLabelFor, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { applyLens, lensCounts, actionLabelFor, hasSavedConnection, isConnected, parseAppLens, type AppLens } from "@/components/apps/appLenses";
+import { CONNECTORS } from "@/lib/connectors";
 import { AdminAppsIntro } from "./AdminEcosystemPages";
 import { startHostedMcpLogin } from "./hostedMcpLogin";
 
 // A connector row as returned by /api/memory-admin?action=admin_tools. Used here
 // only to derive each app's connection status (connected / needs key / built-in)
 // and to feed the connect wizard.
-interface Connector {
+export interface Connector {
   id: string;
   auth_type?: "oauth2" | "api_key" | "bot_token";
   setup_url?: string | null;
@@ -24,7 +25,12 @@ interface Connector {
     id?: string | null;
     is_valid: boolean;
     last_tested_at: string | null;
+    connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
     source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+    // Set when the last OAuth token refresh failed. A short reason code (never a
+    // token); mapped to human text below and shown as a "Needs reconnect" note.
+    last_refresh_error?: string | null;
+    last_refresh_error_at?: string | null;
     managed?: {
       provider: string;
       provider_config_key: string | null;
@@ -38,11 +44,50 @@ interface Connector {
   } | null;
 }
 
+// Map a refresh failure reason code (from /api/credentials) to short human text
+// for the "Needs reconnect" note. provider_rejected may carry an HTTP status
+// suffix (e.g. "provider_rejected:400") which we ignore for the human line.
+export function humanRefreshReason(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  const code = reason.split(":")[0];
+  switch (code) {
+    case "no_refresh_token":   return "no refresh token saved - reconnect once";
+    case "missing_client_env": return "server config missing";
+    case "provider_rejected":  return "the provider rejected the refresh";
+    case "network_error":      return "could not reach the provider";
+    case "no_config":          return null; // platform is not refresh-capable; nothing to reconnect
+    default:                   return null;
+  }
+}
+
+export function buildAdminConnectorMap(connectors: Connector[]) {
+  const map = new Map<string, Connector>();
+  for (const c of connectors) map.set(c.id, c);
+
+  for (const app of APP_CATALOG) {
+    if (map.has(app.slug)) continue;
+    const config = CONNECTORS[app.slug];
+    if (!config?.authType) continue;
+    map.set(app.slug, {
+      id: app.slug,
+      auth_type: config.authType,
+      setup_url: config.docsUrl ?? null,
+      credential: null,
+      supports_hosted_mcp_connection: app.slug === "higgsfield",
+      supports_managed_connection: false,
+      managed_provider_config_key: null,
+    });
+  }
+
+  return map;
+}
+
 export default function AdminToolsPage() {
   const { session } = useSession();
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
   // One filter state, two controls: the rail and the chips both read/write
@@ -88,9 +133,7 @@ export default function AdminToolsPage() {
   }, [refreshStatus]);
 
   const connectorBySlug = useMemo(() => {
-    const map = new Map<string, Connector>();
-    for (const c of connectors) map.set(c.id, c);
-    return map;
+    return buildAdminConnectorMap(connectors);
   }, [connectors]);
 
   const enabled = useMemo(() => {
@@ -141,22 +184,30 @@ export default function AdminToolsPage() {
     void persist(on ? new Set() : new Set(APP_CATALOG.map((a) => a.slug)));
   }
 
+  async function handleRefreshStatus() {
+    setRefreshing(true);
+    setSaveError(null);
+    try {
+      await refreshStatus();
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
-    if (c.credential?.source === "managed_app_connections" && c.credential.is_valid) {
+    if (isConnected(c)) {
       return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
     }
-    if (c.id === "higgsfield" && c.credential?.source === "user_credentials" && c.credential.is_valid) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    if (c.credential?.connection_state === "pending") {
+      return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
-    // OAuth connections are created by a successful provider sign-in, so they
-    // should read as connected even before a later tool-use timestamp exists.
-    if (c.credential?.is_valid && (c.auth_type === "oauth2" || c.credential.last_tested_at)) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+    if (c.credential?.connection_state === "stale") {
+      return { label: "Stale", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.credential?.is_valid) {
-      return { label: "Added", tone: "border-sky-300/25 bg-sky-300/10 text-sky-100" };
+      return { label: "Needs check", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -170,14 +221,24 @@ export default function AdminToolsPage() {
   // nothing to connect.
   function handleStatusClick(app: AppEntry) {
     if (!connectorBySlug.has(app.slug)) return;
-    setConnectTarget(app);
+    openAppConnection(app);
   }
 
   // Buttons say the action (Connect / Add key / Manage); pills say the truth.
   function actionOf(app: AppEntry) {
     const label = actionLabelFor(connectorBySlug.get(app.slug));
     if (!label) return null;
-    return { label, onClick: () => setConnectTarget(app) };
+    return { label, onClick: () => openAppConnection(app) };
+  }
+
+  // When the last token refresh failed, surface a short muted note plus a
+  // Reconnect link, instead of letting the connection silently look "Connected"
+  // until the stale token finally fails a live call.
+  function noteOf(app: AppEntry): { text: string; reconnectTo: string } | null {
+    const c = connectorBySlug.get(app.slug);
+    const human = humanRefreshReason(c?.credential?.last_refresh_error);
+    if (!human) return null;
+    return { text: `Needs reconnect: ${human}`, reconnectTo: `/connect/${app.slug}` };
   }
 
   function disconnectActionOf(app: AppEntry) {
@@ -211,26 +272,51 @@ export default function AdminToolsPage() {
     setConnectTarget(null);
   }
 
+  function connectionSignature(connector: Connector | undefined) {
+    const credential = connector?.credential;
+    return [
+      credential?.id ?? "",
+      credential?.is_valid ? "valid" : "invalid",
+      credential?.last_tested_at ?? "",
+      credential?.connection_state ?? "",
+      credential?.source ?? "",
+    ].join("|");
+  }
+
   function watchConnectionPopup(popup: Window | null, slug: string) {
     let tries = 0;
     const maxTries = 45;
+    const initialConnector = connectorBySlug.get(slug);
+    const initiallySaved = hasSavedConnection(initialConnector);
+    const initialSignature = connectionSignature(initialConnector);
     const timer = window.setInterval(() => {
       tries += 1;
       void refreshStatus().then((nextConnectors) => {
         const connector = nextConnectors?.find((item) => item.id === slug) ?? connectorBySlug.get(slug);
-        if (connector?.credential?.is_valid || popup?.closed || tries >= maxTries) {
+        const savedNow = hasSavedConnection(connector);
+        const changedSavedConnection = savedNow && connectionSignature(connector) !== initialSignature;
+        const shouldCloseForSavedConnection = savedNow && (!initiallySaved || changedSavedConnection);
+        if (shouldCloseForSavedConnection || popup?.closed || tries >= maxTries) {
           window.clearInterval(timer);
-          if (connector?.credential?.is_valid && popup && !popup.closed) popup.close();
+          if (shouldCloseForSavedConnection && popup && !popup.closed) popup.close();
         }
       });
     }, 2000);
   }
 
   function openConnectionPopup(url: string, slug: string) {
+    const width = 560;
+    const height = 760;
+    const dualScreenLeft = window.screenLeft ?? window.screenX ?? 0;
+    const dualScreenTop = window.screenTop ?? window.screenY ?? 0;
+    const viewportWidth = window.outerWidth || document.documentElement.clientWidth || screen.width;
+    const viewportHeight = window.outerHeight || document.documentElement.clientHeight || screen.height;
+    const left = Math.max(0, Math.round(dualScreenLeft + (viewportWidth - width) / 2));
+    const top = Math.max(0, Math.round(dualScreenTop + (viewportHeight - height) / 2));
     const popup = window.open(
       url,
       `unclick_connect_${slug}`,
-      "popup=yes,width=560,height=760",
+      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
     );
     if (!popup) {
       window.location.assign(url);
@@ -238,6 +324,22 @@ export default function AdminToolsPage() {
     }
     popup.focus();
     watchConnectionPopup(popup, slug);
+  }
+
+  function shouldUseConnectPage(app: AppEntry) {
+    const connector = connectorBySlug.get(app.slug);
+    if (!connector) return false;
+    if (connector.supports_managed_connection || connector.supports_hosted_mcp_connection) return false;
+    const fieldCount = CONNECTORS[app.slug]?.credentialFields.length ?? 1;
+    return connector.auth_type === "oauth2" || fieldCount > 1;
+  }
+
+  function openAppConnection(app: AppEntry) {
+    if (shouldUseConnectPage(app)) {
+      openConnectionPopup(`/connect/${app.slug}`, app.slug);
+      return;
+    }
+    setConnectTarget(app);
   }
 
   async function beginManagedConnection(slug: string) {
@@ -302,11 +404,13 @@ export default function AdminToolsPage() {
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
+        onRefreshStatus={() => void handleRefreshStatus()}
         statusOf={statusOf}
         onStatusClick={handleStatusClick}
         actionOf={actionOf}
         disconnectOf={disconnectActionOf}
-        busy={saving}
+        noteOf={noteOf}
+        busy={saving || refreshing}
       />
 
       {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (
@@ -316,7 +420,7 @@ export default function AdminToolsPage() {
           accessToken={session.access_token}
           onClose={() => setConnectTarget(null)}
           onSaved={() => void refreshStatus()}
-          isConnected={Boolean(connectorBySlug.get(connectTarget.slug)?.credential?.is_valid)}
+          isConnected={isConnected(connectorBySlug.get(connectTarget.slug))}
           statusLabel={statusOf(connectTarget)?.label ?? null}
           onDisconnect={() => disconnectApp(connectTarget.slug)}
           onStartManagedConnection={() => beginManagedConnection(connectTarget.slug)}

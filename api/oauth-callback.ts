@@ -16,6 +16,13 @@
  *   }
  *   Returns: { success: true, platform, message } or { error: string }
  *
+ * Login-connect (UNCLICK_LOGIN_CONNECT_ENABLED, default OFF): when oauth-init
+ * was started from a logged-in session, it set an HttpOnly `unclick_oauth_lane`
+ * cookie (a stable account-lane hash, never a JWT or api key). On callback we
+ * store the exchanged credential as a 'server'-scheme row bound to that lane
+ * (encryptForAccount), so the user never had to paste their UnClick api key.
+ * The api-key cookie path is unchanged when no lane cookie is present.
+ *
  * Platform-specific token exchange logic lives in PLATFORM_CONFIGS below.
  * Adding a new OAuth platform = add an entry to PLATFORM_CONFIGS.
  *
@@ -30,10 +37,12 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js";
+import { encryptForAccount } from "./lib/chat-crypto.js";
 
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const OAUTH_LANE_COOKIE = "unclick_oauth_lane";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
@@ -191,9 +200,47 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     },
   },
 
-  // One Google OAuth app covers Gmail, Drive, Calendar, Docs, Sheets (scopes
-  // live on the connector config). Sensitive Gmail scopes may need Google's
-  // app verification before non-test accounts can consent.
+  gmail: {
+    tokenUrl:        "https://oauth2.googleapis.com/token",
+    clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
+    clientSecretEnv: "GOOGLE_WORKSPACE_CLIENT_SECRET",
+    redirectUriEnv:  "GOOGLE_WORKSPACE_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Gmail token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  "google-drive": {
+    tokenUrl:        "https://oauth2.googleapis.com/token",
+    clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
+    clientSecretEnv: "GOOGLE_WORKSPACE_CLIENT_SECRET",
+    redirectUriEnv:  "GOOGLE_WORKSPACE_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in Google Drive token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  // One Google OAuth app can still cover a broader workspace connection.
   "google-workspace": {
     tokenUrl:        "https://oauth2.googleapis.com/token",
     clientIdEnv:     "GOOGLE_WORKSPACE_CLIENT_ID",
@@ -207,7 +254,27 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
     },
   },
 
-  // One Azure AD app covers Outlook mail, Calendar, OneDrive, Teams via Graph.
+  onedrive: {
+    tokenUrl:        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    clientIdEnv:     "MICROSOFT_GRAPH_CLIENT_ID",
+    clientSecretEnv: "MICROSOFT_GRAPH_CLIENT_SECRET",
+    redirectUriEnv:  "MICROSOFT_GRAPH_REDIRECT_URI",
+    async extractCredentials(tokenResponse) {
+      const accessToken = String(tokenResponse.access_token ?? "");
+      if (!accessToken) throw new Error("No access_token in OneDrive token response.");
+      const refreshToken = String(tokenResponse.refresh_token ?? "");
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
+    },
+  },
+
+  // One Azure AD app can still cover a broader Microsoft Graph connection.
   "microsoft-graph": {
     tokenUrl:        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     clientIdEnv:     "MICROSOFT_GRAPH_CLIENT_ID",
@@ -331,18 +398,128 @@ async function exchangeCode(
   return config.extractCredentials(tokenResponse, "", env);
 }
 
+// ─── Provider credential proof ───────────────────────────────────────────────
+
+async function verifySupabaseManagementAccess(credentials: Record<string, string>): Promise<void> {
+  const accessToken = credentials.access_token ?? "";
+  if (!accessToken) {
+    throw new OAuthRequestError("Supabase login did not return an access token. Please reconnect Supabase.");
+  }
+
+  const checks = [
+    { path: "/v1/organizations", permission: "organization read" },
+    { path: "/v1/projects", permission: "project read" },
+  ];
+
+  for (const check of checks) {
+    const res = await fetch(`https://api.supabase.com${check.path}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (res.ok) continue;
+
+    if (res.status === 401) {
+      throw new OAuthRequestError("Supabase login returned an invalid or expired token. Please reconnect Supabase.");
+    }
+
+    if (res.status === 403) {
+      throw new OAuthRequestError(
+        "Supabase sign-in worked, but UnClick could not finish because the Supabase OAuth app did not grant Management API organization/project read access. Enable those read permissions on the Supabase OAuth app, then reconnect."
+      );
+    }
+
+    throw new OAuthRequestError(
+      `Supabase Management API ${check.permission} proof failed (${res.status}). Please reconnect Supabase.`
+    );
+  }
+}
+
+// ─── Login-connect feature flag + server-scheme store ─────────────────────────
+
+// Default OFF. Server-scheme storage (lane cookie path) is only taken when the
+// flag is on. With it off, only the api-key cookie path runs - byte-identical to
+// the original.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
+}
+
+// Store the exchanged credential as a 'server'-scheme row bound to the account
+// lane that oauth-init resolved from the verified session. Mirrors the
+// server-scheme write in api/credentials.ts and api/ai-provider-key.ts
+// (api_key_hash = lane_hash = lane, enc_scheme = 'server'). Uses the shared
+// encryptForAccount helper - no new crypto. The lane came from a server-set
+// HttpOnly cookie, so it is never attacker-controlled here.
+async function storeCredentialsForLane(args: {
+  platform:    string;
+  credentials: Record<string, string>;
+  lane:        string;
+  env:         NodeJS.ProcessEnv;
+  markTested:  boolean;
+}): Promise<void> {
+  const { platform, credentials, lane, env, markTested } = args;
+  const supabaseUrl = (env.SUPABASE_URL ?? "").trim();
+  const serviceRoleKey = (env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  const secret = aiKeySecret(env);
+  if (!supabaseUrl || !serviceRoleKey || !secret || !lane) {
+    throw new Error("Login-connect storage is not configured.");
+  }
+
+  const enc = encryptForAccount(secret, lane, JSON.stringify(credentials));
+  const now = new Date().toISOString();
+  const row = {
+    api_key_hash:    lane,
+    lane_hash:       lane,
+    enc_scheme:      "server",
+    platform_slug:   platform,
+    label:           null,
+    encrypted_data:  enc.encrypted_data,
+    encryption_iv:   enc.encryption_iv,
+    encryption_tag:  enc.encryption_tag,
+    encryption_salt: enc.encryption_salt,
+    ...(markTested ? { is_valid: true, last_tested_at: now } : {}),
+    updated_at:      now,
+  };
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/user_credentials?on_conflict=api_key_hash,platform_slug,label`,
+    {
+      method:  "POST",
+      headers: {
+        apikey:         serviceRoleKey,
+        Authorization:  `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer:         "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify(row),
+    },
+  );
+  if (!res.ok) {
+    // Sanitized: never echo the credential payload or Supabase internals.
+    throw new Error(`Credential storage failed (${res.status})`);
+  }
+}
+
 // ─── Store credentials via internal credentials endpoint ──────────────────────
 
 async function storeCredentials(
   platform:    string,
   credentials: Record<string, string>,
   apiKey:      string,
-  baseUrl:     string
+  baseUrl:     string,
+  markTested = false
 ): Promise<void> {
   const res = await fetch(`${baseUrl}/api/credentials`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ platform, credentials, api_key: apiKey }),
+    body:    JSON.stringify({ platform, credentials, api_key: apiKey, mark_tested: markTested }),
   });
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
@@ -437,6 +614,7 @@ function redirectBack(
     : "/admin/apps";
   res.setHeader("Set-Cookie", [
     clearCookie(OAUTH_API_KEY_COOKIE),
+    clearCookie(OAUTH_LANE_COOKIE),
     clearCookie(OAUTH_PKCE_VERIFIER_COOKIE),
     clearCookie(HIGGSFIELD_MCP_OAUTH_COOKIE),
   ]);
@@ -498,6 +676,7 @@ async function completeOAuthConnection(args: {
   platform: string;
   code: string;
   apiKey: string;
+  lane?: string;
   state: string;
   store?: string;
   codeVerifier?: string;
@@ -505,15 +684,20 @@ async function completeOAuthConnection(args: {
   env: NodeJS.ProcessEnv;
   higgsfieldMcpFlow?: HiggsfieldMcpOAuthCookie | null;
 }): Promise<{ platform: string; statePayload: OAuthStatePayload }> {
-  const { platform, code, apiKey, state, store, codeVerifier = "", baseUrl, env, higgsfieldMcpFlow } = args;
+  const { platform, code, apiKey, lane = "", state, store, codeVerifier = "", baseUrl, env, higgsfieldMcpFlow } = args;
 
   if (!platform) throw new OAuthRequestError("platform is required.");
   if (!code) throw new OAuthRequestError("code is required.");
-  if (!apiKey) throw new OAuthRequestError("api_key is required.");
   if (!state) throw new OAuthRequestError("state is required.");
 
-  if (!apiKey.startsWith("uc_") && !apiKey.startsWith("agt_")) {
-    throw new OAuthRequestError("Invalid api_key format.");
+  // Login-connect: a verified session lane (HttpOnly cookie) lets us store a
+  // server-scheme row without a pasted api key. Otherwise require the api key.
+  const useLane = Boolean(loginConnectEnabled(env) && lane && !apiKey);
+  if (!useLane) {
+    if (!apiKey) throw new OAuthRequestError("api_key is required.");
+    if (!apiKey.startsWith("uc_") && !apiKey.startsWith("agt_")) {
+      throw new OAuthRequestError("Invalid api_key format.");
+    }
   }
 
   const statePayload = verifyOAuthStateToken(state, env);
@@ -540,7 +724,14 @@ async function completeOAuthConnection(args: {
     credentials = await exchangeCode(config, code, env, codeVerifier);
   }
 
-  await storeCredentials(platform, credentials, apiKey, baseUrl);
+  const markTested = platform === "supabase";
+  if (markTested) await verifySupabaseManagementAccess(credentials);
+
+  if (useLane) {
+    await storeCredentialsForLane({ platform, credentials, lane, env, markTested });
+  } else {
+    await storeCredentials(platform, credentials, apiKey, baseUrl, markTested);
+  }
   return { platform, statePayload };
 }
 
@@ -549,7 +740,7 @@ async function completeOAuthConnection(args: {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET" && req.method !== "POST") {
@@ -577,6 +768,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         platform: statePayload.platform,
         code,
         apiKey: readCookie(req, OAUTH_API_KEY_COOKIE),
+        lane: readCookie(req, OAUTH_LANE_COOKIE),
         state,
         codeVerifier: readCookie(req, OAUTH_PKCE_VERIFIER_COOKIE),
         baseUrl,
@@ -605,6 +797,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       platform: platform ?? "",
       code: code ?? "",
       apiKey: api_key ?? "",
+      lane: readCookie(req, OAUTH_LANE_COOKIE),
       state: state ?? "",
       store,
       codeVerifier: code_verifier ?? readCookie(req, OAUTH_PKCE_VERIFIER_COOKIE),

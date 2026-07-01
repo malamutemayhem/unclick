@@ -1,7 +1,8 @@
 # App connection readiness
 
-This is the rollout contract for login-first app connections such as GitHub,
-Vercel, Supabase, and future OAuth apps in the UnClick app bubble.
+This is the rollout contract for login-first app connections in the UnClick app
+bubble. It captures the repeatable lessons from previous connector launches
+without making any one provider the pattern.
 
 ## The rule
 
@@ -14,6 +15,16 @@ means the same account is visible in three places:
 
 If those disagree, the app is not ready for users yet.
 
+Also keep two customer states separate:
+
+- **Saved/manageable:** the customer has added access. It belongs in Connected
+  apps and should offer Manage/Disconnect, even while it needs a live check.
+- **Verified/live:** the app has passed a real check. Only this earns the green
+  Connected badge and tool-facing proof.
+
+Never make the Connected apps lens depend only on verified/live proof, or saved
+OAuth/key rows disappear and customers think the connection failed.
+
 ## What the guard checks
 
 Run:
@@ -25,12 +36,26 @@ npm run check:app-connections
 For one app:
 
 ```bash
-node scripts/check-app-connection-readiness.mjs --platform=vercel
+node scripts/check-app-connection-readiness.mjs --platform=<slug>
+```
+
+For production env proof:
+
+```bash
+npm run check:app-connections:live
+```
+
+For one production app:
+
+```bash
+node scripts/check-app-connection-readiness.mjs --platform=<slug> --live-url=https://unclick.world
 ```
 
 The guard verifies:
 
 - The app exists in `src/data/app-catalog.generated.json` in a real category.
+- Default login-first apps that users expect immediately also appear in the
+  Popular lens, not only in the full catalog.
 - `src/lib/connectors.ts` exposes provider login and labels token entry as a
   fallback.
 - `packages/mcp-server/src/connector-setup.ts` and
@@ -41,6 +66,16 @@ The guard verifies:
 - `api/oauth-callback.ts` agrees with OAuth start on env var names, PKCE, and
   credential extraction.
 - `api/oauth-state.ts` can sign and verify state for the provider.
+- The browser starts login through the server, receives a provider URL or
+  setup-pending fallback, and does not depend on public client IDs for
+  server-owned OAuth apps.
+- Server-owned OAuth apps are listed in the Connect page server-client allowlist
+  so the provider login button renders before any production env probe runs.
+- The stored credential slug matches the app slug that users connected, so
+  dashboard status, reconnect, disconnect, and MCP tool calls all describe the
+  same account.
+- Tool schemas keep the token field optional for login-first apps, so agents can
+  call normal business arguments while UnClick resolves the stored token.
 - `src/pages/Connect.tsx` keeps "Use a token instead" visible when provider
   login is not switched on.
 - `src/components/apps/ConnectAppModal.tsx` sends OAuth apps to
@@ -51,6 +86,26 @@ The guard verifies:
   `packages/mcp-server/src/keychain-tool.ts` all see the same connection
   sources: `platform_credentials`, `user_credentials`, and
   `managed_app_connections`.
+- No `api_keys` query selects a plaintext `api_key` column (the table only
+  stores `key_hash`, so a bad column 400s the read and empties the Connections
+  page), the vault decrypt surfaces never import the mismatched
+  `crypto-helpers.ts`, and the server-scheme secret read checks for a non-empty
+  value rather than mere presence. See the credential/key learnings runbook
+  below.
+- `packages/mcp-server/src/builder-access-profiles.ts` defines privileged
+  builder profiles for agents that need to push code, deploy, or do provider
+  secret work. A connected app alone is not enough for builder status.
+- `src/components/apps/appLenses.ts`,
+  `src/components/apps/ConnectAppModal.tsx`, and
+  `src/pages/admin/AdminTools.tsx` keep saved/manageable connection visibility
+  separate from verified/live proof. The Connected apps lens uses saved state;
+  the green Connected badge uses proof state.
+- When `--live-url` is passed, production `/api/oauth-init` returns a
+  provider-ready login payload and not `setup_pending`. This catches the exact
+  "code is live, provider env is missing client ID/client secret" failure.
+- When production rejects a new platform entirely, the guard reports the API
+  error text so "not deployed yet" is visibly different from "deployed but env
+  missing."
 
 Regression tests live in:
 
@@ -58,8 +113,11 @@ Regression tests live in:
 npm run test:app-connections
 ```
 
-They intentionally break catalog visibility, setup-pending fallback, keychain
-parity, and OAuth env mapping to prove the guard catches the failures.
+They intentionally break catalog visibility, Popular lens visibility, Connect
+page button allowlisting, setup-pending fallback, keychain parity, and OAuth env
+mapping, plus the saved-vs-verified Admin Apps split, the `api_keys` plaintext
+select, the mismatched crypto-helper import, and the present-but-empty server
+secret check, to prove the guard catches the failures.
 
 ## XPass routing
 
@@ -67,43 +125,96 @@ Connector login work is now routed through the XPass gate room. Changes touching
 OAuth app connections, credential storage, connect pages, catalog/icon
 visibility, or keychain status select:
 
+- ConnectorPass for the combined app-bubble connection contract
 - TestPass for deterministic readiness proof
-- UXPass for login and fallback experience
+- UXPass for login, saved-state, and fallback experience
 - FlowPass for the OAuth journey
 - SecurityPass for OAuth and credential storage
 - RotatePass for credential lifecycle and redaction
-- CommonSensePass for "no connected badge without tool-facing proof"
+- CopyPass for public connection copy and fallback wording
+- CommonSensePass for "no connected badge without tool-facing proof" and "saved
+  connections must stay visible while waiting for proof"
 - SlopPass for implementation quality when source files change
+
+Credential read, encryption-scheme, and key-scoping questions route to RotatePass,
+whose credential/key knowledge surface is
+[`credential-key-learnings-runbook.md`](./credential-key-learnings-runbook.md).
+
+## Related docs
+
+- [`credential-key-learnings-runbook.md`](./credential-key-learnings-runbook.md):
+  the credential, encryption-scheme, and key-handling traps (the `api_keys`
+  no-plaintext-column rule, the apikey-vs-server crypto schemes, lane-vs-hash
+  scoping, present-but-empty secrets, plaintext-key-vs-hash decryption, and the
+  Connected-list-by-lane rule) that sit behind this wiring contract.
+
+## Builder access hierarchy
+
+Connector builders use a named privilege ladder instead of one flat "max
+access" switch:
+
+- **Observer:** read status and code.
+- **Scoped Builder:** create scoped patches and pull requests.
+- **Trusted Builder:** push branches and use stored provider credentials
+  indirectly, without revealing secrets.
+- **Secret Steward:** create or rotate provider secrets, environment variables,
+  and assigned database or deployment settings with a short lease and audit
+  receipt.
+- **Release Captain:** promote deployments or merge after proof gates pass.
+- **Break Glass Admin:** temporary emergency lane for raw secret reveal or
+  provider-admin repair. Shortest lease, explicit approval, full audit.
+
+For the core build connectors:
+
+- GitHub builder work must prove a real branch push path or contents-write path,
+  plus pull request and checks access. A catalog-connected GitHub app is not
+  enough.
+- Vercel builder work needs project/deployment access. Environment variables,
+  domains, aliases, and production promotion require Secret Steward or Release
+  Captain.
+- Supabase status proof needs organization and project read. Database, Edge
+  Function, Auth, Storage, or secret mutation work requires Secret Steward.
+
+Builder profiles are not session credentials. Keep direct session connectors
+separate from UnClick-internal connectors:
+
+- Direct session connectors are attached to the current ChatGPT/Codex/Claude
+  runtime.
+- UnClick-internal connectors are credentials stored inside UnClick and usable
+  only through UnClick MCP/tool actions.
+
+A fresh worker session must pass runtime preflight in the plane being tested:
+GitHub needs a working git credential helper and push probe, or a writable
+GitHub MCP/API path; an UnClick-only worker can satisfy that only by proving
+UnClick GitHub branch/contents, PR, and checks actions. Vercel needs the target
+team/project scope. Supabase needs Management API project proof. A connected
+catalog badge does not satisfy any of those runtime checks.
 
 ## Live proof checklist
 
 Before telling a user "live":
 
 1. Run `npm run check:app-connections`.
-2. Confirm the app appears in `/admin/apps` search.
-3. Open `/connect/:slug` and confirm provider login is the primary path.
-4. Confirm setup-pending errors keep the token fallback visible.
-5. After connecting, check the app status from the MCP/keychain side, not only
+2. Run the production check:
+   `npm run check:app-connections:live`, or the one-app variant while working
+   on a single connector.
+3. Confirm the app appears in `/admin/apps` search.
+4. Open `/connect/:slug` and confirm provider login is the primary path.
+5. Confirm setup-pending errors keep the token fallback visible.
+6. After connecting, check the app status from the MCP/keychain side, not only
    the dashboard badge.
-6. For production, confirm the deployed alias is live and the same checks pass
+7. For production, confirm the deployed alias is live and the same checks pass
    against the production account context.
 
-## Provider notes
+## Provider split
 
-Vercel has two legitimate paths:
+Some providers expose both a UnClick app connection and a separate hosted MCP
+login. Treat those as different products:
 
-- UnClick app connection: `/connect/vercel`, stores the token for UnClick-side
-  Vercel actions.
-- Vercel hosted MCP: Vercel's own MCP sign-in, separate from the UnClick account
+- The UnClick app connection lives at `/connect/:slug`, stores a credential for
+  UnClick tools, and should appear in the Apps connected state.
+- A provider-hosted MCP login belongs to the provider. It can be documented as a
+  separate path, but it must not be described as the same stored UnClick app
   connection.
-
-Supabase has the same split:
-
-- UnClick app connection: `/connect/supabase`, stores Supabase Management API
-  access for UnClick workflows.
-- Supabase hosted MCP: Supabase's own developer MCP sign-in. It should be scoped
-  with `project_ref` and `read_only` where possible, and it is not the same as
-  the UnClick app-bubble connection.
-
-If Supabase shows setup pending, the expected missing live config is usually
-`SUPABASE_OAUTH_CLIENT_ID` and/or `SUPABASE_OAUTH_CLIENT_SECRET`.
+- Any fallback token path must say it is a fallback. The popup login remains the
+  primary path when provider setup is ready.

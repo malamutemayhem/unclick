@@ -22,9 +22,9 @@ describe("AppsTable", () => {
     renderTable(<AppsTable apps={APPS} mode="public" />);
     expect(screen.getByText("GitHub").closest("a")).toHaveAttribute("href", "/apps/github");
     expect(screen.queryByRole("button", { name: /turn all on/i })).not.toBeInTheDocument();
-    // No per-app enable checkbox in public mode (the "Show technical names"
-    // display toggle is allowed in both modes and is not an admin control).
+    // No per-app enable checkbox in public mode.
     expect(screen.queryByLabelText(/^Turn /i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/show technical names/i)).not.toBeInTheDocument();
   });
 
   it("search filters by capability across both surfaces", () => {
@@ -149,9 +149,37 @@ describe("AppsTable", () => {
     expect(onDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it("admin mode keeps saved login rows manageable as connected", () => {
+    const onManage = vi.fn();
+    const onDisconnect = vi.fn();
+    renderTable(
+      <AppsTable
+        apps={[APPS[0]]}
+        mode="admin"
+        statusOf={() => ({ label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" })}
+        actionOf={() => ({ label: "Manage", onClick: onManage })}
+        disconnectOf={() => ({ label: "Disconnect", onClick: onDisconnect })}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Connected" })).toBeInTheDocument();
+
+    const row = screen.getByText("GitHub").closest("[role='button']");
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+
+    expect(screen.getAllByText("Connected").length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(screen.getByRole("button", { name: "Manage" }));
+    fireEvent.click(screen.getByRole("button", { name: "Disconnect" }));
+
+    expect(onManage).toHaveBeenCalledTimes(1);
+    expect(onDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it("admin mode shows checkboxes + bulk controls and fires toggle callbacks", () => {
     const onToggle = vi.fn();
     const onToggleAll = vi.fn();
+    const onRefreshStatus = vi.fn();
     renderTable(
       <AppsTable
         apps={APPS}
@@ -159,6 +187,7 @@ describe("AppsTable", () => {
         enabled={{ github: false }}
         onToggle={onToggle}
         onToggleAll={onToggleAll}
+        onRefreshStatus={onRefreshStatus}
         statusOf={() => null}
       />,
     );
@@ -169,6 +198,9 @@ describe("AppsTable", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /turn all off/i }));
     expect(onToggleAll).toHaveBeenCalledWith(false);
+
+    fireEvent.click(screen.getByRole("button", { name: /refresh status/i }));
+    expect(onRefreshStatus).toHaveBeenCalledTimes(1);
 
     // GitHub is off in props -> its checkbox is unchecked -> clicking turns it on.
     const githubRow = screen.getByText("GitHub").closest("div.grid") as HTMLElement;

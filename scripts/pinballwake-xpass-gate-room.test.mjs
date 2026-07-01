@@ -59,8 +59,24 @@ describe("PinballWake XPass Gate Room", () => {
     assert.ok(selected.includes("flowpass"));
     assert.ok(selected.includes("securitypass"));
     assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("connectorpass"));
     assert.ok(selected.includes("commonsensepass"));
     assert.ok(selected.includes("sloppass"));
+  });
+
+  it("routes saved-connection visibility bugs through connector proof lanes", () => {
+    const selected = checks({
+      title: "Connected apps saved connection bug",
+      description: "Saved credentials must appear in the Connected lens as Manage with a customer-facing Connected status, while internal proof still distinguishes live-tested access.",
+    });
+
+    assert.ok(selected.includes("testpass"));
+    assert.ok(selected.includes("uxpass"));
+    assert.ok(selected.includes("flowpass"));
+    assert.ok(selected.includes("securitypass"));
+    assert.ok(selected.includes("rotatepass"));
+    assert.ok(selected.includes("connectorpass"));
+    assert.ok(selected.includes("commonsensepass"));
   });
 
   it("routes auth, key, and redaction changes to SecurityPass", () => {

@@ -131,13 +131,63 @@ describe("ConnectAppModal", () => {
       "https://higgsfield.ai/mcp",
     );
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/cloud api key fallback/i)).toBeInTheDocument();
-    expect(screen.getByText(/unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/cloud api key option/i)).toBeInTheDocument();
+    expect(screen.getByText(/prefer higgsfield cloud api billing instead of the account sign-in/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /where do i get my cloud api key/i })).toHaveAttribute(
       "href",
       "https://cloud.higgsfield.ai/api-keys",
     );
     expect(screen.getByRole("button", { name: /test api key/i })).toBeInTheDocument();
+  });
+
+  it("presents saved Higgsfield hosted MCP access as manageable before live proof", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
+    const onDisconnect = vi.fn(() => Promise.resolve());
+    renderModal({
+      app: HIGGSFIELD_APP,
+      connector: {
+        id: "higgsfield",
+        auth_type: "api_key",
+        setup_url: null,
+        supports_hosted_mcp_connection: true,
+        credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
+      },
+      isConnected: false,
+      statusLabel: "Connected",
+      onStartHostedMcpLogin,
+      onDisconnect,
+    });
+
+    expect(screen.getByRole("heading", { name: /manage higgsfield/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/connected/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/higgsfield is connected in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/can use this connection across your devices/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
+  });
+
+  it("keeps a Reconnect path for a live-connected hosted MCP login that may have expired", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
+    renderModal({
+      app: HIGGSFIELD_APP,
+      connector: {
+        id: "higgsfield",
+        auth_type: "api_key",
+        setup_url: null,
+        supports_hosted_mcp_connection: true,
+        credential: { is_valid: true, last_tested_at: "2026-06-20T00:00:00.000Z", connection_state: "connected" },
+      },
+      isConnected: true,
+      statusLabel: "Connected",
+      onStartHostedMcpLogin,
+    });
+
+    // The honest "Connected" badge still surfaces a way to re-auth.
+    expect(screen.getByText(/login expired or switching accounts/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
   });
 
   it("routes Supabase users to login instead of a key form", () => {
@@ -214,6 +264,28 @@ describe("ConnectAppModal", () => {
       "href",
       "/connect/alphavantage",
     );
+    fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
+    await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
+  });
+
+  it("still offers disconnect when saved access is shown as connected", async () => {
+    const onDisconnect = vi.fn(() => Promise.resolve());
+    renderModal({
+      connector: {
+        id: "alphavantage",
+        auth_type: "api_key",
+        setup_url: null,
+        credential: { is_valid: true, last_tested_at: null, connection_state: "untested" },
+      },
+      isConnected: false,
+      statusLabel: "Connected",
+      onDisconnect,
+    });
+
+    expect(screen.getByRole("heading", { name: /manage alpha vantage/i })).toBeInTheDocument();
+    expect(screen.queryByText(/alpha vantage is available/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/alpha vantage is connected in unclick/i)).toBeInTheDocument();
+    expect(screen.getByText(/can use this connection across your devices/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /disconnect/i }));
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });

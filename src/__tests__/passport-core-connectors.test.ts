@@ -8,12 +8,20 @@ describe("Passport core connectors", () => {
     expect(CONNECTORS.vercel?.name).toBe("Vercel");
     expect(CONNECTORS.supabase?.name).toBe("Supabase");
     expect(CONNECTORS.higgsfield?.name).toBe("Higgsfield");
+    expect(CONNECTORS.gmail?.name).toBe("Gmail");
+    expect(CONNECTORS["google-drive"]?.name).toBe("Google Drive");
+    expect(CONNECTORS.dropbox?.name).toBe("Dropbox");
+    expect(CONNECTORS.onedrive?.name).toBe("OneDrive");
   });
 
   it("keeps secret fields marked as secret", () => {
     expect(CONNECTORS.github.credentialFields.find((field) => field.key === "api_key")?.secret).toBe(true);
     expect(CONNECTORS.vercel.credentialFields.find((field) => field.key === "api_key")?.secret).toBe(true);
     expect(CONNECTORS.supabase.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
+    expect(CONNECTORS.gmail.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
+    expect(CONNECTORS["google-drive"].credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
+    expect(CONNECTORS.dropbox.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
+    expect(CONNECTORS.onedrive.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
   });
 
   it("keeps Vercel and Supabase UnClick connections separate from hosted MCP sign-ins", () => {
@@ -40,7 +48,7 @@ describe("Passport core connectors", () => {
     expect(CONNECTORS.supabase.authType).toBe("oauth2");
     expect(CONNECTORS.supabase.authUrl).toBe("https://api.supabase.com/v1/oauth/authorize");
     expect(CONNECTORS.supabase.tokenUrl).toBe("https://api.supabase.com/v1/oauth/token");
-    expect(CONNECTORS.supabase.scopes).toEqual([]);
+    expect(CONNECTORS.supabase.scopes).toEqual(expect.arrayContaining(["projects:read", "organizations:read"]));
   });
 
   it("uses OAuth login for Higgsfield MCP with token fallback", () => {
@@ -49,5 +57,25 @@ describe("Passport core connectors", () => {
     expect(CONNECTORS.higgsfield.tokenUrl).toBe("https://mcp.higgsfield.ai/oauth2/token");
     expect(CONNECTORS.higgsfield.scopes).toEqual(expect.arrayContaining(["openid", "email", "offline_access"]));
     expect(CONNECTORS.higgsfield.credentialFields.find((field) => field.key === "access_token")?.secret).toBe(true);
+  });
+
+  it("uses OAuth login for mail and file apps with token fallback", () => {
+    expect(CONNECTORS.gmail.authType).toBe("oauth2");
+    expect(CONNECTORS.gmail.authUrl).toBe("https://accounts.google.com/o/oauth2/v2/auth");
+    expect(CONNECTORS.gmail.tokenUrl).toBe("https://oauth2.googleapis.com/token");
+    expect(CONNECTORS.gmail.scopes).toEqual(expect.arrayContaining(["https://www.googleapis.com/auth/gmail.readonly"]));
+    expect(CONNECTORS.gmail.credentialFields.find((field) => field.key === "access_token")?.label).toContain("fallback");
+
+    expect(CONNECTORS["google-drive"].authType).toBe("oauth2");
+    expect(CONNECTORS["google-drive"].scopes).toEqual(expect.arrayContaining(["https://www.googleapis.com/auth/drive.readonly"]));
+    expect(CONNECTORS["google-drive"].credentialFields.find((field) => field.key === "access_token")?.label).toContain("fallback");
+
+    expect(CONNECTORS.dropbox.authType).toBe("oauth2");
+    expect(CONNECTORS.dropbox.authUrl).toBe("https://www.dropbox.com/oauth2/authorize");
+    expect(CONNECTORS.dropbox.scopes).toEqual(expect.arrayContaining(["files.metadata.read", "files.content.read"]));
+
+    expect(CONNECTORS.onedrive.authType).toBe("oauth2");
+    expect(CONNECTORS.onedrive.authUrl).toBe("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+    expect(CONNECTORS.onedrive.scopes).toEqual(expect.arrayContaining(["Files.Read", "offline_access"]));
   });
 });

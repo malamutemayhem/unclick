@@ -228,11 +228,16 @@ describe("oauth callback credential storage origin", () => {
           json: async () => ({ access_token: "supabase-access", refresh_token: "supabase-refresh", expires_in: 3600 }),
         };
       }
+      if (href === "https://api.supabase.com/v1/organizations" || href === "https://api.supabase.com/v1/projects") {
+        expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer supabase-access");
+        return { ok: true, status: 200, json: async () => [] };
+      }
       if (href === "https://unclick.world/api/credentials") {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         expect(body).toMatchObject({
           platform: "supabase",
           api_key: "uc_test_account_key",
+          mark_tested: true,
         });
         expect(body.credentials).toMatchObject({
           access_token: "supabase-access",
@@ -262,6 +267,112 @@ describe("oauth callback credential storage origin", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.payload).toMatchObject({ success: true, platform: "supabase" });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("rejects a Supabase login token that lacks Management API read access", async () => {
+    process.env.SUPABASE_OAUTH_CLIENT_ID = "supabase-client";
+    process.env.SUPABASE_OAUTH_CLIENT_SECRET = "supabase-secret";
+    process.env.SUPABASE_OAUTH_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    process.env.UNCLICK_APP_ORIGIN = "https://unclick.world";
+    const state = createOAuthStateToken({
+      platform: "supabase",
+      redirectPath: "/connect/supabase",
+      env: process.env,
+    });
+
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      const href = String(url);
+      if (href === "https://api.supabase.com/v1/oauth/token") {
+        return {
+          ok: true,
+          json: async () => ({ access_token: "under-scoped-supabase-access" }),
+        };
+      }
+      if (href === "https://api.supabase.com/v1/organizations") {
+        return { ok: false, status: 403, text: async () => "forbidden" };
+      }
+      throw new Error(`Unexpected fetch ${href}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = createResponse();
+    await handler(
+      {
+        method: "POST",
+        body: {
+          platform: "supabase",
+          code: "oauth-code",
+          api_key: "uc_test_account_key",
+          state,
+          code_verifier: "verifier",
+        },
+        headers: {},
+      } as never,
+      response.res as never
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.payload).toMatchObject({
+      error: expect.stringContaining("Management API organization/project read access"),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("exchanges a Gmail login code and stores it under the Gmail app slug", async () => {
+    process.env.GOOGLE_WORKSPACE_CLIENT_ID = "google-client";
+    process.env.GOOGLE_WORKSPACE_CLIENT_SECRET = "google-secret";
+    process.env.GOOGLE_WORKSPACE_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    process.env.UNCLICK_APP_ORIGIN = "https://unclick.world";
+    const state = createOAuthStateToken({
+      platform: "gmail",
+      redirectPath: "/connect/gmail",
+      env: process.env,
+    });
+
+    const fetchMock = vi.fn(async (url: string | URL, init?: RequestInit) => {
+      const href = String(url);
+      if (href === "https://oauth2.googleapis.com/token") {
+        expect(String(init?.body)).toContain("client_id=google-client");
+        expect(String(init?.body)).toContain("client_secret=google-secret");
+        return {
+          ok: true,
+          json: async () => ({ access_token: "gmail-access", refresh_token: "gmail-refresh", expires_in: 3600 }),
+        };
+      }
+      if (href === "https://unclick.world/api/credentials") {
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        expect(body).toMatchObject({
+          platform: "gmail",
+          api_key: "uc_test_account_key",
+        });
+        expect(body.credentials).toMatchObject({
+          access_token: "gmail-access",
+          refresh_token: "gmail-refresh",
+        });
+        return { ok: true, json: async () => ({ success: true }) };
+      }
+      throw new Error(`Unexpected fetch ${href}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = createResponse();
+    await handler(
+      {
+        method: "POST",
+        body: {
+          platform: "gmail",
+          code: "oauth-code",
+          api_key: "uc_test_account_key",
+          state,
+        },
+        headers: {},
+      } as never,
+      response.res as never
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(response.payload).toMatchObject({ success: true, platform: "gmail" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,10 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash, randomBytes } from "node:crypto";
 import { createOAuthStateToken } from "./oauth-state.js";
+import { resolveAccountLane } from "./lib/account-lane.js";
 
 const ALLOWED_PLATFORMS = new Set([
   "github", "vercel", "supabase", "xero", "reddit", "shopify",
   "spotify", "dropbox", "google-workspace", "microsoft-graph",
+  "gmail", "google-drive", "onedrive",
   "higgsfield",
 ]);
 
@@ -17,7 +19,10 @@ const REDIRECT_URI_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_REDIRECT_URI",
   spotify:           "SPOTIFY_REDIRECT_URI",
   dropbox:           "DROPBOX_REDIRECT_URI",
+  gmail:             "GOOGLE_WORKSPACE_REDIRECT_URI",
+  "google-drive":    "GOOGLE_WORKSPACE_REDIRECT_URI",
   "google-workspace": "GOOGLE_WORKSPACE_REDIRECT_URI",
+  onedrive:          "MICROSOFT_GRAPH_REDIRECT_URI",
   "microsoft-graph": "MICROSOFT_GRAPH_REDIRECT_URI",
 };
 
@@ -30,7 +35,10 @@ const CLIENT_ID_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_CLIENT_ID",
   spotify:           "SPOTIFY_CLIENT_ID",
   dropbox:           "DROPBOX_CLIENT_ID",
+  gmail:             "GOOGLE_WORKSPACE_CLIENT_ID",
+  "google-drive":    "GOOGLE_WORKSPACE_CLIENT_ID",
   "google-workspace": "GOOGLE_WORKSPACE_CLIENT_ID",
+  onedrive:          "MICROSOFT_GRAPH_CLIENT_ID",
   "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_ID",
 };
 
@@ -43,11 +51,15 @@ const CLIENT_SECRET_ENV: Record<string, string> = {
   shopify:           "SHOPIFY_CLIENT_SECRET",
   spotify:           "SPOTIFY_CLIENT_SECRET",
   dropbox:           "DROPBOX_CLIENT_SECRET",
+  gmail:             "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  "google-drive":    "GOOGLE_WORKSPACE_CLIENT_SECRET",
   "google-workspace": "GOOGLE_WORKSPACE_CLIENT_SECRET",
+  onedrive:          "MICROSOFT_GRAPH_CLIENT_SECRET",
   "microsoft-graph": "MICROSOFT_GRAPH_CLIENT_SECRET",
 };
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const OAUTH_LANE_COOKIE = "unclick_oauth_lane";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
@@ -63,9 +75,71 @@ const PLATFORM_LABELS: Record<string, string> = {
   shopify: "Shopify",
   spotify: "Spotify",
   dropbox: "Dropbox",
+  gmail: "Gmail",
+  "google-drive": "Google Drive",
   "google-workspace": "Google Workspace",
+  onedrive: "OneDrive",
   "microsoft-graph": "Microsoft Graph",
   higgsfield: "Higgsfield",
+};
+const AUTHORIZE_URLS: Record<string, string> = {
+  github: "https://github.com/login/oauth/authorize",
+  vercel: "https://vercel.com/oauth/authorize",
+  supabase: "https://api.supabase.com/v1/oauth/authorize",
+  xero: "https://login.xero.com/identity/connect/authorize",
+  reddit: "https://www.reddit.com/api/v1/authorize",
+  shopify: "https://{store}.myshopify.com/admin/oauth/authorize",
+  spotify: "https://accounts.spotify.com/authorize",
+  dropbox: "https://www.dropbox.com/oauth2/authorize",
+  gmail: "https://accounts.google.com/o/oauth2/v2/auth",
+  "google-drive": "https://accounts.google.com/o/oauth2/v2/auth",
+  "google-workspace": "https://accounts.google.com/o/oauth2/v2/auth",
+  onedrive: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+  "microsoft-graph": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+};
+const AUTHORIZE_SCOPES: Record<string, string[]> = {
+  github: ["repo", "workflow", "read:user", "user:email"],
+  vercel: ["openid", "email", "profile", "offline_access"],
+  // Supabase OAuth scopes are configured on the Supabase OAuth app. Request the
+  // configured grant bundle rather than a brittle partial query scope.
+  supabase: ["all"],
+  xero: [
+    "accounting.transactions.read",
+    "accounting.transactions",
+    "accounting.contacts.read",
+    "accounting.contacts",
+    "accounting.reports.read",
+    "accounting.settings.read",
+  ],
+  reddit: ["read", "submit", "vote", "subscribe", "identity", "history"],
+  shopify: [
+    "read_products",
+    "write_products",
+    "read_orders",
+    "write_orders",
+    "read_customers",
+    "write_customers",
+    "read_inventory",
+    "write_inventory",
+  ],
+  spotify: ["user-read-private", "playlist-read-private", "user-library-read", "user-top-read"],
+  dropbox: ["files.metadata.read", "files.content.read", "account_info.read"],
+  gmail: ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.send"],
+  "google-drive": ["https://www.googleapis.com/auth/drive.readonly"],
+  "google-workspace": [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/calendar",
+  ],
+  onedrive: ["offline_access", "User.Read", "Files.Read"],
+  "microsoft-graph": ["offline_access", "User.Read", "Mail.Read", "Mail.Send", "Calendars.ReadWrite", "Files.ReadWrite"],
+};
+const AUTHORIZE_EXTRA_PARAMS: Record<string, Record<string, string>> = {
+  dropbox: { token_access_type: "offline" },
+  gmail: { access_type: "offline", prompt: "consent" },
+  "google-drive": { access_type: "offline", prompt: "consent" },
+  "google-workspace": { access_type: "offline", prompt: "consent" },
 };
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const HIGGSFIELD_MCP_REGISTER_URL = "https://mcp.higgsfield.ai/oauth2/register";
@@ -77,9 +151,37 @@ function isValidAccountKey(value: string): boolean {
   return value.startsWith("uc_") || value.startsWith("agt_");
 }
 
+// Default OFF. The session-authed init path (lane cookie instead of the pasted
+// api-key cookie) is only taken when this flag is on. With it off, init behaves
+// exactly as before and still requires a uc_/agt_ api_key.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
+}
+
 function serializeOAuthApiKeyCookie(apiKey: string): string {
   return [
     `${OAUTH_API_KEY_COOKIE}=${encodeURIComponent(apiKey)}`,
+    "Path=/api/oauth-callback",
+    `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ].join("; ");
+}
+
+// The lane is a stable, non-secret account hash (also stored on
+// api_keys.lane_hash). It is set only after a session/key is verified at init
+// time, kept HttpOnly so the browser cannot read it, and consumed once at the
+// callback to store a server-scheme row. It carries no JWT, api key, or
+// credential material.
+function serializeOAuthLaneCookie(lane: string): string {
+  return [
+    `${OAUTH_LANE_COOKIE}=${encodeURIComponent(lane)}`,
     "Path=/api/oauth-callback",
     `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
     "HttpOnly",
@@ -176,6 +278,40 @@ function providerSetupPending(res: VercelResponse, platform: string, missing: OA
   });
 }
 
+function buildAuthorizationUrl(args: {
+  platform: string;
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  normalizedStore?: string;
+  codeChallenge?: string;
+  codeChallengeMethod?: string;
+}): string | null {
+  const { platform, clientId, redirectUri, state, normalizedStore, codeChallenge, codeChallengeMethod } = args;
+  let authUrl = AUTHORIZE_URLS[platform];
+  if (!authUrl) return null;
+  if (platform === "shopify") {
+    if (!normalizedStore) return null;
+    authUrl = authUrl.replace("{store}", normalizedStore);
+  }
+
+  const url = new URL(authUrl);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("client_id", clientId);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("state", state);
+  for (const [key, value] of Object.entries(AUTHORIZE_EXTRA_PARAMS[platform] ?? {})) {
+    url.searchParams.set(key, value);
+  }
+  const scope = AUTHORIZE_SCOPES[platform]?.join(" ") ?? "";
+  if (scope) url.searchParams.set("scope", scope);
+  if (codeChallenge) {
+    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("code_challenge_method", codeChallengeMethod ?? "S256");
+  }
+  return url.toString();
+}
+
 function hasStateSigningSecret(env: NodeJS.ProcessEnv): boolean {
   return Boolean(
     env.OAUTH_STATE_SECRET ||
@@ -188,7 +324,7 @@ function hasStateSigningSecret(env: NodeJS.ProcessEnv): boolean {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed." });
@@ -202,9 +338,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!platform || !ALLOWED_PLATFORMS.has(platform)) {
     return res.status(400).json({ error: "Unsupported OAuth platform." });
   }
-  if (!api_key || !isValidAccountKey(api_key)) {
+
+  // Auth resolution. An explicit api_key (the original path) always wins and is
+  // unchanged. Only when no api_key is supplied AND the flag is on do we try to
+  // resolve a stable account lane from the Authorization header (Supabase
+  // session JWT or uc_/agt_ key) so the user never has to paste a key.
+  const haveApiKey = Boolean(api_key && isValidAccountKey(api_key));
+  const loginConnect = loginConnectEnabled(process.env);
+  const supabaseUrl = (process.env.SUPABASE_URL ?? "").trim();
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  let sessionLane: string | null = null;
+  if (!haveApiKey && loginConnect && aiKeySecret(process.env) && supabaseUrl && serviceRoleKey) {
+    sessionLane = await resolveAccountLane(req.headers.authorization, supabaseUrl, serviceRoleKey);
+  }
+
+  if (!haveApiKey && !sessionLane) {
     return res.status(400).json({ error: "A private UnClick account key is required." });
   }
+
+  const authCookie = haveApiKey
+    ? serializeOAuthApiKeyCookie(api_key as string)
+    : serializeOAuthLaneCookie(sessionLane as string);
 
   const normalizedStore =
     platform === "shopify" && typeof store === "string"
@@ -261,7 +415,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       authorization.searchParams.set("resource", HIGGSFIELD_MCP_RESOURCE);
 
       res.setHeader("Set-Cookie", [
-        serializeOAuthApiKeyCookie(api_key),
+        authCookie,
         serializeHiggsfieldMcpOAuthCookie(base64UrlJson({
           state,
           client_id: clientId,
@@ -308,9 +462,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(normalizedStore ? { store: normalizedStore } : {}),
     });
 
-    const cookies = [serializeOAuthApiKeyCookie(api_key)];
+    const cookies = [authCookie];
     const pkce = PKCE_PLATFORMS.has(platform) ? createPkcePair() : null;
     if (pkce) cookies.push(serializePkceVerifierCookie(pkce.codeVerifier));
+    const authorizationUrl = buildAuthorizationUrl({
+      platform,
+      clientId,
+      redirectUri,
+      state,
+      normalizedStore,
+      codeChallenge: pkce?.codeChallenge,
+      codeChallengeMethod: pkce ? "S256" : undefined,
+    });
+    const scope = AUTHORIZE_SCOPES[platform]?.join(" ") ?? "";
 
     res.setHeader("Set-Cookie", cookies);
     return res.status(200).json({
@@ -318,6 +482,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       state,
       redirect_uri: redirectUri,
       client_id: clientId,
+      ...(scope ? { scope } : {}),
+      ...(authorizationUrl ? { authorization_url: authorizationUrl } : {}),
       ...(pkce ? { code_challenge: pkce.codeChallenge, code_challenge_method: "S256" } : {}),
     });
   } catch (err) {

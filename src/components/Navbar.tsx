@@ -27,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Apps", href: "/apps" },
   { label: "Memory", href: "/memory" },
   { label: "XPass", href: "/xpass" },
+  { label: "Browser", href: "/browser" },
   {
     label: "Autopilot",
     href: "/autopilot",
@@ -153,7 +154,7 @@ const Navbar = () => {
       className={`site-navbar fixed left-0 right-0 z-50 transition-colors duration-200 ${
         scrolled
           ? "border-b border-border/40 bg-background/85 backdrop-blur-md"
-          : "border-b border-transparent bg-background/60 backdrop-blur-sm"
+          : "border-b border-transparent bg-transparent"
       }`}
       style={{ top: "var(--bbn-h, 0px)" }}
     >
@@ -167,7 +168,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-x-5 xl:flex">
+        <div className="hidden items-center gap-x-5 min-[1180px]:flex">
           {NAV_ITEMS.map((item) =>
             item.children ? (
               <NavDropdown key={item.label} item={item} linkClass={linkClass} isActive={isActive} />
@@ -206,7 +207,7 @@ const Navbar = () => {
 
           {/* Hamburger */}
           <button
-            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 xl:hidden"
+            className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 min-[1180px]:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={open}
@@ -238,7 +239,7 @@ const Navbar = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md xl:hidden"
+            className="overflow-hidden border-t border-border/40 bg-background/95 backdrop-blur-md min-[1180px]:hidden"
           >
             <div className="flex max-h-[70vh] flex-col gap-1 overflow-y-auto px-6 py-4">
               {NAV_ITEMS.map((item) =>

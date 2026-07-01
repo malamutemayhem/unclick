@@ -53,6 +53,15 @@ describe("AdminTools (Apps library)", () => {
     );
   });
 
+  it("keeps code-registry sign-in apps connectable when the database connector row is missing", async () => {
+    const { buildAdminConnectorMap } = await import("./AdminTools");
+    const map = buildAdminConnectorMap([]);
+
+    expect(map.get("gmail")?.auth_type).toBe("oauth2");
+    expect(map.get("google-drive")?.auth_type).toBe("oauth2");
+    expect(map.get("onedrive")?.auth_type).toBe("oauth2");
+  });
+
   // Each of these renders the FULL generated catalog (650+ rows) in jsdom,
   // which can take well over the default 10s on a contended CI runner. The
   // wider budget keeps slow runners from flaking; the assertions are unchanged.
@@ -61,6 +70,7 @@ describe("AdminTools (Apps library)", () => {
   it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
     expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /refresh status/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /turn all on/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.

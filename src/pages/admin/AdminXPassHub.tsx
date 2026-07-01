@@ -131,6 +131,13 @@ const PRODUCTS: XPassProduct[] = [
     icon: Workflow,
   },
   {
+    id: "connectorpass",
+    name: "ConnectorPass",
+    subtitle: "Can the app connect for real?",
+    description: "Checks app discovery, provider login, fallback setup, live OAuth proof, and tool credential parity.",
+    icon: KeyRound,
+  },
+  {
     id: "rotatepass",
     name: "RotatePass",
     subtitle: "Are credentials handled cleanly?",
@@ -297,7 +304,12 @@ function StatusBadge({ status }: { status: XPassRowStatus }) {
   );
 }
 
-function ProductCard({ product }: { product: XPassProduct }) {
+// Table layout for the family list. Each row is a Link to the same Pass report
+// as the old card (/admin/checks/:id), so the hyperlink behaviour is unchanged;
+// only the presentation moved from a card grid to a scannable table.
+const FAMILY_COLS = "grid-cols-[minmax(150px,1.3fr)_minmax(0,2.2fr)_64px_64px_84px]";
+
+function ProductRow({ product }: { product: XPassProduct }) {
   const Icon = product.icon;
   const checkCount = countChecklistRows(product.id) + 3;
   const groupCount = countChecklistGroups(product.id) + 1;
@@ -306,23 +318,21 @@ function ProductCard({ product }: { product: XPassProduct }) {
   return (
     <Link
       to={`/admin/checks/${product.id}`}
-      className="min-h-[132px] rounded-lg border border-white/[0.08] bg-white/[0.03] p-4 transition-colors hover:border-[#61C1C4]/45 hover:bg-[#61C1C4]/[0.07]"
+      className={`grid ${FAMILY_COLS} items-center gap-3 border-b border-white/[0.05] px-3 py-2.5 transition-colors last:border-b-0 hover:bg-[#61C1C4]/[0.07]`}
     >
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/30">
-          <Icon className="h-4 w-4 text-[#61C1C4]" />
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/10 bg-black/30">
+          <Icon className="h-3.5 w-3.5 text-[#61C1C4]" />
         </span>
         <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold text-white">{product.name}</h2>
-          <p className="truncate text-xs text-white/45">{product.subtitle}</p>
+          <p className="truncate text-sm font-semibold text-white">{product.name}</p>
+          <p className="truncate text-[11px] text-white/45">{product.subtitle}</p>
         </div>
       </div>
-      <p className="mt-3 line-clamp-3 text-xs leading-5 text-white/55">{product.description}</p>
-      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-white/45">
-        <span>{checkCount} checks</span>
-        <span>{groupCount} groups</span>
-        <StatusBadge status={evidence.status} />
-      </div>
+      <p className="min-w-0 truncate text-xs leading-5 text-white/55">{product.description}</p>
+      <span className="text-right text-xs tabular-nums text-white/45">{checkCount}</span>
+      <span className="text-right text-xs tabular-nums text-white/45">{groupCount}</span>
+      <div className="flex justify-end"><StatusBadge status={evidence.status} /></div>
     </Link>
   );
 }
@@ -588,10 +598,19 @@ function XPassHome() {
         <p className="mt-1 text-xs text-white/45">
           Pick a Pass to see its checklist and latest recorded evidence. Badges show real run status, not a target.
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {PRODUCTS.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        <div className="mt-4 overflow-x-auto rounded-lg border border-white/[0.08] bg-white/[0.03]">
+          <div className="min-w-[720px]">
+            <div className={`grid ${FAMILY_COLS} items-center gap-3 border-b border-white/[0.08] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35`}>
+              <span>Pass</span>
+              <span>What it checks</span>
+              <span className="text-right">Checks</span>
+              <span className="text-right">Groups</span>
+              <span className="text-right">Status</span>
+            </div>
+            {PRODUCTS.map((product) => (
+              <ProductRow key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </section>
     </div>

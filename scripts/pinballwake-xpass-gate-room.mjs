@@ -9,6 +9,7 @@ const CHECK_ORDER = [
   "flowpass",
   "securitypass",
   "rotatepass",
+  "connectorpass",
   "copypass",
   "fidelitypass",
   "seopass",
@@ -27,6 +28,7 @@ const CHECK_LABELS = {
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   copypass: "CopyPass",
   fidelitypass: "FidelityPass",
   seopass: "SEOPass",
@@ -55,6 +57,7 @@ const PASS_PRODUCT_CHECKS = new Map([
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
+  ["connectorpass", "connectorpass"],
 ]);
 
 const ENTERPRISE_READINESS_TERMS = [
@@ -74,7 +77,9 @@ const APP_CONNECTION_SURFACE_PATHS = [
   "src/data/connector-setup.generated.json",
   "src/pages/connect",
   "src/components/apps/connectappmodal",
+  "src/components/apps/applenses",
   "src/components/apps/appicon",
+  "src/pages/admin/admintools",
   "packages/mcp-server/src/connector-setup.ts",
   "packages/mcp-server/src/keychain-tool.ts",
   "api/oauth-init.ts",
@@ -96,6 +101,19 @@ const APP_CONNECTION_TERMS = [
   "keychain parity",
   "token fallback",
   "connected badge",
+  "connected apps",
+  "connected lens",
+  "saved connection",
+  "saved connections",
+  "saved credential",
+  "saved credentials",
+  "login saved",
+  "key saved",
+  "saved status",
+  "live proof",
+  "live-tested",
+  "needs check",
+  "connection_state",
   "setup pending",
   "managed connection",
   "compatibility connector",
@@ -256,12 +274,13 @@ function addReason(map, check, reason) {
 }
 
 function addAppConnectionReasons(map, reason) {
+  addReason(map, "connectorpass", `app connector readiness proof: ${reason}`);
   addReason(map, "testpass", `app connection readiness needs deterministic proof: ${reason}`);
-  addReason(map, "uxpass", `provider login and fallback UX surface: ${reason}`);
+  addReason(map, "uxpass", `provider login, saved-state, and fallback UX surface: ${reason}`);
   addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);
   addReason(map, "securitypass", `credential/OAuth storage surface: ${reason}`);
   addReason(map, "rotatepass", `credential lifecycle/redaction surface: ${reason}`);
-  addReason(map, "commonsensepass", `connected badge must match tool-facing keychain proof: ${reason}`);
+  addReason(map, "commonsensepass", `saved connection visibility and connected badges must not collapse into one proof claim: ${reason}`);
 }
 
 export function selectXPassChecks(input = {}) {

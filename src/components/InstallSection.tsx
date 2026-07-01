@@ -1,645 +1,345 @@
-import { useState } from "react";
-import FadeIn from "./FadeIn";
-import ApiKeySignup from "./ApiKeySignup";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { motion } from "framer-motion";
-
-// ─── Platform-first install UX ────────────────────────────────────────────
-//
-// Every major MCP client in April 2026 accepts a remote MCP URL natively.
-// We show the 5 shortest paths (Claude, ChatGPT, Cursor, VS Code, Other) and
-// let the user pick. The default story is the public UnClick door: one stable
-// URL, no personal key in the address. Compatibility mode remains available for
-// clients that only accept a static URL and cannot finish MCP pairing yet.
-
-type Platform = "Claude" | "ChatGPT" | "Cursor" | "VS Code" | "Other";
-type ClaudeSurface = "Web" | "Desktop" | "Code";
-type SetupMode = "Public" | "Compatibility";
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  Loader2,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
+import FadeIn from "./FadeIn";
+import { signInWithMagicLink } from "@/lib/auth";
 
 const MCP_ORIGIN = "https://unclick.world/api/mcp";
-const MCP_PACKAGE_URL = "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick-mcp-server.tgz";
-const PLACEHOLDER_KEY = "YOUR_API_KEY";
+const STORAGE_KEY = "unclick_api_key";
+const EMAIL_KEY = "unclick_user_email";
 
-const platforms: Platform[] = ["Claude", "ChatGPT", "Cursor", "VS Code", "Other"];
-const claudeSurfaces: ClaudeSurface[] = ["Web", "Desktop", "Code"];
+type SignupResponse = {
+  api_key?: string;
+  prefix?: string;
+  error?: string;
+};
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 function mcpUrl(key: string) {
   return `${MCP_ORIGIN}?key=${key}`;
-}
-
-function claudeCodeCommand(connectionUrl: string) {
-  return `claude mcp add --transport http unclick ${connectionUrl}`;
-}
-
-function geminiCommand(connectionUrl: string) {
-  return `gemini mcp add unclick --transport http ${connectionUrl}`;
-}
-
-function stdioJson(key: string) {
-  return `{
-  "mcpServers": {
-    "unclick": {
-      "command": "npx",
-      "args": ["-y", "${MCP_PACKAGE_URL}"],
-      "env": { "UNCLICK_API_KEY": "${key}" }
-    }
-  }
-}`;
-}
-
-function cursorDeeplink(connectionUrl: string) {
-  const config = btoa(JSON.stringify({ url: connectionUrl }));
-  return `cursor://anysphere.cursor-deeplink/mcp/install?name=unclick&config=${config}`;
-}
-
-function vscodeDeeplink(connectionUrl: string) {
-  const config = JSON.stringify({
-    name: "unclick",
-    type: "http",
-    url: connectionUrl,
-  });
-  return `vscode:mcp/install?${encodeURIComponent(config)}`;
-}
-
-function connectionUrlFor(setupMode: SetupMode, apiKey: string) {
-  if (setupMode === "Public") return MCP_ORIGIN;
-  return mcpUrl(apiKey || PLACEHOLDER_KEY);
-}
-
-function canUseMode(setupMode: SetupMode, apiKey: string) {
-  return setupMode === "Public" || Boolean(apiKey);
 }
 
 function maskPrivateValue(value: string) {
   return value.replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`);
 }
 
-function hasPrivateValue(value: string) {
-  return /uc_[A-Za-z0-9_-]{8,}/.test(value);
+async function requestCompatibilityKey(email: string): Promise<string> {
+  const response = await fetch("/api/install-ticket", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "signup", email }),
+  });
+  const data = (await response.json().catch(() => ({}))) as SignupResponse;
+  if (!response.ok || !data.api_key) {
+    throw new Error(data.error ?? `Signup failed with HTTP ${response.status}`);
+  }
+  return data.api_key;
 }
 
-// Tiny copyable row: a read-only input + Copy button. Same shape everywhere
-// so the UI pattern is predictable and the user never has to "figure out"
-// where to click.
 function CopyField({
   label,
   value,
-  hasKey,
-  mono = true,
+  privateValue = false,
 }: {
   label: string;
   value: string;
-  hasKey: boolean;
-  mono?: boolean;
+  privateValue?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    if (!hasKey) return;
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-  const privateValue = hasPrivateValue(value);
   const displayValue = privateValue ? maskPrivateValue(value) : value;
+
+  async function copy() {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1400);
+  }
+
   return (
     <div>
-      <div className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
-      <div className="flex items-stretch gap-2">
-        <code
-          className={`flex-1 min-w-0 truncate rounded-md border bg-card/60 px-3 py-2 text-xs ${
-            mono ? "font-mono" : ""
-          } ${hasKey ? "border-border/50 text-heading" : "border-border/30 text-body/40 select-none blur-[2px]"}`}
-        >
+      <div className="mb-2 text-sm font-semibold text-heading">{label}</div>
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row">
+        <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg border border-[#86dadd]/20 bg-background/85 px-4 py-3 font-mono text-[13px] text-heading sm:text-sm">
           {displayValue}
-        </code>
-        <motion.button
-          onClick={copy}
-          disabled={!hasKey}
-          whileTap={hasKey ? { scale: 0.95 } : {}}
-          className={`shrink-0 rounded-md border border-border/60 bg-card/80 px-3 py-2 font-mono text-[11px] transition-all ${
-            hasKey
-              ? "text-muted-foreground hover:border-primary/30 hover:text-heading cursor-pointer"
-              : "text-muted-foreground/30 cursor-not-allowed"
-          }`}
-        >
-          {copied ? "Copied!" : "Copy"}
-        </motion.button>
-      </div>
-      {privateValue && hasKey && (
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          Private value hidden on screen. Copy still uses the full value.
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Block with copyable multi-line content (used for the stdio JSON fallback).
-function CodeBlock({ code, hasKey }: { code: string; hasKey: boolean }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    if (!hasKey) return;
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-  const privateValue = hasPrivateValue(code);
-  const displayCode = privateValue ? maskPrivateValue(code) : code;
-  return (
-    <div className="relative rounded-md border border-border/40 bg-card/40 p-4">
-      <pre
-        className={`overflow-x-auto font-mono text-xs leading-relaxed ${
-          hasKey ? "text-body" : "text-body/40 select-none blur-[2px]"
-        }`}
-      >
-        <code>{displayCode}</code>
-      </pre>
-      <motion.button
-        onClick={copy}
-        disabled={!hasKey}
-        whileTap={hasKey ? { scale: 0.95 } : {}}
-        className={`absolute right-3 top-3 rounded-md border border-border/60 bg-card/80 px-3 py-1.5 font-mono text-[11px] backdrop-blur-sm transition-all ${
-          hasKey
-            ? "text-muted-foreground hover:border-primary/30 hover:text-heading cursor-pointer"
-            : "text-muted-foreground/30 cursor-not-allowed"
-        }`}
-      >
-        {copied ? "Copied!" : "Copy"}
-      </motion.button>
-      {privateValue && hasKey && (
-        <p className="mt-3 text-[11px] text-muted-foreground">
-          Private value hidden on screen. Copy still uses the full value.
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Deeplink install button. Renders as <a> so the browser hands the URL to
-// the platform's registered protocol handler.
-function DeeplinkButton({
-  href,
-  label,
-  hasKey,
-}: {
-  href: string;
-  label: string;
-  hasKey: boolean;
-}) {
-  const content = (
-    <>
-      <span>{label}</span>
-      <svg
-        className="h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2.2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M13 5l7 7-7 7M5 12h15"
-        />
-      </svg>
-    </>
-  );
-  const cls =
-    "inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition-all";
-  if (!hasKey) {
-    return (
-      <button
-        disabled
-        className={`${cls} border border-border/40 bg-card/40 text-muted-foreground/40 cursor-not-allowed`}
-      >
-        {content}
-      </button>
-    );
-  }
-  return (
-    <motion.a
-      href={href}
-      whileTap={{ scale: 0.97 }}
-      className={`${cls} bg-primary text-black hover:opacity-90`}
-    >
-      {content}
-    </motion.a>
-  );
-}
-
-function Steps({ items }: { items: string[] }) {
-  return (
-    <ol className="space-y-1.5 text-sm text-body">
-      {items.map((item, i) => (
-        <li key={i} className="flex gap-2.5">
-          <span className="shrink-0 pt-0.5 font-mono text-xs text-primary">
-            {i + 1}.
-          </span>
-          <span>{item}</span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-function ConnectionUrlNotice({ setupMode }: { setupMode: SetupMode }) {
-  if (setupMode === "Public") {
-    return (
-      <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary/90">
-        Public door: no personal key in the URL. Your AI app should open web sign-in and keep this same address.
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
-      Compatibility URL: contains a persistent UnClick connection key. Keep it private and rotate it if it leaks.
-    </div>
-  );
-}
-
-function SetupModeSwitch({
-  setupMode,
-  onChange,
-}: {
-  setupMode: SetupMode;
-  onChange: (mode: SetupMode) => void;
-}) {
-  const options: Array<{
-    mode: SetupMode;
-    title: string;
-    body: string;
-  }> = [
-    {
-      mode: "Public",
-      title: "Public door",
-      body: "One stable address. No personal key in the URL.",
-    },
-    {
-      mode: "Compatibility",
-      title: "Compatibility URL",
-      body: "Fallback for clients that cannot complete web sign-in.",
-    },
-  ];
-
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {options.map((option) => {
-        const active = setupMode === option.mode;
-        return (
-          <button
-            key={option.mode}
-            type="button"
-            onClick={() => onChange(option.mode)}
-            className={`rounded-lg border p-3 text-left transition-colors ${
-              active
-                ? "border-primary/45 bg-primary/10"
-                : "border-border/50 bg-card/35 hover:border-border/80"
-            }`}
-          >
-            <span className={active ? "text-sm font-semibold text-heading" : "text-sm font-semibold text-body"}>
-              {option.title}
-            </span>
-            <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-              {option.body}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function PublicDoorSummary() {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(MCP_ORIGIN);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-  return (
-    <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
-      <p className="text-sm font-medium text-heading">Start with the public UnClick door</p>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-        Add this same address first. If your AI app supports web sign-in, it should connect without any custom URL.
-      </p>
-      <div className="mt-3 flex items-stretch gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-md border border-border/50 bg-card/60 px-3 py-2 font-mono text-xs text-heading">
-          {MCP_ORIGIN}
         </code>
         <motion.button
           type="button"
           onClick={copy}
-          whileTap={{ scale: 0.95 }}
-          className="shrink-0 rounded-md border border-primary/30 bg-primary px-3 py-2 font-mono text-[11px] font-semibold text-black transition-opacity hover:opacity-90"
+          whileTap={{ scale: 0.96 }}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#86dadd]/20 bg-white/[0.06] px-4 text-sm font-semibold text-body transition-colors hover:border-primary/45 hover:text-heading"
         >
-          {copied ? "Copied!" : "Copy"}
+          <Copy className="h-4 w-4" />
+          {copied ? "Copied" : "Copy"}
         </motion.button>
       </div>
+      {privateValue ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Private value hidden on screen. Copy still uses the full Compatibility URL.
+        </p>
+      ) : null}
     </div>
   );
 }
 
-// ─── Per-platform panels ──────────────────────────────────────────────────
-
-function ClaudePanel({
-  apiKey,
-  surface,
-  setupMode,
+function Disclosure({
+  title,
+  children,
+  defaultOpen = false,
 }: {
-  apiKey: string;
-  surface: ClaudeSurface;
-  setupMode: SetupMode;
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
 }) {
-  const hasConnection = canUseMode(setupMode, apiKey);
-  const connectionUrl = connectionUrlFor(setupMode, apiKey);
-
-  if (surface === "Code") {
-    return (
-      <div className="space-y-4">
-        <Steps
-          items={[
-            "Open your terminal.",
-            "Paste the command below and press Enter.",
-            'Start a new session and ask: "What tools do you have from unclick?"',
-          ]}
-        />
-        <ConnectionUrlNotice setupMode={setupMode} />
-        <CopyField label="Terminal command" value={claudeCodeCommand(connectionUrl)} hasKey={hasConnection} />
-      </div>
-    );
-  }
-
-  const where =
-    surface === "Web"
-      ? "Open claude.ai → Settings → Connectors → Add custom connector."
-      : 'Open Claude Desktop → "+" in a chat → Connectors → Manage Connectors → Add custom.';
-
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="space-y-4">
-      <Steps
-        items={[
-          where,
-          'Paste the Name and URL below into the dialog, then click "Add".',
-          'In a new chat, ask: "What tools do you have from unclick?"',
-        ]}
-      />
-      <div className="space-y-3">
-        <CopyField label="Name" value="UnClick" hasKey={hasConnection} mono={false} />
-        <ConnectionUrlNotice setupMode={setupMode} />
-        <CopyField
-          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
-          value={connectionUrl}
-          hasKey={hasConnection}
-        />
-      </div>
+    <div className="border-t border-[#86dadd]/10 pt-4">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full min-h-9 items-center justify-between gap-3 text-left text-sm font-medium text-body transition-colors hover:text-heading"
+        aria-expanded={open}
+      >
+        <span>{title}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open ? <div className="mt-4">{children}</div> : null}
     </div>
   );
 }
-
-function ChatGPTPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
-  const hasConnection = canUseMode(setupMode, apiKey);
-  const connectionUrl = connectionUrlFor(setupMode, apiKey);
-  return (
-    <div className="space-y-4">
-      <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-300/90">
-        Requires a paid ChatGPT plan (Plus / Pro / Business / Enterprise /
-        Edu) with Developer Mode enabled.
-      </div>
-      <Steps
-        items={[
-          "In ChatGPT: Settings → Connectors → Advanced → toggle Developer Mode on.",
-          'Click "Create" and paste the Name and URL below.',
-          'Open a new chat and ask: "What tools do you have from unclick?"',
-        ]}
-      />
-      <div className="space-y-3">
-        <CopyField label="Name" value="UnClick" hasKey={hasConnection} mono={false} />
-        <ConnectionUrlNotice setupMode={setupMode} />
-        <CopyField
-          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
-          value={connectionUrl}
-          hasKey={hasConnection}
-        />
-      </div>
-    </div>
-  );
-}
-
-function CursorPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
-  const hasConnection = canUseMode(setupMode, apiKey);
-  const connectionUrl = connectionUrlFor(setupMode, apiKey);
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-body">
-        One click. Cursor opens with the install pre-filled.
-      </p>
-      <ConnectionUrlNotice setupMode={setupMode} />
-      <DeeplinkButton href={cursorDeeplink(connectionUrl)} label="Add to Cursor" hasKey={hasConnection} />
-      <details className="group">
-        <summary className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-body">
-          Prefer a manual install?
-        </summary>
-        <div className="mt-3 space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Edit <code className="font-mono">~/.cursor/mcp.json</code> and paste:
-          </p>
-          <ConnectionUrlNotice setupMode={setupMode} />
-          <CodeBlock
-            code={`{
-  "mcpServers": {
-    "unclick": {
-      "url": "${connectionUrl}"
-    }
-  }
-}`}
-            hasKey={hasConnection}
-          />
-        </div>
-      </details>
-    </div>
-  );
-}
-
-function VSCodePanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
-  const hasConnection = canUseMode(setupMode, apiKey);
-  const connectionUrl = connectionUrlFor(setupMode, apiKey);
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-body">
-        One click. VS Code (with GitHub Copilot) opens with the install pre-filled.
-      </p>
-      <ConnectionUrlNotice setupMode={setupMode} />
-      <DeeplinkButton href={vscodeDeeplink(connectionUrl)} label="Add to VS Code" hasKey={hasConnection} />
-      <details className="group">
-        <summary className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-body">
-          Prefer a manual install?
-        </summary>
-        <div className="mt-3 space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Command Palette → "MCP: Add Server" → HTTP, then paste:
-          </p>
-          <ConnectionUrlNotice setupMode={setupMode} />
-          <CopyField
-            label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
-            value={connectionUrl}
-            hasKey={hasConnection}
-          />
-        </div>
-      </details>
-    </div>
-  );
-}
-
-function OtherPanel({ apiKey, setupMode }: { apiKey: string; setupMode: SetupMode }) {
-  const hasConnection = canUseMode(setupMode, apiKey);
-  const connectionUrl = connectionUrlFor(setupMode, apiKey);
-  return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-heading">Gemini CLI</p>
-        <ConnectionUrlNotice setupMode={setupMode} />
-        <CopyField label="Terminal command" value={geminiCommand(connectionUrl)} hasKey={hasConnection} />
-      </div>
-
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-heading">
-          Windsurf, Continue, Zed, Cline, Roo
-        </p>
-        <p className="text-xs text-muted-foreground">
-          In your client's MCP settings, add a new server with this URL:
-        </p>
-        <ConnectionUrlNotice setupMode={setupMode} />
-        <CopyField
-          label={setupMode === "Public" ? "Public MCP door" : "Compatibility MCP URL"}
-          value={connectionUrl}
-          hasKey={hasConnection}
-        />
-      </div>
-
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-heading">Local / self-hosted (stdio)</p>
-        {setupMode === "Compatibility" ? (
-          <>
-            <p className="text-xs text-muted-foreground">
-              Runs UnClick as a local process via npx. The key is stored in your local MCP config instead of inside a URL.
-            </p>
-            <CodeBlock code={stdioJson(apiKey || PLACEHOLDER_KEY)} hasKey={hasConnection} />
-          </>
-        ) : (
-          <div className="rounded-md border border-border/50 bg-card/35 px-3 py-2 text-xs leading-5 text-muted-foreground">
-            Local stdio installs still need a private key in an environment variable. Switch to Compatibility URL to generate that config.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main section ─────────────────────────────────────────────────────────
 
 const InstallSection = () => {
-  const [platform, setPlatform] = useState<Platform>("Claude");
-  const [claudeSurface, setClaudeSurface] = useState<ClaudeSurface>("Web");
-  const [setupMode, setSetupMode] = useState<SetupMode>("Public");
-  const [apiKey, setApiKey] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState<"magic" | "fallback" | null>(null);
+  const [apiKey, setApiKey] = useState("");
 
-  const hasKey = Boolean(apiKey);
-  const hasConnection = canUseMode(setupMode, apiKey);
+  useEffect(() => {
+    try {
+      const storedEmail = localStorage.getItem(EMAIL_KEY);
+      const storedKey = localStorage.getItem(STORAGE_KEY);
+      if (storedEmail) setEmail(storedEmail);
+      if (storedKey) setApiKey(storedKey);
+    } catch {
+      /* localStorage can be unavailable in private windows. */
+    }
+  }, []);
+
+  const compatibilityUrl = useMemo(
+    () => (apiKey ? mcpUrl(apiKey) : `${MCP_ORIGIN}?key=YOUR_PRIVATE_KEY`),
+    [apiKey],
+  );
+
+  function normalizedEmail() {
+    return email.trim().toLowerCase();
+  }
+
+  function validateEmail() {
+    const trimmed = normalizedEmail();
+    if (!isValidEmail(trimmed)) {
+      setError("Enter a valid email address.");
+      return "";
+    }
+    return trimmed;
+  }
+
+  async function connectAndSignIn(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    const trimmed = validateEmail();
+    if (!trimmed) return;
+
+    setBusy("magic");
+    try {
+      localStorage.setItem(EMAIL_KEY, trimmed);
+      await signInWithMagicLink(trimmed, "/admin/you");
+      setMessage(`Check your email. We sent a sign-in link to ${trimmed}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send the sign-in link. Try again.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function getStaticAddress() {
+    setError("");
+    setMessage("");
+    const trimmed = validateEmail();
+    if (!trimmed) return;
+
+    setBusy("fallback");
+    try {
+      const newKey = await requestCompatibilityKey(trimmed);
+      localStorage.setItem(EMAIL_KEY, trimmed);
+      localStorage.setItem(STORAGE_KEY, newKey);
+      setApiKey(newKey);
+      setMessage("Static address ready. Keep it private and use it only when browser sign-in fails.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create the static address. Try again.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
-    <section id="install" className="relative mx-auto max-w-4xl scroll-mt-20 px-6 py-24">
-      <FadeIn>
-        <span className="font-mono text-xs font-medium uppercase tracking-widest text-primary">
-          Quick Install
-        </span>
-      </FadeIn>
-      <FadeIn delay={0.05}>
-        <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Add UnClick without carrying a master key.
-        </h2>
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <p className="mt-3 max-w-xl text-body">
-          Start with one public MCP address. Use a compatibility URL only when your AI app still needs one.
-        </p>
-      </FadeIn>
+    <section id="install" className="relative isolate mx-auto max-w-5xl scroll-mt-24 px-6 py-24">
+      <div className="relative z-10 mx-auto max-w-3xl">
+        <FadeIn>
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.28em] text-primary">
+            Quick Install
+          </span>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-heading sm:text-4xl md:text-5xl">
+            Add UnClick to your AI assistant
+          </h2>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-body">
+            Sign in once in the browser. It stays connected at one address, no key to carry.
+          </p>
+        </FadeIn>
 
-      {/* Setup mode */}
-      <FadeIn delay={0.15}>
-        <div className="mt-8 space-y-4">
-          <SetupModeSwitch setupMode={setupMode} onChange={setSetupMode} />
-          {setupMode === "Public" ? (
-            <PublicDoorSummary />
-          ) : (
-            <ApiKeySignup onKeyReady={setApiKey} />
-          )}
-        </div>
-      </FadeIn>
+        <FadeIn delay={0.15}>
+          <form
+            onSubmit={connectAndSignIn}
+            className="mt-10 overflow-hidden rounded-2xl border border-[#86dadd]/25 bg-card/70 p-5 shadow-[0_22px_72px_-44px_rgba(97,193,196,0.75)] sm:p-6"
+          >
+            <div className="flex flex-col gap-6">
+              <div className="inline-flex w-fit items-center rounded-full border border-primary/35 bg-primary/[0.1] px-3 py-1 text-xs font-semibold text-primary">
+                Public door
+              </div>
 
-      {/* Platform picker + panel */}
-      <FadeIn delay={0.2}>
-        <div
-          className={`mt-6 overflow-hidden rounded-xl border transition-all duration-300 ${
-            hasConnection ? "border-border/60 bg-card/40" : "border-border/30 bg-card/20"
-          }`}
-        >
-          {/* Platform tabs */}
-          <div className="flex items-center overflow-x-auto border-b border-border/60 bg-card/60 px-1">
-            {platforms.map((p) => (
-              <button
-                key={p}
-                onClick={() => setPlatform(p)}
-                className={`whitespace-nowrap px-4 py-3 text-xs font-medium transition-colors ${
-                  platform === p
-                    ? "-mb-px border-b-2 border-primary text-heading"
-                    : "text-muted-foreground hover:text-body"
-                }`}
+              <div>
+                <label htmlFor="install-email" className="text-sm font-semibold text-heading">
+                  Your email
+                </label>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  We send your sign-in link here and use it to keep you connected.
+                </p>
+                <input
+                  id="install-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setError("");
+                    setMessage("");
+                  }}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  required
+                  className="mt-3 h-12 w-full rounded-lg border border-[#86dadd]/20 bg-background/85 px-4 text-base text-heading outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+
+              <CopyField label="Connection address" value={MCP_ORIGIN} />
+
+              <motion.button
+                type="submit"
+                disabled={busy !== null}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-16px_hsl(182_46%_57%/0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-18px_hsl(182_46%_57%/0.9)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
               >
-                {p}
-              </button>
-            ))}
-          </div>
+                {busy === "magic" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Connect and sign in
+              </motion.button>
 
-          {/* Claude sub-pills */}
-          {platform === "Claude" && (
-            <div className="flex items-center gap-1.5 border-b border-border/40 bg-card/40 px-4 py-2.5">
-              {claudeSurfaces.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setClaudeSurface(s)}
-                  className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${
-                    claudeSurface === s
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-body"
-                  }`}
-                >
-                  {s === "Web" ? "Claude.ai (web)" : s === "Desktop" ? "Claude Desktop" : "Claude Code"}
-                </button>
-              ))}
+              <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/[0.08] px-4 py-3 text-sm leading-6 text-body">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>No personal key in the URL. Your AI assistant opens web sign-in and keeps this same address.</span>
+              </div>
+
+              {message ? (
+                <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/[0.08] px-4 py-3 text-sm leading-6 text-body">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span>{message}</span>
+                </div>
+              ) : null}
+
+              {error ? (
+                <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-red-200" role="alert">
+                  {error}
+                </p>
+              ) : null}
+
+              <Disclosure title="How do I connect?">
+                <div className="space-y-4">
+                  <ol className="space-y-3 text-sm leading-6 text-body">
+                    <li>
+                      <span className="mr-2 font-mono text-primary">1.</span>
+                      Open your AI assistant's <strong className="font-semibold text-heading">settings</strong>.
+                    </li>
+                    <li>
+                      <span className="mr-2 font-mono text-primary">2.</span>
+                      Find <strong className="font-semibold text-heading">Connectors</strong>,{" "}
+                      <strong className="font-semibold text-heading">Integrations</strong>, or{" "}
+                      <strong className="font-semibold text-heading">MCP servers</strong>.
+                    </li>
+                    <li>
+                      <span className="mr-2 font-mono text-primary">3.</span>
+                      Choose <strong className="font-semibold text-heading">Add</strong>, then paste the address above.
+                    </li>
+                    <li>
+                      <span className="mr-2 font-mono text-primary">4.</span>
+                      Sign in when it asks.
+                    </li>
+                  </ol>
+                  <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.08] px-4 py-3 text-sm leading-6 text-body">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>
+                      <strong className="font-semibold text-heading">Check it worked:</strong> open a new chat and ask your AI what it can do with UnClick.
+                    </span>
+                  </div>
+                </div>
+              </Disclosure>
+
+              <Disclosure title="Can't sign in? Use a static address">
+                <div className="space-y-4">
+                  <p className="text-sm leading-6 text-body">
+                    Only use this if your assistant cannot open browser sign-in. This Compatibility URL carries a personal key, so treat it like a password.
+                  </p>
+                  {apiKey ? (
+                    <CopyField label="Compatibility URL" value={compatibilityUrl} privateValue />
+                  ) : (
+                    <>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        We use the email above to create the private fallback.
+                      </p>
+                      <motion.button
+                        type="button"
+                        onClick={getStaticAddress}
+                        disabled={busy !== null}
+                        whileTap={{ scale: 0.98 }}
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#86dadd]/25 bg-white/[0.06] px-4 text-sm font-semibold text-heading transition-colors hover:border-primary/45 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {busy === "fallback" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Get my static address
+                      </motion.button>
+                      <span className="sr-only">{compatibilityUrl}</span>
+                    </>
+                  )}
+                </div>
+              </Disclosure>
             </div>
-          )}
-
-          {/* Panel */}
-          <div className="p-5">
-            {platform === "Claude" && (
-              <ClaudePanel apiKey={apiKey} surface={claudeSurface} setupMode={setupMode} />
-            )}
-            {platform === "ChatGPT" && <ChatGPTPanel apiKey={apiKey} setupMode={setupMode} />}
-            {platform === "Cursor" && <CursorPanel apiKey={apiKey} setupMode={setupMode} />}
-            {platform === "VS Code" && <VSCodePanel apiKey={apiKey} setupMode={setupMode} />}
-            {platform === "Other" && <OtherPanel apiKey={apiKey} setupMode={setupMode} />}
-          </div>
-
-          {!hasConnection && (
-            <div className="border-t border-border/30 bg-card/40 px-5 py-3">
-              <p className="text-center text-xs text-muted-foreground">
-                Enter your email above to unlock the compatibility URL.
-              </p>
-            </div>
-          )}
-        </div>
-      </FadeIn>
+          </form>
+        </FadeIn>
+      </div>
     </section>
   );
 };

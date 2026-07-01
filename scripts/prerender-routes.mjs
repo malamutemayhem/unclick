@@ -4,6 +4,8 @@
  * Why: the site is a client-rendered SPA and vercel.json rewrites every route
  * to /index.html. Without this step, no-JS crawlers and AI answer engines get
  * the homepage shell (and the homepage canonical) for /tools, /memory, etc.
+ * Google OAuth verification also reads /privacy and /terms without relying on
+ * the client router, so those legal routes are prerendered here too.
  *
  * What: after `vite build`, this clones the built dist/index.html (which already
  * has the correct hashed asset tags and the build-date stamp) and writes one
@@ -286,6 +288,77 @@ const ROUTES = [
           { q: "Is UnClick free?", a: "Yes. UnClick has a free tier that gives you access to all 178+ tools with no upfront cost. Sign up with your email to get an API key." },
           { q: "What AI agents work with UnClick?", a: "Any agent that supports MCP, including Claude (Anthropic), ChatGPT, Cursor, and any custom agent built with an MCP-compatible SDK." },
           { q: "How is UnClick different from other MCP servers?", a: "Most MCP servers focus on one integration. UnClick is the shared layer behind your agent: 178+ tools, persistent memory, Passport, crews, and Pass family checks in one managed setup." },
+        ],
+      },
+    ],
+  },
+  {
+    path: "/privacy",
+    title: "Privacy Policy - UnClick",
+    description:
+      "Privacy Policy for UnClick, including how connected account access and Google user data are collected, used, stored, shared, and protected.",
+    ogTitle: "Privacy Policy - UnClick",
+    ogDescription:
+      "How UnClick handles account data, connected account access, Google user data, retention, security, and user rights.",
+    h1: "Privacy Policy",
+    intro:
+      "We collect the minimum data needed to run UnClick, connect your approved apps, and keep your account secure.",
+    sections: [
+      {
+        h2: "What we collect",
+        items: [
+          { title: "Account information", desc: "Your email address and profile details you provide when signing up." },
+          { title: "Passport access", desc: "Keys and connected account tokens you store so your agents can call connected services. These are encrypted at rest." },
+          { title: "Usage data", desc: "Tool calls, timing, and success or failure status used for abuse prevention, rate limits, and debugging." },
+          { title: "Google user data", desc: "If you connect Gmail or Google Drive, UnClick requests only the permissions shown on the Google consent screen." },
+        ],
+      },
+      {
+        h2: "Google user data",
+        paragraphs: [
+          "UnClick uses Google user data only to provide or improve the user-facing features you choose to use, such as searching Gmail, sending an email you request, searching Google Drive, or opening a Drive file for your connected AI app.",
+          "Google access tokens and refresh tokens are encrypted at rest. Gmail message bodies, Google Drive file contents, and file metadata are processed to complete your request and return the result to you or to the AI app you approved. We do not sell Google user data, use it for advertising, or use it to train AI models.",
+          "We do not transfer Google user data except as needed to provide the feature you requested, comply with law, protect against abuse, or with your explicit consent. UnClick's use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements.",
+          "You can revoke Google access at any time from your Google Account permissions page or by disconnecting the app inside UnClick.",
+        ],
+      },
+      {
+        h2: "Retention and contact",
+        paragraphs: [
+          "Passport access is stored until you delete it or close your account. Usage logs are retained for 90 days, then deleted. Account data is retained until you delete your account, after which it is removed within 30 days.",
+          "Privacy questions can be sent to hello@unclick.world.",
+        ],
+      },
+    ],
+  },
+  {
+    path: "/terms",
+    title: "Terms of Service - UnClick",
+    description: "Terms of Service for UnClick, the AI agent tool marketplace and MCP connection layer.",
+    ogTitle: "Terms of Service - UnClick",
+    ogDescription: "The rules for using UnClick, including account use, acceptable use, third-party services, and termination.",
+    h1: "Terms of Service",
+    intro:
+      "These are the rules for using UnClick, an AI agent tool marketplace and MCP connection layer.",
+    sections: [
+      {
+        h2: "What UnClick is",
+        paragraphs: [
+          "UnClick gives AI agents access to callable API endpoints across integrations through MCP. One install gives an agent the ability to discover and call tools without wiring each integration manually.",
+        ],
+      },
+      {
+        h2: "Your account and acceptable use",
+        paragraphs: [
+          "You are responsible for keeping your account keys secure and for the actions your approved agents take through connected services.",
+          "You may not use UnClick to violate law, send spam, harm others, attempt to access another user's data, or overload our infrastructure.",
+        ],
+      },
+      {
+        h2: "Third-party services",
+        paragraphs: [
+          "UnClick routes requests to third-party APIs when you approve connected tools. Your use of those services is also governed by those providers' terms and policies.",
+          "Questions about these terms can be sent to hello@unclick.world.",
         ],
       },
     ],

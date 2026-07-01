@@ -4440,6 +4440,26 @@
     }
   },
   {
+    "connector": "gmail",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "goertzel",
     "level": 5,
     "levelName": "Agentic",
@@ -4450,6 +4470,26 @@
       "hasTimeout": false,
       "handles429": false,
       "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
+    "connector": "google-drive",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
       "readsErrorBody": false,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
@@ -7440,6 +7480,26 @@
     }
   },
   {
+    "connector": "onedrive",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "open-elevation",
     "level": 5,
     "levelName": "Agentic",
@@ -10360,6 +10420,26 @@
     }
   },
   {
+    "connector": "supabase",
+    "level": 5,
+    "levelName": "Agentic",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": true,
+      "hasRetry": false,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": true,
+      "sourceStamped": true
+    }
+  },
+  {
     "connector": "supercell",
     "level": 5,
     "levelName": "Agentic",
@@ -12860,6 +12940,26 @@
     }
   },
   {
+    "connector": "xpass-aggregated-verdict",
+    "level": 2,
+    "levelName": "Reliable",
+    "hardened": true,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": true,
+      "readsErrorBody": false,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "geopass",
     "level": 1,
     "levelName": "Wrapper",
@@ -12900,19 +13000,19 @@
     }
   },
   {
-    "connector": "xpass-aggregated-verdict",
+    "connector": "workspace",
     "level": 1,
     "levelName": "Wrapper",
     "hardened": false,
     "cappedByDesign": false,
     "capReason": null,
     "signals": {
-      "hasTimeout": true,
+      "hasTimeout": false,
       "handles429": false,
       "hasRetry": false,
-      "readsErrorBody": false,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
-      "errorStyleClean": true,
+      "errorStyleClean": false,
       "memoryAware": false,
       "proactive": false,
       "agentic": false,

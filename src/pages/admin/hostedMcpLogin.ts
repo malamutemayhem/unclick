@@ -20,13 +20,46 @@ interface HostedMcpLoginOptions {
   windowRef?: Window;
   readApiKey?: () => string;
   storeApiKeyValue?: (key: string) => boolean;
+  /**
+   * Client mirror of the server UNCLICK_LOGIN_CONNECT_ENABLED flag. Injected so
+   * tests can pin it; defaults to reading VITE_UNCLICK_LOGIN_CONNECT_ENABLED.
+   */
+  loginConnectEnabled?: boolean;
+}
+
+// Client mirror of the server UNCLICK_LOGIN_CONNECT_ENABLED flag (default OFF).
+// When on AND the user has a session, the hosted-MCP sign-in authenticates with
+// the Supabase session JWT and never asks for the browser-cached account key,
+// matching what /connect/:platform (Connect.tsx) already does. The server
+// enforces its own flag independently; the cached-key path stays as the
+// fallback when the flag is off or there is no session.
+function viteLoginConnectEnabled(): boolean {
+  const env = import.meta.env as Record<string, string | undefined>;
+  const v = String(env.VITE_UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
 export function openHostedConnectionPopup(windowRef: Window, slug: string): Window | null {
+  const width = 560;
+  const height = 760;
+  const dualScreenLeft = windowRef.screenLeft ?? windowRef.screenX ?? 0;
+  const dualScreenTop = windowRef.screenTop ?? windowRef.screenY ?? 0;
+  const viewportWidth =
+    windowRef.outerWidth
+    || windowRef.document?.documentElement?.clientWidth
+    || windowRef.screen?.width
+    || width;
+  const viewportHeight =
+    windowRef.outerHeight
+    || windowRef.document?.documentElement?.clientHeight
+    || windowRef.screen?.height
+    || height;
+  const left = Math.max(0, Math.round(dualScreenLeft + (viewportWidth - width) / 2));
+  const top = Math.max(0, Math.round(dualScreenTop + (viewportHeight - height) / 2));
   const popup = windowRef.open(
     "",
     `unclick_connect_${slug}`,
-    "popup=yes,width=560,height=760",
+    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
   );
   if (!popup) return null;
   popup.focus();
@@ -57,7 +90,7 @@ export async function ensureLocalConnectionApiKey({
   fetcher = fetch,
   readApiKey = readStoredApiKey,
   storeApiKeyValue = storeApiKey,
-}: Omit<HostedMcpLoginOptions, "slug" | "windowRef">): Promise<string> {
+}: Omit<HostedMcpLoginOptions, "slug" | "windowRef" | "loginConnectEnabled">): Promise<string> {
   const existing = readApiKey().trim();
   if (existing) return existing;
   if (!sessionAccessToken) throw new Error("Sign in again to connect apps.");
@@ -84,20 +117,40 @@ export async function startHostedMcpLogin({
   windowRef = window,
   readApiKey,
   storeApiKeyValue,
+  loginConnectEnabled = viteLoginConnectEnabled(),
 }: HostedMcpLoginOptions): Promise<Window | null> {
   const popup = openHostedConnectionPopup(windowRef, slug);
   try {
-    const apiKey = await ensureLocalConnectionApiKey({
-      sessionAccessToken,
-      fetcher,
-      readApiKey,
-      storeApiKeyValue,
-    });
-    const res = await fetcher("/api/oauth-init", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ platform: slug, api_key: apiKey }),
-    });
+    // Login-connect: with the flag on and a live session, the session JWT
+    // authenticates oauth-init and the server stores a server-scheme row keyed
+    // to the account lane. No browser-cached UnClick account key is required or
+    // requested, mirroring Connect.tsx. Otherwise fall back to the cached/minted
+    // api-key path unchanged.
+    const useSession = loginConnectEnabled && Boolean(sessionAccessToken);
+
+    let res: Response;
+    if (useSession) {
+      res = await fetcher("/api/oauth-init", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionAccessToken}`,
+        },
+        body: JSON.stringify({ platform: slug }),
+      });
+    } else {
+      const apiKey = await ensureLocalConnectionApiKey({
+        sessionAccessToken,
+        fetcher,
+        readApiKey,
+        storeApiKeyValue,
+      });
+      res = await fetcher("/api/oauth-init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform: slug, api_key: apiKey }),
+      });
+    }
     const body = (await res.json().catch(() => ({}))) as OAuthInitResponse;
     if (!res.ok || !body.authorization_url) {
       throw new Error(body.error ?? `Could not start ${slug} sign-in (${res.status}).`);

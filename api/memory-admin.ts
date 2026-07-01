@@ -151,6 +151,7 @@ import {
   providerConfigKeyForPlatform,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
+import { laneForUserId, resolveLaneFromMcpOAuth } from "./lib/account-lane.js";
 import {
   attachBuildDeskIdempotencyKey,
   findBuildDeskRowByIdempotencyKey,
@@ -256,6 +257,20 @@ const SALT_BYTES = 32;
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+// Default OFF. Mirrors the same flag in /api/credentials and /api/oauth-init.
+// With it off, the login-connect (server-scheme) read path below is never taken
+// and the connected-apps list behaves byte-identically to the api-key-only
+// original.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+// Same fallback name convention as /api/credentials and /api/ai-provider-key.
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
 }
 
 function normalizeFishbowlText(input: string): string {
@@ -1257,6 +1272,34 @@ async function resolveSessionUser(
   }
 }
 
+/**
+ * Authorization for opening a single TestPass run by id.
+ *
+ * A run is viewable when EITHER:
+ *  - the caller owns it (run.actor_user_id === session user id), OR
+ *  - it belongs to a built-in/system pack (pack.owner_user_id === null).
+ *
+ * The second clause exists because scheduled cron runs (e.g. testpass-core,
+ * fired every 5 minutes) are stamped with TESTPASS_CRON_USER_ID, not the
+ * viewing admin's id. Those system packs are already world-readable
+ * (list_testpass_packs returns owner_user_id IS NULL packs to everyone), so a
+ * run that an admin was shown in the list must also open in detail.
+ *
+ * It deliberately does NOT widen access to another user's PRIVATE-pack runs:
+ * the run id is a guessable/shareable UUID, so dropping the owner check entirely
+ * would expose private runs by id enumeration. packOwnerUserId must be exactly
+ * null (a real system pack), never merely missing/undefined.
+ */
+export function canViewTestpassRun(args: {
+  runActorUserId: string | null | undefined;
+  sessionUserId: string;
+  packOwnerUserId: string | null | undefined;
+  packFound: boolean;
+}): boolean {
+  if (args.runActorUserId && args.runActorUserId === args.sessionUserId) return true;
+  return args.packFound && args.packOwnerUserId === null;
+}
+
 export type ChannelStatusAuthOutcome =
   | { kind: "authorized" }
   | { kind: "soft_unconfigured" }
@@ -1389,11 +1432,17 @@ async function resolveSessionTenant(
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
   if (!user) return null;
 
-  // New shape: key_hash column from Phase 1 keychain_mvp migration
+  // New shape: key_hash column from Phase 1 keychain_mvp migration.
+  // Resolve the SAME active key every other surface resolves to (mirror
+  // resolveTenant in backstagepass.ts and validateSessionCookie in mcp.ts):
+  // is_active filter + deterministic order so a duplicate api_keys row can
+  // never strand this tenant on a different key_hash than the rest of the app.
   const newQ = await sb
     .from("api_keys")
     .select("key_hash, tier")
     .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("last_used_at", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle();
   const newRow = newQ.data as { key_hash?: string | null; tier?: string | null } | null;
@@ -1433,9 +1482,66 @@ async function resolveSessionTenant(
   return null;
 }
 
+// ─── Agent (raw api_key) tenant resolver ─────────────────────────────────
+//
+// Root cause of the 2026-06 "AI job board empty" lane-split incident: this
+// endpoint used to trust ANY raw uc_* / agt_* key by hashing it directly, so
+// a stale or unregistered key silently forked a parallel "orphan" tenant lane
+// (Boardroom jobs + memory written under a hash with no api_keys row) that the
+// signed-in web app could never see. We now require the hash to match a
+// registered, ACTIVE api_keys row before it can act as a tenant - the same
+// stricter check used by validateApiKey() in api/mcp.ts and
+// resolveTestPassRunActor() in api/testpass-run.ts.
+//
+// Returns the registered key_hash to scope by, or null to reject (callers
+// turn null into a 401). The raw token is never logged; only the safe,
+// non-secret hash prefix is, so orphan-key attempts stay observable.
+export async function resolveAgentApiKeyHash(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  token: string,
+): Promise<string | null> {
+  const apiKeyHash = sha256hex(token);
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?key_hash=eq.${encodeURIComponent(apiKeyHash)}` +
+    `&select=key_hash,is_active,lane_hash&limit=1`;
+
+  let rows: Array<{ key_hash?: string | null; is_active?: boolean | null; lane_hash?: string | null }>;
+  try {
+    const apiRes = await fetch(qUrl, {
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    });
+    if (!apiRes.ok) return null;
+    rows = (await apiRes.json().catch(() => [])) as Array<{
+      key_hash?: string | null;
+      is_active?: boolean | null;
+      lane_hash?: string | null;
+    }>;
+  } catch {
+    return null;
+  }
+
+  const row = rows[0];
+  if (!row || row.is_active === false) {
+    // No registered/active row: a stale or unknown key. Refuse to mint or
+    // read a lane for it. Log only the non-secret hash prefix.
+    console.warn(
+      `[memory-admin] rejected unregistered or inactive raw api_key (hash ${apiKeyHash.slice(0, 10)}...); ` +
+        "refusing to create or read an orphan tenant lane",
+    );
+    return null;
+  }
+  // Return the stable account lane, not the raw key hash, so an in-place key
+  // rotation (reset_api_key) keeps this agent on the same memory lane.
+  // key_hash is NOT NULL, so the final arm is unreachable; fall back to null
+  // (never the raw submitted hash) so a malformed row can never mint an
+  // orphan lane - the very pattern this guardrail exists to prevent.
+  return row.lane_hash ?? row.key_hash ?? null;
+}
+
 // ─── Effective api_key_hash resolver ─────────────────────────────────────
 //
-// Security model (fixes #60):
+// Security model (fixes #60; hardened after the 2026-06 lane-split incident):
 //
 // This endpoint is reached from two distinct auth contexts:
 //
@@ -1448,8 +1554,10 @@ async function resolveSessionTenant(
 //      cannot route the request to the wrong tenant.
 //
 //   2. Agent (off-site MCP clients). The Authorization header is a
-//      raw uc_* / agt_* UnClick api_key. We hash it directly. There is
-//      no Supabase session on this path.
+//      raw uc_* / agt_* UnClick api_key. We hash it, then REQUIRE that
+//      hash to match a registered, active api_keys row before it can act
+//      as a tenant (see resolveAgentApiKeyHash above). An unregistered
+//      key can no longer fork an orphan tenant lane.
 //
 // Paths are mutually exclusive: the first byte-level prefix check tells
 // us which one applies. The old "hash whatever came in the Bearer"
@@ -1462,18 +1570,36 @@ async function resolveApiKeyHash(
   const token = bearerFrom(req);
   if (!token) return null;
 
-  // Agent path: raw api_key, trust as-is and hash directly.
+  // Agent path: raw api_key. Validate against an active api_keys row;
+  // never trust an unregistered key as a tenant (lane-split guardrail).
   if (token.startsWith("uc_") || token.startsWith("agt_")) {
-    return sha256hex(token);
+    return resolveAgentApiKeyHash(supabaseUrl, serviceRoleKey, token);
   }
 
   // Web UI path: Supabase session JWT. Resolve the signed-in user and
   // look up that user's api_keys row server-side. Never use a client
   // supplied value for the tenant hash on this path.
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
-  if (!user) return null;
+  if (!user) {
+    // Keyless OAuth seat: the bearer is neither a uc_/agt_ key nor a Supabase
+    // session JWT, but a cryptographically-verifiable MCP OAuth access token
+    // (bare https://unclick.world/api/mcp + magic-link login). Resolve it to the
+    // SAME stable account lane the key/JWT paths use - verified server-side, no
+    // caller-supplied value reaches the lane. Flag-gated inside the resolver, so
+    // login-connect OFF is byte-identical to the api-key-only original. Returns
+    // null on any tampering/expiry/wrong-kind.
+    return resolveLaneFromMcpOAuth(token, process.env, supabaseUrl, serviceRoleKey);
+  }
 
-  const qUrl = `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}&select=key_hash&limit=1`;
+  // Pick the SAME key every other surface does. A user can own more than
+  // one api_keys row (regenerations, BYOD). Without an is_active filter and
+  // a deterministic order, two endpoints can resolve the same human to two
+  // different key_hashes -> the data appears to live in different "lanes"
+  // depending on which page you open. Mirror validateSessionCookie() in
+  // api/mcp.ts exactly: active key, most-recently-used first.
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash,lane_hash&limit=1`;
   try {
     const apiRes = await fetch(qUrl, {
       headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
@@ -1481,10 +1607,13 @@ async function resolveApiKeyHash(
     if (!apiRes.ok) return null;
     const rows = (await apiRes.json().catch(() => [])) as Array<{
       key_hash?: string | null;
+      lane_hash?: string | null;
     }>;
     const row = rows[0];
     if (!row) return null;
-    return row.key_hash ?? null;
+    // Stable account lane first; falls back to key_hash for rows predating the
+    // lane_hash backfill (behaviour-neutral).
+    return row.lane_hash ?? row.key_hash ?? null;
   } catch {
     return null;
   }
@@ -2526,6 +2655,14 @@ function slugify(input: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
+}
+
+function postgrestOrSafeIlikePattern(input: string): string {
+  const clean = input
+    .replace(/[(),]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return `%${clean.replace(/[%_\\]/g, "\\$&")}%`;
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
@@ -4808,11 +4945,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        // Look up an existing api_keys row for this user.
+        // Look up an existing api_keys row for this user. Order
+        // deterministically + limit(1) so a duplicate row never raises
+        // PGRST116 (which would null this out and mint another duplicate).
         let keyRow = (await supabase
           .from("api_keys")
           .select("id, key_hash, key_prefix, label, tier, is_active, usage_count, last_used_at, created_at")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as
           | {
               id: string;
@@ -4860,6 +5001,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               .from("api_keys")
               .select("id, key_hash, key_prefix, label, tier, is_active, usage_count, last_used_at, created_at")
               .eq("user_id", user.id)
+              .order("last_used_at", { ascending: false, nullsFirst: false })
+              .limit(1)
               .maybeSingle();
             keyRow = retry.data as typeof keyRow;
           } else {
@@ -4978,14 +5121,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to so the
+        // lane we write preferences to matches where load_memory reads them.
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash: string | null } | null;
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
         }
+        // Preferences are memory: write them to the stable account lane so they
+        // survive rotation and match where load_memory reads them.
+        const laneHash = keyRow.lane_hash ?? keyRow.key_hash;
 
         const timezone = String(req.body?.timezone ?? "").trim();
         if (!isValidTimeZoneName(timezone)) {
@@ -4993,7 +5144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const source: OperatorTimeSource = req.body?.source === "manual" ? "manual" : "browser";
         const nowIso = new Date().toISOString();
-        const existing = await readOperatorTimeContext(supabase, keyRow.key_hash);
+        const existing = await readOperatorTimeContext(supabase, laneHash);
         if (existing?.source === "manual" && source === "browser") {
           return res.status(200).json({ success: true, operator_time: existing, manual_override_preserved: true });
         }
@@ -5011,7 +5162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_business_context")
           .upsert(
             {
-              api_key_hash: keyRow.key_hash,
+              api_key_hash: laneHash,
               category: OPERATOR_TIME_CATEGORY,
               key: OPERATOR_TIME_KEY,
               value,
@@ -5031,14 +5182,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to (see
+        // operator_timezone_update) so the lane stays consistent.
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash: string | null } | null;
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle()).data as { key_hash: string | null; lane_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
         }
+        // Write to the stable memory lane (see operator_timezone_update).
+        const laneHash = keyRow.lane_hash ?? keyRow.key_hash;
 
         const nowIso = new Date().toISOString();
         const payload = isRecord(req.body) ? req.body : {};
@@ -5048,7 +5206,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from("mc_business_context")
           .upsert(
             {
-              api_key_hash: keyRow.key_hash,
+              api_key_hash: laneHash,
               category: AI_STYLE_CATEGORY,
               key: AI_STYLE_KEY,
               value,
@@ -5068,10 +5226,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Resolve the SAME active key every other surface resolves to so the
+        // About You block lands on the consistent tenant key.
         const keyRow = (await supabase
           .from("api_keys")
           .select("key_hash")
           .eq("user_id", user.id)
+          .eq("is_active", true)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { key_hash: string | null } | null;
         if (!keyRow?.key_hash) {
           return res.status(404).json({ error: "No active UnClick key found for this user" });
@@ -5121,10 +5284,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1): with a duplicate row present,
+        // a bare maybeSingle() raises PGRST116 and leaves `existing` null,
+        // which would mint yet another duplicate key. Pick the freshest row.
         const existing = (await supabase
           .from("api_keys")
           .select("id, key_prefix, tier")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { id: string; key_prefix: string | null; tier: string | null } | null;
 
         if (existing) {
@@ -5137,9 +5305,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const rawKey = `uc_${crypto.randomBytes(16).toString("hex")}`;
+        const newKeyHash = sha256hex(rawKey);
         const { error } = await supabase.from("api_keys").insert({
           user_id:   user.id,
-          key_hash:  sha256hex(rawKey),
+          key_hash:  newKeyHash,
+          // Pin the account's memory lane at birth. From here on the lane is
+          // stable: rotating the key (reset_api_key) swaps key_hash but leaves
+          // lane_hash, so memory never strands.
+          lane_hash: newKeyHash,
           key_prefix: rawKey.slice(0, 8),
           label:     "default",
           tier:      effectiveMemoryTier("free", user.email),
@@ -5164,10 +5337,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1): with a duplicate row present,
+        // a bare maybeSingle() raises PGRST116 and wrongly 404s a user who
+        // does have a key. Rotate the freshest row.
         const existing = (await supabase
           .from("api_keys")
           .select("id, tier")
           .eq("user_id", user.id)
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
           .maybeSingle()).data as { id: string; tier: string | null } | null;
 
         if (!existing) return res.status(404).json({ error: "No API key to reset" });
@@ -5189,6 +5367,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const rawKey = `uc_${crypto.randomBytes(16).toString("hex")}`;
+        // Rotate IN PLACE: swap key_hash but deliberately do NOT touch
+        // lane_hash, so the operator stays on the same memory lane. This is
+        // the whole point of the account-stable-lane fix; never add lane_hash
+        // to this update.
         const { error: updateError } = await supabase
           .from("api_keys")
           .update({
@@ -5227,12 +5409,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
+        // Order deterministically + limit(1) so a duplicate row never raises
+        // PGRST116 (which would null this out and skip the scoped wipe,
+        // orphaning the account's memory rows).
         const keyRow = (await supabase
           .from("api_keys")
-          .select("key_hash")
+          .select("key_hash, lane_hash")
           .eq("user_id", user.id)
-          .maybeSingle()).data as { key_hash?: string | null } | null;
-        const apiKeyHash = keyRow?.key_hash ?? null;
+          .order("last_used_at", { ascending: false, nullsFirst: false })
+          .limit(1)
+          .maybeSingle()).data as { key_hash?: string | null; lane_hash?: string | null } | null;
+        // Scope the wipe to the MEMORY LANE, where the account's data actually
+        // lives. After a rotation that is lane_hash, not the current key_hash;
+        // using key_hash here would orphan every memory row (compliance gap).
+        const apiKeyHash = keyRow?.lane_hash ?? keyRow?.key_hash ?? null;
 
         // Idempotency: if a previous deletion removed the api_keys link
         // already, return a benign response without re-attempting.
@@ -5346,7 +5536,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // auth deletion. Clean it up now that the cascade is done.
         if (apiKeyHash) {
           try {
-            await supabase.from("api_keys").delete().eq("key_hash", apiKeyHash);
+            // apiKeyHash is the resolved LANE (lane_hash). After an in-place
+            // rotation lane_hash and key_hash can differ, so match either to
+            // avoid leaving a dangling api_keys row.
+            await supabase
+              .from("api_keys")
+              .delete()
+              .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`);
           } catch { /* best effort */ }
         }
 
@@ -5397,8 +5593,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data: userCreds } = await supabase
           .from("user_credentials")
-          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
           .eq("api_key_hash", tenant.apiKeyHash);
+
+        // Login-connect path (flag-gated): credentials saved while logged in are
+        // stored as enc_scheme='server' rows keyed by the stable account lane,
+        // NOT by api_key_hash, so the api_key_hash query above misses them when
+        // lane_hash differs from the active key_hash. Resolve the lane the same
+        // way /api/credentials does (laneForUserId) and read those rows by
+        // lane_hash + enc_scheme='server'. Presence/metadata only - nothing is
+        // decrypted here. Off (and behaviour-neutral) unless the flag is on and
+        // the server secret is configured.
+        let serverCreds: Array<Record<string, unknown>> = [];
+        if (loginConnectEnabled(process.env) && aiKeySecret(process.env)) {
+          const lane = await laneForUserId(supabaseUrl, supabaseKey, tenant.userId);
+          if (lane && lane !== tenant.apiKeyHash) {
+            const serverQ = await supabase
+              .from("user_credentials")
+              .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
+              .eq("lane_hash", lane)
+              .eq("enc_scheme", "server");
+            serverCreds = serverQ.error ? [] : (serverQ.data ?? []);
+          }
+        }
 
         const managedQ = await supabase
           .from("managed_app_connections")
@@ -5411,14 +5628,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const managedRows = managedQ.error ? [] : (managedQ.data ?? []);
 
         type AdminCredentialSource = "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+        const STALE_CREDENTIAL_TEST_DAYS = 30;
+        type AdminCredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
         type AdminCredentialSummary = {
           id: string | null;
           is_valid: boolean;
           last_tested_at: string | null;
+          connection_state?: AdminCredentialConnectionState;
           label: string | null;
           source: AdminCredentialSource;
           created_at: string | null;
           updated_at: string | null;
+          // Why the last OAuth refresh failed (short reason code, never a token).
+          // Lets the Apps page tell the user exactly what to reconnect.
+          last_refresh_error: string | null;
+          last_refresh_error_at: string | null;
           managed?: {
             provider: string;
             provider_config_key: string | null;
@@ -5445,6 +5669,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             + Math.max(timestampScore(cred.updated_at), timestampScore(cred.created_at));
         }
 
+        function connectionStateOf(cred: AdminCredentialSummary): AdminCredentialConnectionState {
+          if (cred.managed?.status === "pending") return "pending";
+          if (!cred.is_valid) return "failing";
+          if (!cred.last_tested_at) return "untested";
+          const testedAt = Date.parse(cred.last_tested_at);
+          if (!Number.isFinite(testedAt)) return "untested";
+          const ageDays = Math.floor((Date.now() - testedAt) / 86_400_000);
+          return ageDays >= STALE_CREDENTIAL_TEST_DAYS ? "stale" : "connected";
+        }
+
         const credMap = new Map<string, AdminCredentialSummary>();
         function mergeCredential(platform: string, next: AdminCredentialSummary) {
           const current = credMap.get(platform);
@@ -5454,9 +5688,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
 
           const winner = credentialScore(next) > credentialScore(current) ? next : current;
+          const source = current.source === next.source ? winner.source : "mixed";
           credMap.set(platform, {
             ...winner,
-            source: current.source === next.source ? winner.source : "mixed",
+            source,
+            connection_state: connectionStateOf({ ...winner, source }),
           });
         }
 
@@ -5469,6 +5705,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "platform_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
           });
         }
 
@@ -5481,6 +5719,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "user_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
+          });
+        }
+
+        // Server-scheme (login-connect) rows merge on the same footing as the
+        // api-key rows above, so a logged-in user's server-saved apps surface in
+        // the Connected lens. Empty unless the flag/secret enabled the read.
+        for (const c of serverCreds) {
+          mergeCredential(c.platform_slug as string, {
+            id: c.id as string,
+            is_valid: c.is_valid !== false,
+            last_tested_at: (c.last_tested_at as string | null) ?? null,
+            label: (c.label as string | null) ?? null,
+            source: "user_credentials",
+            created_at: (c.created_at as string | null) ?? null,
+            updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
           });
         }
 
@@ -5493,6 +5750,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "managed_app_connections",
             created_at: row.created_at ?? null,
             updated_at: row.updated_at ?? null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
             managed: {
               provider: row.provider ?? "nango",
               provider_config_key: row.provider_config_key ?? null,
@@ -5508,7 +5767,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const enrichedConnectors = (connectors ?? []).map((pc) => ({
           ...pc,
-          credential: credMap.get(pc.id as string) ?? null,
+          credential: credMap.has(pc.id as string)
+            ? {
+                ...credMap.get(pc.id as string)!,
+                connection_state: connectionStateOf(credMap.get(pc.id as string)!),
+              }
+            : null,
           supports_hosted_mcp_connection: pc.id === "higgsfield",
           supports_managed_connection: pc.auth_type
             ? managedConnectionAvailableForPlatform(pc.id as string)
@@ -7654,6 +7918,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
         if (error) throw error;
 
+        let conversationLogReceiptId: string | null = null;
+        try {
+          const { data: conversationLogRow } = await supabase
+            .from("mc_conversation_log")
+            .insert({
+              api_key_hash: apiKeyHash,
+              session_id: sessionId,
+              role,
+              content: safeContent,
+              has_code: false,
+            })
+            .select("id")
+            .single();
+          conversationLogReceiptId = typeof conversationLogRow?.id === "string" ? conversationLogRow.id : null;
+        } catch {
+          // Best-effort continuity mirror; chat_messages remains the primary
+          // channel transport row and should not fail because of log debt.
+        }
+
         // Auto-capture (flag-gated, best-effort): mirror the MCP log_conversation
         // path so hosted web-chat turns also fill the code-dump and library
         // layers. Wrapped end-to-end so it can never break the turn ingest.
@@ -7685,6 +7968,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           turn_id: data.id,
+          conversation_log_id: conversationLogReceiptId,
           session_id: data.session_id,
           role: data.role,
           created_at: data.created_at,
@@ -8588,12 +8872,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const runId = (req.query.run_id ?? req.body?.run_id ?? "") as string;
         if (!runId) return res.status(400).json({ error: "run_id required" });
+        // Resolve the run by id first (no actor filter), then authorize. A run
+        // is viewable if the caller owns it OR it belongs to a system pack
+        // (owner_user_id IS NULL) - e.g. the scheduled testpass-core cron runs,
+        // which are stamped with TESTPASS_CRON_USER_ID rather than the viewing
+        // admin's id. Without this, runs an admin was shown in the list 404 on
+        // open. See canViewTestpassRun for the (id-enumeration-safe) rule.
         const [runRes, itemsRes] = await Promise.all([
           supabase
             .from("testpass_runs")
             .select("*")
             .eq("id", runId)
-            .eq("actor_user_id", user.id)
             .maybeSingle(),
           supabase
             .from("testpass_items")
@@ -8603,6 +8892,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
+        // Authorize the open. Own run -> allowed without a pack lookup; otherwise
+        // only a system-pack (world-readable) run may be opened by id.
+        let packFound = false;
+        let packOwnerUserId: string | null | undefined;
+        if (runRes.data.actor_user_id !== user.id && runRes.data.pack_id) {
+          const packRes = await supabase
+            .from("testpass_packs")
+            .select("owner_user_id")
+            .eq("id", runRes.data.pack_id)
+            .maybeSingle();
+          if (packRes.error) throw packRes.error;
+          if (packRes.data) {
+            packFound = true;
+            packOwnerUserId = packRes.data.owner_user_id as string | null;
+          }
+        }
+        if (!canViewTestpassRun({
+          runActorUserId: runRes.data.actor_user_id as string | null,
+          sessionUserId: user.id,
+          packOwnerUserId,
+          packFound,
+        })) {
+          return res.status(404).json({ error: "Run not found" });
+        }
         if (itemsRes.error) throw itemsRes.error;
         const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
         const evidenceRefs = Array.from(new Set(
@@ -10194,7 +10507,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           Math.max(Number.isFinite(requestedMaxSummaries) ? Math.floor(requestedMaxSummaries) : compact ? 20 : 36, 1),
           500,
         );
-        const searchPattern = searchQuery ? `%${searchQuery.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = searchQuery ? postgrestOrSafeIlikePattern(searchQuery) : "";
         const searchUuid = searchQuery.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [
@@ -10445,7 +10758,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const requestedLimit = Number(body.limit ?? req.query.limit ?? 120);
         const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 120, 20), 200);
         const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
-        const searchPattern = query ? `%${query.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = query ? postgrestOrSafeIlikePattern(query) : "";
         const searchUuid = query.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [

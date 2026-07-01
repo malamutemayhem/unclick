@@ -139,7 +139,14 @@ describe("oauth init", () => {
           code_challenge_method: "S256",
         });
         expect((response.payload as { code_challenge?: string }).code_challenge).toMatch(/^[A-Za-z0-9_-]+$/);
+        expect((response.payload as { authorization_url?: string }).authorization_url).toContain("code_challenge=");
         expect(String(response.headers.get("Set-Cookie"))).toContain("unclick_oauth_pkce_verifier");
+        if (platform === "supabase") {
+          const payload = response.payload as { authorization_url?: string; scope?: string };
+          expect(payload.scope).toBe("all");
+          expect(payload.authorization_url).toContain("https://api.supabase.com/v1/oauth/authorize");
+          expect(payload.authorization_url).toContain("scope=all");
+        }
       }
     } finally {
       restoreEnv("VERCEL_CLIENT_ID", previous.VERCEL_CLIENT_ID);
@@ -148,6 +155,66 @@ describe("oauth init", () => {
       restoreEnv("SUPABASE_OAUTH_CLIENT_ID", previous.SUPABASE_OAUTH_CLIENT_ID);
       restoreEnv("SUPABASE_OAUTH_CLIENT_SECRET", previous.SUPABASE_OAUTH_CLIENT_SECRET);
       restoreEnv("SUPABASE_OAUTH_REDIRECT_URI", previous.SUPABASE_OAUTH_REDIRECT_URI);
+    }
+  });
+
+  it("starts mail and file app sign-in with server-provided OAuth client ids", async () => {
+    const previous = {
+      GOOGLE_WORKSPACE_CLIENT_ID: process.env.GOOGLE_WORKSPACE_CLIENT_ID,
+      GOOGLE_WORKSPACE_CLIENT_SECRET: process.env.GOOGLE_WORKSPACE_CLIENT_SECRET,
+      GOOGLE_WORKSPACE_REDIRECT_URI: process.env.GOOGLE_WORKSPACE_REDIRECT_URI,
+      DROPBOX_CLIENT_ID: process.env.DROPBOX_CLIENT_ID,
+      DROPBOX_CLIENT_SECRET: process.env.DROPBOX_CLIENT_SECRET,
+      DROPBOX_REDIRECT_URI: process.env.DROPBOX_REDIRECT_URI,
+      MICROSOFT_GRAPH_CLIENT_ID: process.env.MICROSOFT_GRAPH_CLIENT_ID,
+      MICROSOFT_GRAPH_CLIENT_SECRET: process.env.MICROSOFT_GRAPH_CLIENT_SECRET,
+      MICROSOFT_GRAPH_REDIRECT_URI: process.env.MICROSOFT_GRAPH_REDIRECT_URI,
+    };
+    process.env.GOOGLE_WORKSPACE_CLIENT_ID = "google-client";
+    process.env.GOOGLE_WORKSPACE_CLIENT_SECRET = "google-secret";
+    process.env.GOOGLE_WORKSPACE_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    process.env.DROPBOX_CLIENT_ID = "dropbox-client";
+    process.env.DROPBOX_CLIENT_SECRET = "dropbox-secret";
+    process.env.DROPBOX_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    process.env.MICROSOFT_GRAPH_CLIENT_ID = "microsoft-client";
+    process.env.MICROSOFT_GRAPH_CLIENT_SECRET = "microsoft-secret";
+    process.env.MICROSOFT_GRAPH_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+
+    const expectedClientId: Record<string, string> = {
+      gmail: "google-client",
+      "google-drive": "google-client",
+      dropbox: "dropbox-client",
+      onedrive: "microsoft-client",
+    };
+
+    try {
+      for (const platform of Object.keys(expectedClientId)) {
+        const response = createResponse();
+        await handler(
+          {
+            method: "POST",
+            body: { platform, api_key: "uc_test_account_key" },
+          } as never,
+          response.res as never
+        );
+
+        expect(response.statusCode).toBe(200);
+        expect(response.payload).toMatchObject({
+          success: true,
+          redirect_uri: "https://unclick.world/api/oauth-callback",
+          client_id: expectedClientId[platform],
+        });
+      }
+    } finally {
+      restoreEnv("GOOGLE_WORKSPACE_CLIENT_ID", previous.GOOGLE_WORKSPACE_CLIENT_ID);
+      restoreEnv("GOOGLE_WORKSPACE_CLIENT_SECRET", previous.GOOGLE_WORKSPACE_CLIENT_SECRET);
+      restoreEnv("GOOGLE_WORKSPACE_REDIRECT_URI", previous.GOOGLE_WORKSPACE_REDIRECT_URI);
+      restoreEnv("DROPBOX_CLIENT_ID", previous.DROPBOX_CLIENT_ID);
+      restoreEnv("DROPBOX_CLIENT_SECRET", previous.DROPBOX_CLIENT_SECRET);
+      restoreEnv("DROPBOX_REDIRECT_URI", previous.DROPBOX_REDIRECT_URI);
+      restoreEnv("MICROSOFT_GRAPH_CLIENT_ID", previous.MICROSOFT_GRAPH_CLIENT_ID);
+      restoreEnv("MICROSOFT_GRAPH_CLIENT_SECRET", previous.MICROSOFT_GRAPH_CLIENT_SECRET);
+      restoreEnv("MICROSOFT_GRAPH_REDIRECT_URI", previous.MICROSOFT_GRAPH_REDIRECT_URI);
     }
   });
 

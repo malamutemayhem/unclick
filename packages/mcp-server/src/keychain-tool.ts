@@ -5,6 +5,7 @@
 //
 // Required env vars:
 //   UNCLICK_API_KEY           - caller's UnClick API key (never stored)
+//   UNCLICK_API_KEY_HASH      - optional pre-hashed key for read-only status
 //   SUPABASE_URL              - Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY - service role key (bypasses RLS)
 
@@ -39,12 +40,30 @@ async function sbFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
+function currentApiKeyHash(): string | null {
+  const configuredHash = String(process.env.UNCLICK_API_KEY_HASH ?? "").trim();
+  if (configuredHash) return configuredHash;
+
+  const apiKey = String(process.env.UNCLICK_API_KEY ?? "").trim();
+  return apiKey ? hashKeyFull(apiKey) : null;
+}
+
 // ─── Connection status helpers ───────────────────────────────────────────────
 
 type CredentialStatusSource =
   | "platform_credentials"
   | "user_credentials"
   | "managed_app_connections";
+
+const STALE_CREDENTIAL_TEST_DAYS = 30;
+
+// Recheck horizon: a stored credential whose last live proof is older than
+// this (or that has no proof at all) is reported with stale/needs_recheck so
+// the UI can prompt a reconnect, instead of trusting old proof indefinitely.
+const RECHECK_AFTER_HOURS = 72;
+
+type CredentialConnectionState = "connected" | "untested" | "pending" | "failing" | "stale";
+type CredentialHealth = "healthy" | "untested" | "pending" | "failing" | "stale";
 
 interface CredentialStatusRow {
   platform:       string;
@@ -80,6 +99,85 @@ function mergeCredentialRows(rows: CredentialStatusRow[]): CredentialStatusRow[]
     }
   }
   return [...byPlatform.values()].sort((a, b) => a.platform.localeCompare(b.platform));
+}
+
+function hoursSinceIso(value: string | null, now = Date.now()): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.floor((now - parsed) / 3_600_000));
+}
+
+function credentialHealth(row: CredentialStatusRow): CredentialHealth {
+  if (row.status === "pending") return "pending";
+  if (!row.is_valid) return "failing";
+
+  const ageHours = hoursSinceIso(row.last_tested_at);
+  if (ageHours === null) return "untested";
+  return ageHours >= STALE_CREDENTIAL_TEST_DAYS * 24 ? "stale" : "healthy";
+}
+
+// True when the stored proof is missing or older than the recheck horizon.
+// This is what makes a "connected/healthy" badge honest: it tells the UI the
+// live integration has not been confirmed recently, so it should prompt a
+// recheck or reconnect rather than trusting the stored proof outright.
+function credentialNeedsRecheck(row: CredentialStatusRow, now = Date.now()): boolean {
+  if (row.status === "pending") return false;
+  const ageHours = hoursSinceIso(row.last_tested_at, now);
+  if (ageHours === null) return true;
+  return ageHours >= RECHECK_AFTER_HOURS;
+}
+
+function credentialConnectionState(row: CredentialStatusRow): CredentialConnectionState {
+  const health = credentialHealth(row);
+  return health === "healthy" ? "connected" : health;
+}
+
+function credentialIsConnected(row: CredentialStatusRow): boolean {
+  return credentialConnectionState(row) === "connected";
+}
+
+// Additive status signal layered on top of the stored-proof fields. `connected`
+// continues to reflect stored proof; `stale`/`needs_recheck`/`health`/`verified`
+// surface whether that proof is fresh enough to be trusted right now.
+function credentialStatusSignal(row: CredentialStatusRow, now = Date.now()): {
+  health: CredentialHealth;
+  verified: boolean;
+  stale: boolean;
+  needs_recheck: boolean;
+} {
+  const baseHealth = credentialHealth(row);
+  const needsRecheck = credentialNeedsRecheck(row, now);
+  // Only downgrade a row that would otherwise read as healthy. Genuinely
+  // untested / failing / pending rows keep their own (already honest) health.
+  const stale = needsRecheck && baseHealth === "healthy";
+  const health: CredentialHealth = stale ? "stale" : baseHealth;
+  return {
+    health,
+    verified: health === "healthy",
+    stale: health === "stale",
+    needs_recheck: needsRecheck,
+  };
+}
+
+function credentialStatusMessage(row: CredentialStatusRow): string {
+  const state = credentialConnectionState(row);
+  if (state === "connected") {
+    if (credentialNeedsRecheck(row)) {
+      return `${row.platform} credential has stored connection proof from ${row.source}, but it is more than ${RECHECK_AFTER_HOURS}h old; recheck or reconnect before trusting it.`;
+    }
+    return `${row.platform} credential has recorded connection proof from ${row.source}.`;
+  }
+  if (state === "stale") {
+    return `${row.platform} credential has old connection proof from ${row.source}; reconnect or test it before trusting it.`;
+  }
+  if (state === "untested") {
+    return `${row.platform} credential is stored in ${row.source}, but has not been live-tested yet.`;
+  }
+  if (state === "pending") {
+    return `${row.platform} connection is pending.`;
+  }
+  return `${row.platform} credential is saved but not connected.`;
 }
 
 async function readCredentialStatusRows(
@@ -571,17 +669,19 @@ async function keychainConnect(args: Record<string, unknown>): Promise<unknown> 
 }
 
 async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
-  if (!apiKey)     return { error: "UNCLICK_API_KEY env var is not set." };
   if (!supaUrl)    return { error: "SUPABASE_URL env var is not set." };
   if (!serviceKey) return { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set." };
 
   const start    = Date.now();
-  const keyHash  = hashKeyFull(apiKey);
+  const keyHash  = currentApiKeyHash();
   const platform = args.platform ? String(args.platform).trim().toLowerCase() : null;
+
+  if (!keyHash) {
+    return { error: "UNCLICK_API_KEY or UNCLICK_API_KEY_HASH env var is not set." };
+  }
 
   const { ok, rows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, platform);
 
@@ -597,30 +697,45 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
     return { connected_platforms: [], count: 0 };
   }
 
-  const result = rows.map((r) => ({
-    platform:       r.platform,
-    label:          r.label,
-    is_valid:       r.is_valid,
-    last_tested_at: r.last_tested_at,
-    created_at:     r.created_at,
-    updated_at:     r.updated_at,
-    source:         r.source,
-    status:         r.status ?? null,
-    connected:      r.is_valid,
-  }));
+  const result = rows.map((r) => {
+    const signal = credentialStatusSignal(r);
+    return {
+      platform:       r.platform,
+      label:          r.label,
+      is_valid:       r.is_valid,
+      credential_saved: true,
+      last_tested_at: r.last_tested_at,
+      last_tested_age_hours: hoursSinceIso(r.last_tested_at),
+      created_at:     r.created_at,
+      updated_at:     r.updated_at,
+      source:         r.source,
+      status:         r.status ?? null,
+      health:         signal.health,
+      verified:       signal.verified,
+      stale:          signal.stale,
+      needs_recheck:  signal.needs_recheck,
+      connection_state: credentialConnectionState(r),
+      connected:      credentialIsConnected(r),
+    };
+  });
 
   if (platform) {
     const row = result[0];
     return {
       ...row,
-      connected: row.is_valid,
-      message:   row.is_valid
-        ? `${platform} credential found in ${row.source}.`
-        : `${platform} credential is saved but not connected.`,
+      message:   credentialStatusMessage(rows[0]),
     };
   }
 
-  return { connected_platforms: result, count: result.length };
+  const unverified = result.filter((row) => row.credential_saved && !row.verified).map((row) => row.platform);
+  return {
+    connected_platforms: result,
+    count: result.length,
+    unverified_platforms: unverified,
+    warnings: unverified.length > 0
+      ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+      : [],
+  };
 }
 
 async function keychainDisconnect(args: Record<string, unknown>): Promise<unknown> {
@@ -679,7 +794,6 @@ async function keychainDisconnect(args: Record<string, unknown>): Promise<unknow
 }
 
 async function keychainListPlatforms(args: Record<string, unknown>): Promise<unknown> {
-  const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
@@ -699,9 +813,9 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
 
   const platforms = data as Array<Record<string, unknown>>;
 
-  // If the caller has an API key, enrich with connection status
-  if (apiKey) {
-    const keyHash  = hashKeyFull(apiKey);
+  // If the caller has an API key or a precomputed hash, enrich with status metadata.
+  const keyHash = currentApiKeyHash();
+  if (keyHash) {
     const { ok: sOk, rows: statusRows } = await readCredentialStatusRows(supaUrl, serviceKey, keyHash, null);
 
     const ms = Date.now() - start;
@@ -709,13 +823,33 @@ async function keychainListPlatforms(args: Record<string, unknown>): Promise<unk
 
     if (sOk) {
       const statuses = new Map(statusRows.map((row) => [row.platform, row]));
-      return {
-        platforms: platforms.map((p) => ({
+      const platformResults = platforms.map((p) => {
+        const statusRow = statuses.get(String(p.id));
+        const signal = statusRow ? credentialStatusSignal(statusRow) : null;
+        return {
           ...p,
-          connected: Boolean(statuses.get(String(p.id))?.is_valid),
-          connected_source: statuses.get(String(p.id))?.source ?? null,
-        })),
+          id: String(p.id ?? ""),
+          connected: statusRow ? credentialIsConnected(statusRow) : false,
+          credential_saved: Boolean(statusRow),
+          health: signal ? signal.health : "missing",
+          verified: signal ? signal.verified : false,
+          stale: signal ? signal.stale : false,
+          needs_recheck: signal ? signal.needs_recheck : false,
+          last_tested_age_hours: statusRow ? hoursSinceIso(statusRow.last_tested_at) : null,
+          connection_state: statusRow ? credentialConnectionState(statusRow) : "missing",
+          connected_source: statusRow?.source ?? null,
+        };
+      });
+      const unverified = platformResults
+        .filter((platform) => platform.credential_saved && !platform.verified)
+        .map((platform) => String(platform.id));
+      return {
+        platforms: platformResults,
         count: platforms.length,
+        unverified_platforms: unverified,
+        warnings: unverified.length > 0
+          ? [`Stored credentials need live proof before they are treated as connected: ${unverified.join(", ")}.`]
+          : [],
       };
     }
   }

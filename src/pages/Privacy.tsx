@@ -26,7 +26,7 @@ const PrivacyPage = () => {
       <main className="mx-auto max-w-3xl px-6 pb-32 pt-28">
         <FadeIn>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Privacy Policy</h1>
-          <p className="mt-3 text-sm text-muted-custom">Effective date: April 10, 2026. Last updated: April 10, 2026.</p>
+          <p className="mt-3 text-sm text-muted-custom">Effective date: April 10, 2026. Last updated: June 21, 2026.</p>
         </FadeIn>
 
         <FadeIn delay={0.05}>
@@ -49,6 +49,11 @@ const PrivacyPage = () => {
                 services. These are encrypted at rest using AES-256-GCM. We do not store them in plaintext anywhere.
               </li>
               <li>
+                <strong className="text-heading">Connected Google account data</strong> - if you connect Gmail or Google Drive, we request only
+                the Google permissions shown on the consent screen. For Gmail this may include reading messages and sending mail you ask UnClick
+                to send. For Google Drive this may include reading file metadata and file contents you ask UnClick to search or open.
+              </li>
+              <li>
                 <strong className="text-heading">Usage data</strong> - which tools are called, when, and whether they succeeded or failed. This is used
                 to monitor for abuse, enforce rate limits, and help you debug.
               </li>
@@ -64,8 +69,30 @@ const PrivacyPage = () => {
           </Section>
         </FadeIn>
 
+        <FadeIn delay={0.09}>
+          <Section title="2. Google user data">
+            <p>
+              UnClick uses Google user data only to provide or improve the user-facing features you choose to use, such as searching Gmail,
+              sending an email you request, searching Google Drive, or opening a Drive file for your connected AI app.
+            </p>
+            <p>
+              Google access tokens and refresh tokens are encrypted at rest. Gmail message bodies, Google Drive file contents, and file metadata
+              are processed to complete your request and return the result to you or to the AI app you approved. We do not sell Google user data,
+              use it for advertising, or use it to train AI models.
+            </p>
+            <p>
+              We do not transfer Google user data except as needed to provide the feature you requested, comply with law, protect against abuse,
+              or with your explicit consent. UnClick's use and transfer of information received from Google APIs adheres to the Google API
+              Services User Data Policy, including the Limited Use requirements.
+            </p>
+            <p>
+              You can revoke Google access at any time from your Google Account permissions page or by disconnecting the app inside UnClick.
+            </p>
+          </Section>
+        </FadeIn>
+
         <FadeIn delay={0.1}>
-          <Section title="2. How we use your data">
+          <Section title="3. How we use your data">
             <p>We use your data to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Provide the UnClick service - route API calls, manage Passport access, and keep your account running</li>
@@ -78,7 +105,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.12}>
-          <Section title="3. What we don't do">
+          <Section title="4. What we don't do">
             <p>To be direct about it:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>We do not sell your data to anyone</li>
@@ -91,7 +118,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.14}>
-          <Section title="4. Third-party services we use">
+          <Section title="5. Third-party services we use">
             <p>UnClick is built on top of several third-party services. Here is what each one handles:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>
@@ -115,7 +142,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.16}>
-          <Section title="5. Security">
+          <Section title="6. Security">
             <p>
               Passport access stored in UnClick is encrypted with AES-256-GCM before being written to the database. The encryption keys are
               separate from the database itself.
@@ -133,7 +160,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.18}>
-          <Section title="6. Data retention">
+          <Section title="7. Data retention">
             <p>We retain data as follows:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>
@@ -153,7 +180,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.2}>
-          <Section title="7. Your rights">
+          <Section title="8. Your rights">
             <p>You have the right to:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong className="text-heading">Access</strong> - request a copy of the personal data we hold about you</li>
@@ -171,7 +198,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.22}>
-          <Section title="8. Australian Privacy Act">
+          <Section title="9. Australian Privacy Act">
             <p>
               UnClick Pty Ltd is an Australian company and complies with the Australian Privacy Act 1988 and the Australian Privacy Principles (APPs).
             </p>
@@ -184,7 +211,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.24}>
-          <Section title="9. GDPR (for EU users)">
+          <Section title="10. GDPR (for EU users)">
             <p>
               If you are in the European Economic Area, you have additional rights under the General Data Protection Regulation (GDPR). Our lawful
               basis for processing your data is contract performance (to provide the service you signed up for) and legitimate interests (to keep the
@@ -197,7 +224,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.26}>
-          <Section title="10. Children's privacy">
+          <Section title="11. Children's privacy">
             <p>
               UnClick is not designed for or directed at children under 13. We do not knowingly collect personal information from anyone under 13.
               If you believe a child under 13 has created an account, please contact us and we will delete it promptly.
@@ -206,7 +233,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.28}>
-          <Section title="11. Changes to this policy">
+          <Section title="12. Changes to this policy">
             <p>
               We may update this policy from time to time. If we make material changes, we will notify you by email or by a notice in the app.
               The current version is always available at{" "}
@@ -216,7 +243,7 @@ const PrivacyPage = () => {
         </FadeIn>
 
         <FadeIn delay={0.3}>
-          <Section title="12. Contact">
+          <Section title="13. Contact">
             <p>
               Privacy questions? Email{" "}
               <a href="mailto:hello@unclick.world" className="text-primary underline underline-offset-4">hello@unclick.world</a>.

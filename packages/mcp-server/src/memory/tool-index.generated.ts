@@ -3653,7 +3653,7 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     "tools": [
       {
         "name": "github_action",
-        "description": "Interact with the GitHub REST API: search repos, get repo details, list and create issues, list PRs, get user profiles, list gists, and search code."
+        "description": "Interact with the GitHub REST API: search/read repos, create branches and commits, open PRs, comment, merge, and read workflow checks."
       }
     ]
   },
@@ -3678,12 +3678,44 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "gmail",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "gmail_search",
+        "description": "Search Gmail messages in the connected mailbox."
+      },
+      {
+        "name": "gmail_read",
+        "description": "Read a Gmail message by id."
+      },
+      {
+        "name": "gmail_send",
+        "description": "Send a plain-text Gmail message."
+      }
+    ]
+  },
+  {
     "app": "goertzel",
     "category": "Existing tools (previously unwired)",
     "tools": [
       {
         "name": "goertzel",
         "description": "Compute a single DFT frequency bin using the Goertzel algorithm."
+      }
+    ]
+  },
+  {
+    "app": "google-drive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "drive_search",
+        "description": "Search or list Google Drive files in the connected account."
+      },
+      {
+        "name": "drive_read",
+        "description": "Read Google Drive file metadata and a safe text preview when available."
       }
     ]
   },
@@ -6004,6 +6036,24 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "omdb_by_id",
         "description": "Get an OMDB movie/show by IMDb ID."
+      }
+    ]
+  },
+  {
+    "app": "onedrive",
+    "category": "Marketing / Communication / Data",
+    "tools": [
+      {
+        "name": "onedrive_list",
+        "description": "List files and folders from OneDrive."
+      },
+      {
+        "name": "onedrive_search",
+        "description": "Search OneDrive files and folders by name."
+      },
+      {
+        "name": "onedrive_read",
+        "description": "Read OneDrive file metadata and a safe text preview when available."
       }
     ]
   },
@@ -8684,6 +8734,52 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
     ]
   },
   {
+    "app": "supabase",
+    "category": "Dev / Infra",
+    "tools": [
+      {
+        "name": "supabase_list_projects",
+        "description": "List Supabase projects visible to the connected Supabase account. Read-only Management API call."
+      },
+      {
+        "name": "supabase_get_project",
+        "description": "Get one Supabase project by project_ref. Read-only Management API call."
+      },
+      {
+        "name": "supabase_list_organizations",
+        "description": "List Supabase organizations visible to the connected Supabase account. Read-only Management API call."
+      },
+      {
+        "name": "supabase_execute_sql",
+        "description": "Run a SQL statement against a Supabase project's database via the Management API. Destructive statements require confirm: true."
+      },
+      {
+        "name": "supabase_apply_migration",
+        "description": "Apply a named, tracked migration to a Supabase project's database via the Management API."
+      },
+      {
+        "name": "vercel_get_domain",
+        "description": "Get information about a Vercel domain."
+      },
+      {
+        "name": "vercel_get_env",
+        "description": "Get environment variables for a Vercel project."
+      },
+      {
+        "name": "vercel_create_env",
+        "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
+      },
+      {
+        "name": "vercel_delete_env",
+        "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
+      },
+      {
+        "name": "vercel_create_deployment",
+        "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
+      }
+    ]
+  },
+  {
     "app": "supercell",
     "category": "Gaming",
     "tools": [
@@ -9840,26 +9936,6 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "vercel_list_projects",
         "description": "List all Vercel projects."
-      },
-      {
-        "name": "vercel_get_domain",
-        "description": "Get information about a Vercel domain."
-      },
-      {
-        "name": "vercel_get_env",
-        "description": "Get environment variables for a Vercel project."
-      },
-      {
-        "name": "vercel_create_env",
-        "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
-      },
-      {
-        "name": "vercel_delete_env",
-        "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
-      },
-      {
-        "name": "vercel_create_deployment",
-        "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
       }
     ]
   },

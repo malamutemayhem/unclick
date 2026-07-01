@@ -1,7 +1,7 @@
 {
   "generatedAt": "static",
-  "appCount": 672,
-  "toolCount": 1593,
+  "appCount": 675,
+  "toolCount": 1606,
   "categories": [
     "AI",
     "Books",
@@ -5084,7 +5084,7 @@
       "tools": [
         {
           "name": "github_action",
-          "description": "Interact with the GitHub REST API: search repos, get repo details, list and create issues, list PRs, get user profiles, list gists, and search code."
+          "description": "Interact with the GitHub REST API: search/read repos, create branches and commits, open PRs, comment, merge, and read workflow checks."
         }
       ],
       "level": 2,
@@ -5125,6 +5125,31 @@
       "hardened": true
     },
     {
+      "slug": "gmail",
+      "name": "Gmail",
+      "category": "Messaging & email",
+      "blurb": "Search, read, and send mail from your connected account.",
+      "domain": "gmail.com",
+      "network": "online",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "gmail_search",
+          "description": "Search Gmail messages in the connected mailbox."
+        },
+        {
+          "name": "gmail_read",
+          "description": "Read a Gmail message by id."
+        },
+        {
+          "name": "gmail_send",
+          "description": "Send a plain-text Gmail message."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
       "slug": "goertzel",
       "name": "Goertzel DFT",
       "category": "Utilities",
@@ -5140,6 +5165,27 @@
       ],
       "level": 5,
       "hardened": false
+    },
+    {
+      "slug": "google-drive",
+      "name": "Google Drive",
+      "category": "Productivity",
+      "blurb": "Browse, search, and read your connected Drive files.",
+      "domain": "drive.google.com",
+      "network": "online",
+      "toolCount": 2,
+      "tools": [
+        {
+          "name": "drive_search",
+          "description": "Search or list Google Drive files in the connected account."
+        },
+        {
+          "name": "drive_read",
+          "description": "Read Google Drive file metadata and a safe text preview when available."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "graph",
@@ -8711,6 +8757,31 @@
         {
           "name": "omdb_by_id",
           "description": "Get an OMDB movie/show by IMDb ID."
+        }
+      ],
+      "level": 5,
+      "hardened": true
+    },
+    {
+      "slug": "onedrive",
+      "name": "OneDrive",
+      "category": "Productivity",
+      "blurb": "Browse, search, and read your connected OneDrive files.",
+      "domain": "onedrive.live.com",
+      "network": "online",
+      "toolCount": 3,
+      "tools": [
+        {
+          "name": "onedrive_list",
+          "description": "List files and folders from OneDrive."
+        },
+        {
+          "name": "onedrive_search",
+          "description": "Search OneDrive files and folders by name."
+        },
+        {
+          "name": "onedrive_read",
+          "description": "Read OneDrive file metadata and a safe text preview when available."
         }
       ],
       "level": 5,
@@ -12628,10 +12699,51 @@
       "blurb": "Connect a Supabase project for UnClick and direct MCP workflows.",
       "domain": "supabase.com",
       "network": "online",
-      "toolCount": 0,
-      "tools": [],
-      "level": null,
-      "hardened": false
+      "toolCount": 10,
+      "tools": [
+        {
+          "name": "supabase_list_projects",
+          "description": "List Supabase projects visible to the connected Supabase account. Read-only Management API call."
+        },
+        {
+          "name": "supabase_get_project",
+          "description": "Get one Supabase project by project_ref. Read-only Management API call."
+        },
+        {
+          "name": "supabase_list_organizations",
+          "description": "List Supabase organizations visible to the connected Supabase account. Read-only Management API call."
+        },
+        {
+          "name": "supabase_execute_sql",
+          "description": "Run a SQL statement against a Supabase project's database via the Management API. Destructive statements require confirm: true."
+        },
+        {
+          "name": "supabase_apply_migration",
+          "description": "Apply a named, tracked migration to a Supabase project's database via the Management API."
+        },
+        {
+          "name": "vercel_get_domain",
+          "description": "Get information about a Vercel domain."
+        },
+        {
+          "name": "vercel_get_env",
+          "description": "Get environment variables for a Vercel project."
+        },
+        {
+          "name": "vercel_create_env",
+          "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
+        },
+        {
+          "name": "vercel_delete_env",
+          "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
+        },
+        {
+          "name": "vercel_create_deployment",
+          "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
+        }
+      ],
+      "level": 5,
+      "hardened": true
     },
     {
       "slug": "supercell",
@@ -14291,7 +14403,7 @@
       "blurb": "Manage projects, deployments, domains, and environment variables.",
       "domain": "vercel.com",
       "network": "online",
-      "toolCount": 8,
+      "toolCount": 3,
       "tools": [
         {
           "name": "vercel_list_deployments",
@@ -14304,26 +14416,6 @@
         {
           "name": "vercel_list_projects",
           "description": "List all Vercel projects."
-        },
-        {
-          "name": "vercel_get_domain",
-          "description": "Get information about a Vercel domain."
-        },
-        {
-          "name": "vercel_get_env",
-          "description": "Get environment variables for a Vercel project."
-        },
-        {
-          "name": "vercel_create_env",
-          "description": "Create (or upsert) an environment variable on a Vercel project. Target defaults to production, preview, and development. Use type='plain' for non-secret values, 'encrypted' or 'sensitive' for secrets."
-        },
-        {
-          "name": "vercel_delete_env",
-          "description": "Delete a Vercel environment variable by its env id (get ids from vercel_get_env)."
-        },
-        {
-          "name": "vercel_create_deployment",
-          "description": "Create a Vercel deployment. Pass deployment_id to redeploy an existing commit, or project_id + git_ref to deploy fresh from git. Set force_new=true to skip the build cache (needed after env var changes or when serverless function surfaces change)."
         }
       ],
       "level": 5,
@@ -14916,8 +15008,8 @@
           "description": "Return one XPass conductor verdict for a target PR/change at a specific commit SHA. Selected PASS receipts must name the same head SHA; stale, unscoped, missing, or blocker receipts cannot produce a green verdict."
         }
       ],
-      "level": 1,
-      "hardened": false
+      "level": 2,
+      "hardened": true
     },
     {
       "slug": "yelp",

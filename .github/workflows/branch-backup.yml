@@ -1,0 +1,42 @@
+name: Branch backup (loss-prevention)
+
+# Why this exists: work has been lost before by branches getting deleted or
+# containers wiped. This workflow creates an IMMUTABLE backup tag for every
+# push to a working branch, so the exact commit is preserved even if the
+# branch is later deleted. Tags are not auto-pruned, so the archive is always
+# recoverable.
+#
+# Non-destructive by design: this workflow ONLY creates tags. It never deletes
+# a branch, a tag, or anything else. A separate, reviewed prune job can later
+# clean up backup tags older than the retention window (10-30 days); that is
+# intentionally NOT in here, so nothing in this file can ever remove work.
+
+on:
+  push:
+    branches:
+      - "claude/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: branch-backup-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backup-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create immutable backup tag for this commit
+        run: |
+          short_sha="${GITHUB_SHA::10}"
+          branch="${GITHUB_REF_NAME//\//-}"
+          stamp="$(date -u +%Y%m%d-%H%M%S)"
+          tag="backup/${branch}/${stamp}-${short_sha}"
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "$tag"
+          echo "Backed up ${GITHUB_REF_NAME}@${short_sha} as tag: ${tag}"

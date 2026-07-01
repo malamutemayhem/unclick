@@ -70,6 +70,8 @@ import {
   SlidersHorizontal,
   Trophy,
   TowerControl,
+  GraduationCap,
+  Ticket,
 } from "lucide-react";
 
 function SurfaceLink({ path, label, icon: Icon, onClick, badge }: {
@@ -257,8 +259,10 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/controltower", label: "Control Tower", icon: TowerControl },
-  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
+  // XGate (pre-execution gates) sits above XPass (after-action proof): prechecks
+  // run before the work, so they read first in the list.
   { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
+  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
@@ -442,17 +446,18 @@ function AutopilotNavGroup({ onLinkClick }: { onLinkClick?: () => void }) {
 
 const ADMIN_SUBMENU = [
   { path: "/admin/analytics",     label: "Analytics",             icon: BarChart3   },
+  { path: "/admin/capability-balance", label: "Capability Balance", icon: SlidersHorizontal },
   { path: "/admin/codebase",      label: "Codebase",              icon: Code2       },
   { path: "/admin/users",         label: "User Management",       icon: UsersIcon   },
   { path: "/admin/system-health", label: "System Health",         icon: HeartPulse  },
   { path: "/admin/pinballwake",   label: "PinballWake",           icon: BellRing    },
   { path: "/admin/moderation",    label: "Marketplace Moderation", icon: ShieldCheck },
   { path: "/admin/audit-log",     label: "Audit Log",             icon: ScrollText  },
+  { path: "/admin/backstagepass", label: "BackstagePass", icon: Ticket },
   { path: "/admin/brainmap",      label: "Ecosystem Brainmap",    icon: Sparkles    },
   { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
-  { path: "/admin/app-testing",   label: "AppTesting",            icon: FlaskConical },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -704,6 +709,7 @@ function SidebarNav({
       <SurfaceLink path="/admin/you"      label="You"                      icon={User}    onClick={onLinkClick} />
       <MemoryNavItem onClick={onLinkClick} />
       <OrchestratorNavItem onClick={onLinkClick} />
+      <SurfaceLink path="/admin/chat"     label="Chat"                     icon={MessagesSquare} onClick={onLinkClick} />
       <ConnectionsNavGroup onLinkClick={onLinkClick} />
       <JobsLaneLink lane="human" label="Jobs (Human)" icon={ListTodo} onClick={onLinkClick} />
       <SurfaceLink path="/admin/signals"      label="Signals"       icon={Bell}     onClick={onLinkClick} badge={signalsUnread} />
@@ -713,6 +719,7 @@ function SidebarNav({
       <SectionHeader label="Agents" />
       <SeatsNavItem onClick={onLinkClick} />
       <SurfaceLink path="/admin/skills"   label="Skills"                   icon={Sparkles} onClick={onLinkClick} />
+      <SurfaceLink path="/admin/induction" label="Induction"               icon={GraduationCap} onClick={onLinkClick} />
       <AutopilotNavGroup onLinkClick={onLinkClick} />
 
       {isAdmin && <AdminSubmenu onLinkClick={onLinkClick} />}
@@ -729,6 +736,11 @@ export default function AdminShell() {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && localStorage.getItem("admin-sidebar-collapsed") === "1",
   );
+  const location = useLocation();
+  // The chat page uses the full content width (sessions rail flush to the nav,
+  // members rail flush to the right edge), so it opts out of the centered
+  // max-width container every other admin page sits in.
+  const wideContent = location.pathname.startsWith("/admin/chat");
 
   useEffect(() => {
     localStorage.setItem("admin-sidebar-collapsed", collapsed ? "1" : "0");
@@ -781,7 +793,7 @@ export default function AdminShell() {
 
   return (
     <div className="flex min-h-screen text-foreground">
-      {/* ── Desktop sidebar (md+) ──────────────────── */}
+      {/* ── Desktop sidebar (md+) ────────────────── */}
       <aside className={`fixed left-0 z-40 hidden w-56 flex-col border-r border-border/40 bg-[#06202c]/70 backdrop-blur-xl ${collapsed ? "" : "md:flex"}`} style={{ top: "var(--bbn-h, 0px)", bottom: 0 }}>
         <div className="flex h-14 items-center px-5">
           <Link to="/">
@@ -827,7 +839,7 @@ export default function AdminShell() {
         </div>
       </aside>
 
-      {/* ── Desktop top bar (md+) with global search ─────────── */}
+      {/* ── Desktop top bar (md+) with global search ───────── */}
       <header className={`fixed inset-x-0 z-30 hidden h-14 items-center border-b border-border/40 bg-[#06202c]/70 backdrop-blur-xl md:flex ${collapsed ? "md:pl-0" : "md:pl-56"}`} style={{ top: "var(--bbn-h, 0px)" }}>
         <div className="flex flex-1 items-center gap-3 px-4 lg:px-8">
           <button
@@ -845,7 +857,7 @@ export default function AdminShell() {
         </div>
       </header>
 
-      {/* ── Mobile/tablet top bar (<md) ────────────────── */}
+      {/* ── Mobile/tablet top bar (<md) ──────────────── */}
       <header className="fixed inset-x-0 z-40 flex h-14 items-center justify-between border-b border-border/40 bg-[#06202c]/80 backdrop-blur-xl px-4 md:hidden" style={{ top: "var(--bbn-h, 0px)" }}>
         <Link to="/">
           <img
@@ -897,9 +909,9 @@ export default function AdminShell() {
         </div>
       )}
 
-      {/* ── Main content ─────────────────────────── */}
+      {/* ── Main content ───────────────────── */}
       <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className={wideContent ? "px-3 py-4 sm:px-4 lg:px-5" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"}>
           <Outlet />
         </div>
       </main>

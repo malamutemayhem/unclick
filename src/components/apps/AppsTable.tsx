@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronRight, RefreshCw, Search } from "lucide-react";
 import {
   actionLabel,
   APP_CATEGORIES,
@@ -40,11 +40,14 @@ interface AppsTableProps {
   enabled?: Record<string, boolean>;
   onToggle?: (slug: string, next: boolean) => void;
   onToggleAll?: (next: boolean) => void;
+  onRefreshStatus?: () => void;
   statusOf?: (app: AppEntry) => AppStatus | null;
   /** Admin mode: the single status-column chip. It says the action until connected (Connect / Open setup / Add key), then the proven status label. null = built-in, falls back to the plain status pill. */
   actionOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
   /** Admin mode: shown in expanded connected rows so unlinking an app is discoverable. */
   disconnectOf?: (app: AppEntry) => { label: string; onClick: () => void } | null;
+  /** Admin mode: a short muted note (e.g. "Needs reconnect: ...") with a Reconnect link, shown when a token refresh failed. */
+  noteOf?: (app: AppEntry) => { text: string; reconnectTo: string } | null;
   /** admin: makes the status pill a button (used to open the connect wizard). */
   onStatusClick?: (app: AppEntry) => void;
   busy?: boolean;
@@ -69,10 +72,10 @@ function SortHeader({
   );
 }
 
-export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf, onStatusClick, actionOf, disconnectOf, busy }: AppsTableProps) {
+export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, onRefreshStatus, statusOf, onStatusClick, actionOf, disconnectOf, noteOf, busy }: AppsTableProps) {
   const { query, setQuery, category, setCategory, network, setNetwork, sortKey, sortDir, toggleSort, filtered } = useAppFilter(apps);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [showRaw, setShowRaw] = useState(false);
+  const showRaw = false;
   const isAdmin = mode === "admin";
 
   const isOn = (slug: string) => (enabled ? enabled[slug] !== false : true);
@@ -152,19 +155,20 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           </select>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-white/40">
-          <label className="flex cursor-pointer select-none items-center gap-1.5">
-            <input
-              type="checkbox"
-              checked={showRaw}
-              onChange={(e) => setShowRaw(e.target.checked)}
-              className="h-3.5 w-3.5 accent-[#61C1C4]"
-              aria-label="Show technical names"
-            />
-            Show technical names
-          </label>
           {isAdmin ? (
             <>
               <span>{onCount} of {filtered.length} on</span>
+              {onRefreshStatus && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onRefreshStatus}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/25 bg-[#61C1C4]/10 px-2.5 py-1 font-semibold text-[#9FE0E2] transition-colors hover:bg-[#61C1C4]/15 disabled:opacity-50"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Refresh status
+                </button>
+              )}
               <button
                 type="button"
                 disabled={busy}
@@ -205,7 +209,9 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
           const status = statusOf?.(app) ?? null;
           const action = actionOf?.(app) ?? null;
           const disconnect = disconnectOf?.(app) ?? null;
-          const connected = action?.label === "Manage" && Boolean(disconnect);
+          const note = isAdmin ? (noteOf?.(app) ?? null) : null;
+          const hasConnectionControls = action?.label === "Manage" && Boolean(disconnect);
+          const statusIsConnected = status?.label === "Connected";
           const quality = levelLabel(app.level);
           const open = isExpanded(app);
           return (
@@ -302,12 +308,31 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
               {open && (
                 <div className={`grid ${cols} gap-3 bg-white/[0.015] px-3 pb-2`}>
                   <div style={{ gridColumn: `${actionsColStart} / -1` }} className="min-w-0">
+                    {/* A token refresh failed: say exactly why and offer Reconnect,
+                        instead of letting the row keep looking connected. */}
+                    {note && (
+                      <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] text-amber-200/70">
+                        <span>{note.text}</span>
+                        <Link
+                          to={note.reconnectTo}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-semibold text-amber-100 underline-offset-2 hover:underline"
+                        >
+                          Reconnect
+                        </Link>
+                      </div>
+                    )}
                     {/* Full, untruncated description first, so nothing is lost to the
                         single-line row above. The internet badge rides along. */}
-                    {isAdmin && connected && (
-                      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-300/10 bg-emerald-300/[0.04] px-3 py-2">
-                        <span className="text-[11px] font-medium text-emerald-100">
-                          Connected
+                    {isAdmin && hasConnectionControls && (
+                      <div className={`mb-1.5 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 ${
+                        statusIsConnected
+                          ? "border-emerald-300/10 bg-emerald-300/[0.04]"
+                          : "border-sky-300/10 bg-sky-300/[0.04]"
+                      }`}
+                      >
+                        <span className={`text-[11px] font-medium ${statusIsConnected ? "text-emerald-100" : "text-sky-100"}`}>
+                          {status?.label ?? "Saved"}
                         </span>
                         <span className="flex items-center gap-2">
                           <button
@@ -317,7 +342,11 @@ export function AppsTable({ apps, mode, enabled, onToggle, onToggleAll, statusOf
                               e.stopPropagation();
                               action?.onClick();
                             }}
-                            className="rounded-md border border-emerald-300/20 px-2 py-1 text-[10px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/10 disabled:opacity-50"
+                            className={`rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors disabled:opacity-50 ${
+                              statusIsConnected
+                                ? "border-emerald-300/20 text-emerald-100 hover:bg-emerald-300/10"
+                                : "border-sky-300/20 text-sky-100 hover:bg-sky-300/10"
+                            }`}
                           >
                             Manage
                           </button>
