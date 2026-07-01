@@ -120,6 +120,22 @@ describe("validateChatRequest", () => {
       expect(r.thread_id).toBe("t1");
     }
   });
+
+  it("sanitizes optional council seat roster", () => {
+    const r = validateChatRequest({
+      ...base,
+      council_seats: [
+        { slug: "openrouter", model: "openai/gpt-4o-mini", label: "GPT", handle: "GPT" },
+        { slug: "", model: "missing", label: "bad", handle: "bad" },
+      ],
+    });
+    expect("error" in r).toBe(false);
+    if (!("error" in r)) {
+      expect(r.council_seats).toEqual([
+        { slug: "openrouter", model: "openai/gpt-4o-mini", label: "GPT", handle: "GPT" },
+      ]);
+    }
+  });
 });
 
 describe("resolveThreadPersistenceLane", () => {

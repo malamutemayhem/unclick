@@ -94,7 +94,7 @@ function newSeat(slug: string, model: string, taken: string[]): AiSeat {
     model,
     label,
     handle: makeHandle(label, taken),
-    active: false,
+    active: true,
   };
 }
 
@@ -172,9 +172,10 @@ export default function AdminChatPage() {
   const [attachments, setAttachments] = useState<ProcessedAttachment[]>([]);
   const [processing, setProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [seatByMsg, setSeatByMsg] = useState<Record<string, string>>({});
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
-  const targetSeatRef = useRef<AiSeat | null>(null);
+  const targetSeatLabelRef = useRef<string>("AI");
 
   // Incoming Circle requests waiting on the operator (loud top banner), and a
   // one-off "you need to connect first" block raised when starting a shared
@@ -204,9 +205,19 @@ export default function AdminChatPage() {
   const busy = status === "submitted" || status === "streaming";
   const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
 
+  function scrollMessagesToBottom(behavior: ScrollBehavior = "smooth") {
+    window.setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ block: "end", behavior });
+    }, 0);
+  }
+
   useEffect(() => {
     if (!busy) setWorkingSeatIds([]);
   }, [busy]);
+
+  useEffect(() => {
+    scrollMessagesToBottom(busy ? "auto" : "smooth");
+  }, [busy, messages.length, status]);
 
   useEffect(() => {
     if (!seatStoreKey) {
@@ -492,9 +503,11 @@ export default function AdminChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  const calledInSeat = seats.find((s) => s.active) ?? null;
-  const activeSeat =
-    seats.find((s) => s.id === activeSeatId) ?? calledInSeat ?? null;
+  const calledInSeats = seats.filter((s) => s.active);
+  const calledInSeat = calledInSeats.length === 1 ? calledInSeats[0] : null;
+  const selectedSeat = seats.find((s) => s.id === activeSeatId) ?? null;
+  const activeSeat = selectedSeat ?? calledInSeat;
+  const hasAiTarget = Boolean(selectedSeat) || calledInSeats.length > 0;
   const activeHumanMember =
     humanMembers.find((m) => m.id === activeHumanMemberId) ?? null;
   const canMessageRoomWithoutBot = Boolean(
@@ -535,7 +548,7 @@ export default function AdminChatPage() {
       const next = { ...prev };
       for (const m of messages) {
         if (m.role === "assistant" && !next[m.id]) {
-          next[m.id] = targetSeatRef.current?.label ?? "AI";
+          next[m.id] = targetSeatLabelRef.current || "AI";
           changed = true;
         }
       }
@@ -574,10 +587,7 @@ export default function AdminChatPage() {
   function toggleSeatActive(id: string) {
     setSeats((prev) => {
       const nextActive = !(prev.find((s) => s.id === id)?.active ?? false);
-      return prev.map((s) => ({
-        ...s,
-        active: s.id === id ? nextActive : false,
-      }));
+      return prev.map((s) => (s.id === id ? { ...s, active: nextActive } : s));
     });
   }
 
@@ -621,7 +631,7 @@ export default function AdminChatPage() {
     }
     setActiveSeatId(seat.id);
     setActiveHumanMemberId(null);
-    targetSeatRef.current = seat;
+    targetSeatLabelRef.current = seat.label;
     setInput((prev) => {
       const stripped = stripLeadingMention(prev);
       return `@${seat.handle} ${stripped}`;
@@ -641,21 +651,20 @@ export default function AdminChatPage() {
     });
   }
 
-  // Decide which seat answers: a leading @handle always overrides to force a
-  // specific seat for one turn. Without a mention, the called-in seat
-  // auto-responds. When no seat is selected or called in, a shared room message
-  // is human-only and does not invoke a provider.
-
-  function resolveTarget(text: string): { seat: AiSeat | null; text: string } {
+  // Decide which seats answer: a leading @handle always overrides to force a
+  // specific seat for one turn. Without a mention, every called-in seat forms
+  // the council roster. When no seat is selected or called in, a shared room
+  // message is human-only and does not invoke a provider.
+  function resolveTarget(text: string): { seats: AiSeat[]; text: string } {
     const m = text.match(/^@(\S+)\s*/);
     if (m) {
       const seat = seats.find((s) => s.handle === m[1]);
-      if (seat) return { seat, text: text.slice(m[0].length) };
+      if (seat) return { seats: [seat], text: text.slice(m[0].length) };
       const member = humanMembers.find((human) => memberHandle(human) === m[1]);
-      if (member) return { seat: null, text };
+      if (member) return { seats: [], text };
     }
-    if (calledInSeat) return { seat: calledInSeat, text };
-    return { seat: activeSeat, text };
+    if (calledInSeats.length > 0) return { seats: calledInSeats, text };
+    return { seats: selectedSeat ? [selectedSeat] : [], text };
   }
 
   // Run picked/pasted files through processFile and append the results to the
@@ -709,14 +718,21 @@ export default function AdminChatPage() {
     const raw = input.trim();
     const pending = attachments;
     if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
-    const { seat, text } = resolveTarget(raw);
-    if (!seat && !canMessageRoomWithoutBot) return;
-    targetSeatRef.current = seat;
-    if (seat) setActiveSeatId(seat.id);
+    const { seats: targetSeats, text } = resolveTarget(raw);
+    const leadSeat = targetSeats[0] ?? null;
+    const councilLabel =
+      targetSeats.length > 1
+        ? `Council: ${targetSeats.map((seat) => seat.label).join(", ")}`
+        : (leadSeat?.label ?? "AI");
+    if (!leadSeat && !canMessageRoomWithoutBot) return;
+    targetSeatLabelRef.current = councilLabel;
+    if (targetSeats.length === 1 && leadSeat) setActiveSeatId(leadSeat.id);
+    if (targetSeats.length > 1) setActiveSeatId(null);
     setActiveHumanMemberId(null);
-    setWorkingSeatIds(seat ? [seat.id] : []);
+    setWorkingSeatIds(targetSeats.map((seat) => seat.id));
     setInput("");
     setAttachments([]);
+    scrollMessagesToBottom();
 
     // The typed text after stripping any leading @handle (falls back to raw).
     const typedText = (text.trim() || raw).trim();
@@ -755,7 +771,14 @@ export default function AdminChatPage() {
         const r = await fetch("/api/chat-threads?action=create", {
           method: "POST",
           headers: authHeaders(true),
-          body: JSON.stringify(seat ? {} : { kind: "human" }),
+          body: JSON.stringify({
+            kind:
+              targetSeats.length > 1
+                ? "council"
+                : leadSeat
+                  ? "agent"
+                  : "human",
+          }),
         });
         if (r.ok) {
           const b = (await r.json()) as { id?: string };
@@ -784,7 +807,7 @@ export default function AdminChatPage() {
       }
     }
 
-    if (!seat) {
+    if (!leadSeat) {
       if (threadId) await selectThread(threadId);
       await refreshThreads();
       return;
@@ -812,10 +835,19 @@ export default function AdminChatPage() {
       {
         headers: sendHeaders,
         body: {
-          slug: seat.slug,
-          model: seat.model,
+          slug: leadSeat.slug,
+          model: leadSeat.model,
           lane: "api",
           thread_id: threadId ?? undefined,
+          council_seats:
+            targetSeats.length > 1
+              ? targetSeats.map((seat) => ({
+                  slug: seat.slug,
+                  model: seat.model,
+                  label: seat.label,
+                  handle: seat.handle,
+                }))
+              : undefined,
         },
       },
     );
@@ -829,7 +861,7 @@ export default function AdminChatPage() {
   );
   const canSend =
     Boolean(apiKey) &&
-    (Boolean(activeSeat) || canMessageRoomWithoutBot) &&
+    (hasAiTarget || canMessageRoomWithoutBot) &&
     !processing &&
     (input.trim().length > 0 || attachments.length > 0);
 
@@ -841,9 +873,9 @@ export default function AdminChatPage() {
             Chat
           </h1>
           <p className="mt-1 text-sm text-body">
-            A room for you and your AI seats. Call in one seat so it
-            auto-responds, or @mention one to direct a single turn. Each seat
-            runs on your own provider key.
+            A room for you, your people, and your AI seats. Call in one or more
+            seats for a council answer, or @mention one to direct a single turn.
+            Each seat runs on your own provider key.
           </p>
         </div>
         <div className="shrink-0 text-xs text-muted-foreground">
@@ -858,7 +890,7 @@ export default function AdminChatPage() {
           user={user}
           accessToken={accessToken}
           seats={seats}
-          activeSeatId={activeSeat?.id ?? null}
+          activeSeatId={selectedSeat?.id ?? null}
           workingSeatIds={workingSeatIds}
           humanMembers={humanMembers}
           onSelectSeat={selectSeat}
@@ -905,13 +937,17 @@ export default function AdminChatPage() {
           <div className="min-h-[46vh] flex-1 space-y-3 overflow-y-auto rounded-lg border border-border/40 bg-card/30 p-4 md:min-h-0">
             {messages.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                {activeSeat
-                  ? calledInSeat
-                    ? `${calledInSeat.label} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
-                    : `Ask ${activeSeat.label} anything, or @mention another seat. Call in a seat to skip the @mention. Replies show which seat answered and an estimated token cost.`
+                {calledInSeats.length > 1
+                  ? `${calledInSeats.length} seats called in - your next message routes as a council answer. @mention one seat to override for a single turn.`
+                  : activeSeat
+                    ? calledInSeat
+                      ? `${calledInSeat.label} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
+                      : `Ask ${activeSeat.label} anything, or @mention another seat. Call in a seat to skip the @mention. Replies show which seat answered and an estimated token cost.`
                   : canMessageRoomWithoutBot
                     ? "Send a room message, or select an AI seat when you want a bot to answer."
-                    : "Add an AI seat from the members panel to start."}
+                    : seats.length > 0
+                      ? "Select an AI seat from Members, or turn one on for auto-replies."
+                      : "Add an AI seat from Members to start."}
               </p>
             )}
             {messages.map((m) => {
@@ -972,6 +1008,7 @@ export default function AdminChatPage() {
                 {friendlyChatError(error.message)}
               </div>
             )}
+            <div ref={messagesEndRef} aria-hidden="true" />
           </div>
 
           {(attachments.length > 0 || processing) && (
@@ -1036,7 +1073,7 @@ export default function AdminChatPage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={
                 !apiKey ||
-                (!activeSeat && !canMessageRoomWithoutBot) ||
+                (!hasAiTarget && !canMessageRoomWithoutBot) ||
                 processing
               }
               aria-label="Attach files"
@@ -1058,16 +1095,20 @@ export default function AdminChatPage() {
               rows={2}
               placeholder={
                 apiKey
-                  ? activeSeat
+                  ? calledInSeats.length > 1
+                    ? `Message ${calledInSeats.length} AI seats`
+                    : activeSeat
                     ? `Message ${activeSeat.label}`
                     : activeHumanMember
                       ? `Message ${activeHumanMember.label}`
                       : canMessageRoomWithoutBot
                         ? "Message the room"
-                        : "Add an AI seat to chat"
+                        : seats.length > 0
+                          ? "Select an AI seat from Members"
+                          : "Add an AI seat from Members"
                   : "Set your UnClick key to chat"
               }
-              disabled={!apiKey || (!activeSeat && !canMessageRoomWithoutBot)}
+              disabled={!apiKey || (!hasAiTarget && !canMessageRoomWithoutBot)}
               className="flex-1 resize-none rounded-md border border-border/50 bg-card/40 px-3 py-2 text-[13px] text-body outline-none placeholder:text-muted-foreground/40 focus:border-primary/50"
             />
             {busy ? (

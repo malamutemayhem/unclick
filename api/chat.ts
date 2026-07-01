@@ -41,6 +41,7 @@ import { decideChatProviderCall } from "./lib/chat-spend.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
 import { fetchMemoryBlock, buildChatMemory } from "./lib/chat-memory.js";
 import { buildChatTools } from "./lib/chat-tools.js";
+import { redactSensitive } from "./lib/orchestrator-context.js";
 
 const MAX_STEPS = 5;
 
@@ -54,6 +55,7 @@ const UNCLICK_SEAT_PREAMBLE =
   "You have tools to read the user's UnClick memory and their connected apps. " +
   "Use search_memory to recall what the user told you before, and save_memory to remember new durable facts about them. " +
   "To use a connected app, first call find_tools to discover the relevant connector (for example gmail, google-drive, dropbox, onedrive), then tool_info to learn its exact endpoint_id and parameters, then call_tool to run a READ or list endpoint. " +
+  "Endpoint IDs may be dotted or snake-case; read-first permits clear read/list/search/get/status endpoints such as gmail_search, drive_search, onedrive_list, and dropbox_list_folder. " +
   "Write and send actions are NOT enabled yet (read-first mode), so do not attempt to send, create, update, or delete anything in a connected app; call_tool will refuse those. " +
   "Never fabricate tool results: if a tool returns a 'tool error' or empty result, tell the user plainly that the tool failed instead of inventing an answer.";
 
@@ -121,6 +123,12 @@ export interface ChatRequest {
   messages: UIMessage[];
   system?: string;
   thread_id?: string;
+  council_seats?: Array<{
+    slug: string;
+    model: string;
+    label: string;
+    handle: string;
+  }>;
 }
 
 // Validate the request body. This endpoint is api-lane only; local and
@@ -146,6 +154,20 @@ export function validateChatRequest(
   const out: ChatRequest = { slug, model, messages: b.messages as UIMessage[] };
   if (typeof b.system === "string") out.system = b.system;
   if (typeof b.thread_id === "string") out.thread_id = b.thread_id;
+  if (Array.isArray(b.council_seats)) {
+    out.council_seats = b.council_seats
+      .map((raw) => {
+        const seat = (raw ?? {}) as Record<string, unknown>;
+        return {
+          slug: typeof seat.slug === "string" ? seat.slug.trim().slice(0, 80) : "",
+          model: typeof seat.model === "string" ? seat.model.trim().slice(0, 200) : "",
+          label: typeof seat.label === "string" ? seat.label.trim().slice(0, 120) : "",
+          handle: typeof seat.handle === "string" ? seat.handle.trim().slice(0, 80) : "",
+        };
+      })
+      .filter((seat) => seat.slug && seat.model)
+      .slice(0, 8);
+  }
   return out;
 }
 
@@ -277,7 +299,9 @@ async function persistAssistantTurn(opts: {
   tokensOut: number | null;
 }): Promise<void> {
   try {
-    await fetch(`${opts.supabaseUrl}/rest/v1/chat_thread_messages`, {
+    const safeContent = redactSensitive(opts.content);
+    if (!safeContent.trim()) return;
+    const saved = await fetch(`${opts.supabaseUrl}/rest/v1/chat_thread_messages`, {
       method: "POST",
       headers: {
         apikey: opts.serviceKey,
@@ -298,6 +322,24 @@ async function persistAssistantTurn(opts: {
         tokens_out: opts.tokensOut,
       }),
     });
+    if (!saved.ok) return;
+    await fetch(`${opts.supabaseUrl}/rest/v1/mc_conversation_log`, {
+      method: "POST",
+      headers: {
+        apikey: opts.serviceKey,
+        Authorization: `Bearer ${opts.serviceKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        api_key_hash: opts.apiKeyHash,
+        session_id: `chat:${opts.threadId}`,
+        role: "assistant",
+        content: safeContent,
+        has_code: /```/.test(opts.content),
+        tokens_estimated: (opts.tokensIn ?? 0) + (opts.tokensOut ?? 0) || null,
+      }),
+    }).catch(() => {});
   } catch {
     // best effort
   }
@@ -423,6 +465,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const groundedSystem = [
     UNCLICK_SEAT_PREAMBLE,
     memoryBlock ? `The user's UnClick memory:\n\n${memoryBlock}` : "",
+    parsed.council_seats && parsed.council_seats.length > 1
+      ? [
+          "Council mode is active for this turn.",
+          "The user selected these AI seats:",
+          ...parsed.council_seats.map(
+            (seat, index) =>
+              `${index + 1}. ${seat.label || seat.model} (@${seat.handle || seat.slug}) - ${seat.slug}/${seat.model}`,
+          ),
+          "Answer as the council's synthesis: briefly surface meaningful agreement or dissent when it changes the recommendation, then give one clear final answer. Do not pretend you literally called separate models unless tool output or system context proves that.",
+        ].join("\n")
+      : "",
     parsed.system ?? "",
   ]
     .filter(Boolean)

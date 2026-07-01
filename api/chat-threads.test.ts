@@ -829,6 +829,17 @@ describe("chat-threads shared rooms", () => {
     expect((insert!.body as { api_key_hash: string }).api_key_hash).not.toBe(
       CALLER_LANE,
     );
+
+    const contextInsert = cfg.calls.find(
+      (c) => c.url.includes("/mc_conversation_log") && c.method === "POST",
+    );
+    expect(contextInsert).toBeTruthy();
+    expect(contextInsert!.body).toMatchObject({
+      api_key_hash: "lane_owner",
+      session_id: "chat:thread-1",
+      role: "user",
+      content: "hello room",
+    });
   });
 
   // ── list: shared / my_role / member_count augmentation ──────────────────
