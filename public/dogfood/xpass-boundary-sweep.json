@@ -1,10 +1,10 @@
 {
   "kind": "xpass_boundary_sweep_receipt_v1",
-  "generated_at": "2026-05-28T12:34:53.494Z",
-  "checked_at": "2026-05-28T12:34:53.494Z",
-  "run_id": "xpass-boundary-sweep-5b2f73743e349bcb",
+  "generated_at": "2026-07-01T18:18:33.426Z",
+  "checked_at": "2026-07-01T18:18:33.426Z",
+  "run_id": "xpass-boundary-sweep-4547635cffc648bb",
   "source": "nightly dogfood workflow",
-  "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+  "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
   "package_sweep_path": "public/dogfood/xpass-package-sweep.json",
   "package_sweep_status": "fresh",
   "status": "passing",
@@ -18,14 +18,14 @@
       "role": "safe credential lifecycle and redaction proof",
       "target_url": "docs/rotatepass-local-phase0.md",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:53.494Z",
+      "checked_at": "2026-07-01T18:18:33.426Z",
       "command": [
         "node",
         "--test",
         "scripts/rotatepass-redaction-guard.test.mjs"
       ],
       "exit_code": 0,
-      "duration_ms": 105,
+      "duration_ms": 100,
       "summary": "RotatePass public-safe boundary tests passed.",
       "failure_hint": null,
       "proof": {
@@ -36,6 +36,76 @@
           "scripts/rotatepass-redaction-guard.test.mjs"
         ],
         "targetUrl": "docs/rotatepass-local-phase0.md"
+      },
+      "rotatepass_receipt_v1": {
+        "kind": "rotatepass_boundary_receipt_v1",
+        "status": "PASS",
+        "product_id": "rotatepass",
+        "target_url": "docs/rotatepass-local-phase0.md",
+        "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
+        "checked_at": "2026-07-01T18:18:33.426Z",
+        "evidence_mode": "public_safe_boundary",
+        "lifecycle_evidence": {
+          "credential_values_seen": false,
+          "live_secret_probe": "not_run",
+          "rotation_action_taken": false,
+          "ownership_tracking": "metadata_only",
+          "staleness_tracking": "metadata_only",
+          "blast_radius_mapping": "used_by_tags_and_verification_targets"
+        },
+        "checks": [
+          {
+            "id": "rotatepass-redaction-guard",
+            "status": "PASS",
+            "evidence": "scripts/rotatepass-redaction-guard.test.mjs",
+            "summary": "Public RotatePass and System Credentials surfaces stayed free of secret-shaped values."
+          },
+          {
+            "id": "metadata-intake-contract",
+            "status": "PASS",
+            "evidence": "docs/rotatepass-connector-metadata.md",
+            "summary": "RotatePass consumes credential metadata such as owner, staleness, and safe probe status, not secret contents."
+          },
+          {
+            "id": "local-session-boundary",
+            "status": "PASS",
+            "evidence": "docs/rotatepass-local-phase0.md",
+            "summary": "Browser cookies, passkeys, MFA state, and provider sessions stay local and are not exported to agents."
+          },
+          {
+            "id": "blast-radius-fixture",
+            "status": "PASS",
+            "evidence": "tests/rotatepass/fixtures/system-credentials.metadata.json",
+            "summary": "Fixture evidence maps used-by tags and verification targets without including raw credential values."
+          }
+        ],
+        "cross_pass_reviewers": [
+          {
+            "id": "securitypass",
+            "name": "SecurityPass",
+            "role": "safe local security and secret-boundary proof",
+            "status": "passing"
+          },
+          {
+            "id": "legalpass",
+            "name": "LegalPass",
+            "role": "safe guidance and non-certification wording",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "proof-claim sanity and false-DONE guard",
+            "status": "passing"
+          }
+        ],
+        "action_needed": [],
+        "boundaries": [
+          "RotatePass boundary proof never reads, prints, exports, or syncs raw credential values.",
+          "This receipt does not perform provider rotation, revocation, token refresh, or destructive provider changes.",
+          "Healthy means no rotation action is due from metadata evidence; it is not a security certification.",
+          "Live credential probes require explicit future scope and must return redacted status metadata only."
+        ]
       }
     },
     {
@@ -45,7 +115,7 @@
       "role": "public-safe wake, stale work, ACK, and liveness proof",
       "target_url": "docs/prd/wakepass.md",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:53.494Z",
+      "checked_at": "2026-07-01T18:18:33.426Z",
       "command": [
         "node",
         "--test",
@@ -55,7 +125,7 @@
         "scripts/worker-liveness-watchdog.test.mjs"
       ],
       "exit_code": 0,
-      "duration_ms": 1020,
+      "duration_ms": 996,
       "summary": "WakePass public-safe boundary tests passed.",
       "failure_hint": null,
       "proof": {
@@ -69,6 +139,78 @@
           "scripts/worker-liveness-watchdog.test.mjs"
         ],
         "targetUrl": "docs/prd/wakepass.md"
+      },
+      "wakepass_receipt_v1": {
+        "kind": "wakepass_boundary_receipt_v1",
+        "status": "PASS",
+        "product_id": "wakepass",
+        "target_url": "docs/prd/wakepass.md",
+        "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
+        "checked_at": "2026-07-01T18:18:33.426Z",
+        "evidence_mode": "public_safe_boundary",
+        "lifecycle_evidence": {
+          "live_queue_touched": false,
+          "live_worker_woken": false,
+          "notification_sent": false,
+          "route_delivery_attempted": false,
+          "secret_values_seen": false,
+          "ack_tracking": "fixture_and_schema_only",
+          "stale_reclaim_tracking": "fixture_and_schema_only",
+          "liveness_tracking": "fixture_and_schema_only"
+        },
+        "checks": [
+          {
+            "id": "event-wake-router",
+            "status": "PASS",
+            "evidence": "scripts/event-wake-router.test.mjs",
+            "summary": "Wake handoffs are classified as ACK-required dispatches with bounded routing metadata."
+          },
+          {
+            "id": "pinballwake-ack-ledger",
+            "status": "PASS",
+            "evidence": "scripts/pinballwake-ack-ledger-room.test.mjs",
+            "summary": "ACK ledger fixtures keep accepted, blocked, and completed worker states visible."
+          },
+          {
+            "id": "pinballwake-stale-reclaim",
+            "status": "PASS",
+            "evidence": "scripts/pinballwake-stale-room.test.mjs",
+            "summary": "Stale work fixtures produce explicit reclaim evidence instead of silent healthy claims."
+          },
+          {
+            "id": "worker-liveness-watchdog",
+            "status": "PASS",
+            "evidence": "scripts/worker-liveness-watchdog.test.mjs",
+            "summary": "Worker liveness fixtures surface missed check-ins without touching live workers."
+          }
+        ],
+        "cross_pass_reviewers": [
+          {
+            "id": "testpass",
+            "name": "TestPass",
+            "role": "automation and MCP smoke trust gate",
+            "status": "passing"
+          },
+          {
+            "id": "commonsensepass",
+            "name": "CommonSensePass",
+            "role": "stale-work and false-DONE sanity",
+            "status": "passing"
+          },
+          {
+            "id": "flowpass",
+            "name": "FlowPass",
+            "role": "handoff and recovery-path overlap",
+            "status": "passing"
+          }
+        ],
+        "action_needed": [],
+        "boundaries": [
+          "WakePass boundary proof does not touch live queues, wake live workers, send notifications, or call route adapters.",
+          "This receipt uses public-safe fixtures and schemas for ACK, stale reclaim, and liveness evidence.",
+          "Healthy means the boundary fixtures passed; it is not proof that every live worker is awake.",
+          "Live wake attempts require explicit future scope, idempotency keys, rate limits, and redacted route metadata only."
+        ]
       }
     }
   ],

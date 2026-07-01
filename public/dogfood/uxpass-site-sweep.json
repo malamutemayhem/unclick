@@ -2,10 +2,10 @@
   "kind": "uxpass_site_sweep_receipt",
   "check": "uxpass",
   "name": "UXPass",
-  "generated_at": "2026-05-28T12:35:04.622Z",
-  "run_id": "uxpass-site-sweep-ef2db80c6f989426",
+  "generated_at": "2026-07-01T18:18:48.626Z",
+  "run_id": "uxpass-site-sweep-84dc13b15165eb61",
   "status": "passing",
-  "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+  "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
   "min_score": 80,
   "allowed_origins": [
     "https://unclick.world",
@@ -32,14 +32,14 @@
         "path": "/"
       },
       "status": "passing",
-      "run_id": "f30e905d-d433-4e14-8abe-8991b2946410",
+      "run_id": "bd2164b7-1cdd-4eec-b8c2-5fb54dbe08b5",
       "ux_score": 100,
       "summary": "UXPass completed with score 100.",
       "proof": {
         "kind": "uxpass_run",
-        "runId": "f30e905d-d433-4e14-8abe-8991b2946410",
+        "runId": "bd2164b7-1cdd-4eec-b8c2-5fb54dbe08b5",
         "targetUrl": "https://unclick.world/",
-        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
+        "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc"
       },
       "evidence": {
         "viewports": [
@@ -74,14 +74,14 @@
         "path": "/dashboard"
       },
       "status": "passing",
-      "run_id": "424a8960-3fad-4675-9523-6bee565c3642",
+      "run_id": "ffe3905b-574c-4c29-8113-10a865cc9e38",
       "ux_score": 100,
       "summary": "UXPass completed with score 100.",
       "proof": {
         "kind": "uxpass_run",
-        "runId": "424a8960-3fad-4675-9523-6bee565c3642",
+        "runId": "ffe3905b-574c-4c29-8113-10a865cc9e38",
         "targetUrl": "https://unclick.world/dashboard",
-        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
+        "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc"
       },
       "evidence": {
         "viewports": [
@@ -116,14 +116,14 @@
         "path": "/admin/you"
       },
       "status": "passing",
-      "run_id": "80bfc60d-7dae-4e2b-9639-1d21771424f5",
+      "run_id": "a6b84a93-884e-40ee-99ce-309a689fafb0",
       "ux_score": 100,
       "summary": "UXPass completed with score 100.",
       "proof": {
         "kind": "uxpass_run",
-        "runId": "80bfc60d-7dae-4e2b-9639-1d21771424f5",
+        "runId": "a6b84a93-884e-40ee-99ce-309a689fafb0",
         "targetUrl": "https://unclick.world/admin/you",
-        "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0"
+        "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc"
       },
       "evidence": {
         "viewports": [
@@ -157,10 +157,10 @@
     "check": "uxpass",
     "name": "UXPass",
     "status": "passed",
-    "run_id": "uxpass-site-sweep-ef2db80c6f989426",
-    "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+    "run_id": "uxpass-site-sweep-84dc13b15165eb61",
+    "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
     "url": "https://unclick.world",
     "summary": "UXPass site sweep passing across 3 URL(s).",
-    "generated_at": "2026-05-28T12:35:04.622Z"
+    "generated_at": "2026-07-01T18:18:48.626Z"
   }
 }

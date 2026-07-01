@@ -1,10 +1,10 @@
 {
   "kind": "xpass_package_sweep_receipt_v1",
-  "generated_at": "2026-05-28T12:34:36.863Z",
-  "checked_at": "2026-05-28T12:34:36.863Z",
-  "run_id": "xpass-package-sweep-8ad0c460f00e0271",
+  "generated_at": "2026-07-01T18:18:13.552Z",
+  "checked_at": "2026-07-01T18:18:13.552Z",
+  "run_id": "xpass-package-sweep-79d0a1ff4eccf8e5",
   "source": "nightly dogfood workflow",
-  "target_sha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+  "target_sha": "c526874989662f5a446cf6520619f08c7851cbfc",
   "status": "passing",
   "scope": "full",
   "summary": "XPass package sweep passing across all 10 package(s).",
@@ -44,7 +44,7 @@
       "stage": "live_gate",
       "role": "merge proof and MCP smoke gate",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -52,7 +52,7 @@
         "--workspace=@unclick/testpass"
       ],
       "exit_code": 0,
-      "duration_ms": 6199,
+      "duration_ms": 8976,
       "summary": "TestPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -74,7 +74,7 @@
       "stage": "live_dogfood",
       "role": "public UX and route sweep gate",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -82,7 +82,7 @@
         "--workspace=@unclick/uxpass"
       ],
       "exit_code": 0,
-      "duration_ms": 1423,
+      "duration_ms": 1376,
       "summary": "UXPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -104,7 +104,7 @@
       "stage": "scope_gated",
       "role": "safe local security package proof only",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -112,7 +112,7 @@
         "--workspace=@unclick/securitypass"
       ],
       "exit_code": 0,
-      "duration_ms": 1386,
+      "duration_ms": 1490,
       "summary": "SecurityPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -134,7 +134,7 @@
       "stage": "package_ready",
       "role": "AI-code quality and anti-slop review",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -142,7 +142,7 @@
         "--workspace=@unclick/sloppass"
       ],
       "exit_code": 0,
-      "duration_ms": 1250,
+      "duration_ms": 1364,
       "summary": "SlopPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -164,7 +164,7 @@
       "stage": "package_ready",
       "role": "crawler, canonical, robots, sitemap, and metadata proof",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -172,7 +172,7 @@
         "--workspace=@unclick/seopass"
       ],
       "exit_code": 0,
-      "duration_ms": 951,
+      "duration_ms": 999,
       "summary": "SEOPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -194,7 +194,7 @@
       "stage": "package_ready",
       "role": "copy quality, claims, and source-copy boundary proof",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -202,7 +202,7 @@
         "--workspace=@unclick/copypass"
       ],
       "exit_code": 0,
-      "duration_ms": 1081,
+      "duration_ms": 1128,
       "summary": "CopyPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -224,7 +224,7 @@
       "stage": "package_ready",
       "role": "guidance-only policy and claims proof",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -232,7 +232,7 @@
         "--workspace=@unclick/legalpass"
       ],
       "exit_code": 0,
-      "duration_ms": 1271,
+      "duration_ms": 1299,
       "summary": "LegalPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -254,7 +254,7 @@
       "stage": "live_gate",
       "role": "false-DONE, claim sanity, and proof honesty gate",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -262,7 +262,7 @@
         "--workspace=@unclick/commonsensepass"
       ],
       "exit_code": 0,
-      "duration_ms": 1066,
+      "duration_ms": 1037,
       "summary": "CommonSensePass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -284,7 +284,7 @@
       "stage": "package_ready",
       "role": "journey and handoff proof",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -292,7 +292,7 @@
         "--workspace=@unclick/flowpass"
       ],
       "exit_code": 0,
-      "duration_ms": 1146,
+      "duration_ms": 1207,
       "summary": "FlowPass package tests passed.",
       "failure_hint": null,
       "proof": {
@@ -314,7 +314,7 @@
       "stage": "package_ready",
       "role": "answer-engine readiness and AI-discovery proof",
       "status": "passing",
-      "checked_at": "2026-05-28T12:34:36.863Z",
+      "checked_at": "2026-07-01T18:18:13.552Z",
       "command": [
         "npm",
         "run",
@@ -322,7 +322,7 @@
         "--workspace=@unclick/geopass"
       ],
       "exit_code": 0,
-      "duration_ms": 801,
+      "duration_ms": 935,
       "summary": "GEOPass package tests passed.",
       "failure_hint": null,
       "proof": {

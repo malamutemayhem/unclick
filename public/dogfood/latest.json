@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-06-11T04:15:51.398Z",
-  "lastRunAt": "2026-06-11T04:15:51.398Z",
-  "status": "failing",
+  "generatedAt": "2026-07-01T18:18:34.586Z",
+  "lastRunAt": "2026-07-01T18:18:34.586Z",
+  "status": "blocked",
   "source": "nightly dogfood workflow",
   "headline": "We dogfood UnClick on UnClick.",
   "target": "UnClick public and agent-facing product surfaces",
@@ -136,24 +136,32 @@
     {
       "id": "testpass",
       "name": "TestPass",
-      "status": "blocked",
-      "summary": "Scheduled TestPass could not run because DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN is missing.",
-      "evidence": "Set the GitHub secret so the nightly dogfood workflow can create a fresh testpass_runs row.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "blockedReason": "Missing DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN.",
-      "reasonCode": "missing_credential",
-      "nextProof": "Set one TestPass workflow secret, then rerun the dogfood report workflow."
+      "status": "passing",
+      "summary": "Scheduled TestPass completed with 17 checks and 0 failures.",
+      "evidence": "Run bc95a321-b809-4009-888b-4f12509b5514 checked https://unclick.world/api/mcp.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "bc95a321-b809-4009-888b-4f12509b5514",
+      "targetUrl": "https://unclick.world/api/mcp",
+      "proof": {
+        "kind": "testpass_run",
+        "runId": "bc95a321-b809-4009-888b-4f12509b5514",
+        "targetUrl": "https://unclick.world/api/mcp"
+      }
     },
     {
       "id": "uxpass",
       "name": "UXPass",
-      "status": "blocked",
-      "summary": "Scheduled UXPass could not run because DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET is missing.",
-      "evidence": "Set one workflow secret so the nightly dogfood workflow can create a fresh uxpass_runs row.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "blockedReason": "Missing DOGFOOD_UXPASS_TOKEN, UXPASS_TOKEN, or CRON_SECRET.",
-      "reasonCode": "missing_credential",
-      "nextProof": "Set one UXPass workflow secret, then rerun the dogfood report workflow."
+      "status": "passing",
+      "summary": "Scheduled UXPass completed with UX score 100.",
+      "evidence": "Run 6ed4c7d4-8118-4302-9088-8bbda995f1b9 checked https://unclick.world.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "6ed4c7d4-8118-4302-9088-8bbda995f1b9",
+      "targetUrl": "https://unclick.world",
+      "proof": {
+        "kind": "uxpass_run",
+        "runId": "6ed4c7d4-8118-4302-9088-8bbda995f1b9",
+        "targetUrl": "https://unclick.world"
+      }
     },
     {
       "id": "securitypass",
@@ -161,7 +169,7 @@
       "status": "passing",
       "summary": "Safe recurring proof verified SecurityPass remains deny-by-default before active probes.",
       "evidence": "Static proof checked the runner scope gate plus scanner wrapper safety settings; no active probes were run.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
       "proof": {
         "kind": "securitypass_safe_static_proof",
         "files": {
@@ -212,16 +220,16 @@
       "name": "SlopPass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed SlopPass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/sloppass; cross-checked by TestPass, CommonSensePass, CopyPass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/sloppass; cross-checked by TestPass, CommonSensePass, CopyPass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/sloppass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "sloppass",
         "targetUrl": "packages/sloppass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -248,17 +256,17 @@
     {
       "id": "seopass",
       "name": "SEOPass",
-      "status": "failing",
-      "summary": "SEOPass read-only dogfood found 10 issue(s) with SEO health score 10.",
-      "evidence": "Target URL did not return public 2xx HTML. Target URL did not return public HTML content. Page title is missing. Meta description is missing.",
-      "checkedAt": "2026-06-11T04:15:51.402Z",
-      "runId": "seopass-dogfood-20260611041551",
+      "status": "passing",
+      "summary": "SEOPass read-only dogfood completed with SEO health score 100.",
+      "evidence": "Run seopass-dogfood-20260701181848 checked public HTML, robots.txt, sitemap.xml, and llms.txt for https://unclick.world.",
+      "checkedAt": "2026-07-01T18:18:48.086Z",
+      "runId": "seopass-dogfood-20260701181848",
       "targetUrl": "https://unclick.world",
       "proof": {
         "kind": "seopass_run",
-        "runId": "seopass-dogfood-20260611041551",
+        "runId": "seopass-dogfood-20260701181848",
         "targetUrl": "https://unclick.world",
-        "score": 10,
+        "score": 100,
         "sourceUrls": [
           "https://unclick.world",
           "https://unclick.world/robots.txt",
@@ -266,24 +274,23 @@
           "https://unclick.world/llms.txt"
         ]
       },
-      "reasonCode": "seopass_readonly_findings",
-      "nextProof": "Fix the listed public SEO findings, then rerun the dogfood report workflow."
+      "nextProof": "Schedule this receipt and wire it to the shared GEOPass baseline."
     },
     {
       "id": "copypass",
       "name": "CopyPass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed CopyPass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/copypass; cross-checked by SlopPass, LegalPass, CommonSensePass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/copypass; cross-checked by SlopPass, LegalPass, CommonSensePass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/copypass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "copypass",
         "targetUrl": "packages/copypass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -312,16 +319,16 @@
       "name": "LegalPass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed LegalPass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/legalpass; cross-checked by CopyPass, SecurityPass, CommonSensePass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/legalpass; cross-checked by CopyPass, SecurityPass, CommonSensePass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/legalpass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "legalpass",
         "targetUrl": "packages/legalpass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -350,16 +357,16 @@
       "name": "CommonSensePass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed CommonSensePass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/commonsensepass; cross-checked by TestPass, SlopPass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/commonsensepass; cross-checked by TestPass, SlopPass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/commonsensepass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "commonsensepass",
         "targetUrl": "packages/commonsensepass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -382,16 +389,16 @@
       "name": "FlowPass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed FlowPass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/flowpass; cross-checked by UXPass, TestPass, CommonSensePass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/flowpass; cross-checked by UXPass, TestPass, CommonSensePass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/flowpass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "flowpass",
         "targetUrl": "packages/flowpass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -420,16 +427,16 @@
       "name": "GEOPass",
       "status": "passing",
       "summary": "Scheduled XPass package sweep passed GEOPass.",
-      "evidence": "Receipt xpass-package-sweep-8ad0c460f00e0271 ran npm run test --workspace=@unclick/geopass; cross-checked by TestPass, SEOPass, CommonSensePass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-package-sweep-8ad0c460f00e0271",
+      "evidence": "Receipt xpass-package-sweep-79d0a1ff4eccf8e5 ran npm run test --workspace=@unclick/geopass; cross-checked by TestPass, SEOPass, CommonSensePass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
       "targetUrl": "packages/geopass",
       "proof": {
         "kind": "xpass_package_sweep",
-        "runId": "xpass-package-sweep-8ad0c460f00e0271",
+        "runId": "xpass-package-sweep-79d0a1ff4eccf8e5",
         "packageId": "geopass",
         "targetUrl": "packages/geopass",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-package-sweep.json",
         "reviewers": [
           {
@@ -458,16 +465,16 @@
       "name": "RotatePass",
       "status": "passing",
       "summary": "Scheduled XPass boundary sweep passed RotatePass.",
-      "evidence": "Receipt xpass-boundary-sweep-5b2f73743e349bcb ran node --test scripts/rotatepass-redaction-guard.test.mjs; cross-checked by SecurityPass, LegalPass, CommonSensePass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+      "evidence": "Receipt xpass-boundary-sweep-4547635cffc648bb ran node --test scripts/rotatepass-redaction-guard.test.mjs; cross-checked by SecurityPass, LegalPass, CommonSensePass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-boundary-sweep-4547635cffc648bb",
       "targetUrl": "docs/rotatepass-local-phase0.md",
       "proof": {
         "kind": "xpass_boundary_sweep",
-        "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+        "runId": "xpass-boundary-sweep-4547635cffc648bb",
         "productId": "rotatepass",
         "targetUrl": "docs/rotatepass-local-phase0.md",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-boundary-sweep.json",
         "reviewers": [
           {
@@ -496,16 +503,16 @@
       "name": "WakePass",
       "status": "passing",
       "summary": "Scheduled XPass boundary sweep passed WakePass.",
-      "evidence": "Receipt xpass-boundary-sweep-5b2f73743e349bcb ran node --test scripts/event-wake-router.test.mjs scripts/pinballwake-ack-ledger-room.test.mjs scripts/pinballwake-stale-room.test.mjs scripts/worker-liveness-watchdog.test.mjs; cross-checked by TestPass, CommonSensePass, FlowPass.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
-      "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+      "evidence": "Receipt xpass-boundary-sweep-4547635cffc648bb ran node --test scripts/event-wake-router.test.mjs scripts/pinballwake-ack-ledger-room.test.mjs scripts/pinballwake-stale-room.test.mjs scripts/worker-liveness-watchdog.test.mjs; cross-checked by TestPass, CommonSensePass, FlowPass.",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
+      "runId": "xpass-boundary-sweep-4547635cffc648bb",
       "targetUrl": "docs/prd/wakepass.md",
       "proof": {
         "kind": "xpass_boundary_sweep",
-        "runId": "xpass-boundary-sweep-5b2f73743e349bcb",
+        "runId": "xpass-boundary-sweep-4547635cffc648bb",
         "productId": "wakepass",
         "targetUrl": "docs/prd/wakepass.md",
-        "targetSha": "ca602ea4028d620d9fb2c06787550406ea5a3df0",
+        "targetSha": "c526874989662f5a446cf6520619f08c7851cbfc",
         "receiptPath": "public/dogfood/xpass-boundary-sweep.json",
         "reviewers": [
           {
@@ -535,7 +542,7 @@
       "status": "blocked",
       "summary": "CompliancePass public receipt exists but is stale.",
       "evidence": "See /enterprise/latest.json for the readiness-report boundary and current category map.",
-      "checkedAt": "2026-06-11T04:15:51.398Z",
+      "checkedAt": "2026-07-01T18:18:34.586Z",
       "blockedReason": "CompliancePass receipt is older than 168 hour(s).",
       "reasonCode": "stale_receipt",
       "score": 99.3,
@@ -546,7 +553,7 @@
         "checksTotal": 27,
         "highSeverityGaps": 0,
         "generatedAt": "2026-05-28T11:13:41.370Z",
-        "ageHours": 329,
+        "ageHours": 823.1,
         "maxAgeHours": 168
       },
       "nextProof": "Regenerate /enterprise/latest.json with npm run compliancepass:report, then rerun dogfood."
@@ -554,16 +561,16 @@
   ],
   "trend": [
     {
-      "date": "2026-06-11",
-      "passing": 9,
-      "failing": 1,
-      "blocked": 3,
+      "date": "2026-07-01",
+      "passing": 12,
+      "failing": 0,
+      "blocked": 1,
       "pending": 0
     }
   ],
   "lastActionableFailure": {
-    "title": "TestPass needs attention",
-    "detail": "Scheduled TestPass could not run because DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN is missing. Blocked reason: Missing DOGFOOD_TESTPASS_TOKEN or TESTPASS_TOKEN.",
+    "title": "CompliancePass needs attention",
+    "detail": "CompliancePass public receipt exists but is stale. Blocked reason: CompliancePass receipt is older than 168 hour(s).",
     "owner": "Dogfood automation"
   }
 }
