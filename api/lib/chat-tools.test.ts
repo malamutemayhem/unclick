@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   isBuildModeEndpointId,
   isReadOnlyEndpointId,
+  normalizeConnectorCall,
   internalMcpCall,
   buildChatTools,
   type ChatMemory,
@@ -96,6 +97,44 @@ describe("isBuildModeEndpointId", () => {
     expect(isBuildModeEndpointId("github_merge_pull_request")).toBe(false);
     expect(isBuildModeEndpointId("vercel_deploy")).toBe(false);
     expect(isBuildModeEndpointId("drive_share_file")).toBe(false);
+  });
+});
+
+describe("normalizeConnectorCall", () => {
+  it("unwraps MCP meta-tool shaped calls before permission checks", () => {
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        endpoint_id: "higgsfield_generate_image",
+        params: { prompt: "robot near a train station" },
+      }),
+    ).toEqual({
+      endpointId: "higgsfield_generate_image",
+      params: { prompt: "robot near a train station" },
+    });
+  });
+
+  it("unwraps JSON-RPC style arguments nested inside params", () => {
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        name: "unclick_call",
+        arguments: {
+          endpoint_id: "gmail_search",
+          params: { query: "today" },
+        },
+      }),
+    ).toEqual({ endpointId: "gmail_search", params: { query: "today" } });
+  });
+
+  it("can qualify a bare action when the connector is supplied separately", () => {
+    expect(
+      normalizeConnectorCall("generate_image", {
+        connector: "higgsfield",
+        prompt: "cyberpunk robot",
+      }),
+    ).toEqual({
+      endpointId: "higgsfield_generate_image",
+      params: { connector: "higgsfield", prompt: "cyberpunk robot" },
+    });
   });
 });
 
@@ -299,6 +338,68 @@ describe("connector tools (require a validated connector key)", () => {
     });
   });
 
+  it("call_tool unwraps unclick_call-shaped build requests instead of refusing them", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "image job queued" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({
+      endpoint_id: "unclick_call",
+      params: {
+        endpoint_id: "higgsfield_generate_image",
+        params: { prompt: "robot, cyberpunk, train station" },
+      },
+    });
+
+    expect(out).toBe("image job queued");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.params.name).toBe("unclick_call");
+    expect(body.params.arguments).toEqual({
+      endpoint_id: "higgsfield_generate_image",
+      params: { prompt: "robot, cyberpunk, train station" },
+    });
+  });
+
+  it("call_tool unwraps unclick_call-shaped read requests instead of refusing them", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "calendar-ish email" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({
+      endpoint_id: "unclick_call",
+      params: {
+        arguments: {
+          endpoint_id: "gmail_search",
+          params: { query: "today" },
+        },
+      },
+    });
+
+    expect(out).toBe("calendar-ish email");
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.params.arguments).toEqual({
+      endpoint_id: "gmail_search",
+      params: { query: "today" },
+    });
+  });
+
   it("call_tool still refuses high-risk endpoints in Build mode", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
@@ -365,5 +466,45 @@ describe("connector tools (require a validated connector key)", () => {
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.params.name).toBe("unclick_search");
     expect(body.params.arguments).toEqual({ query: "read my email", category: undefined });
+  });
+
+  it("tool_info falls back to integration search when the built-in catalog has no slug", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        mcpJsonResponse({
+          result: {
+            isError: true,
+            content: [{ type: "text", text: 'Tool "higgsfield" not found. Available slugs: calc' }],
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        mcpJsonResponse({
+          result: {
+            content: [
+              {
+                type: "text",
+                text: "Integration tools (call directly by name, or via unclick_call):\n- **higgsfield_generate_image** (higgsfield) -- Generate a Higgsfield image from a prompt.",
+              },
+            ],
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const info = tools.tool_info as { execute: (args: unknown) => Promise<string> };
+    const out = await info.execute({ tool: "higgsfield" });
+
+    expect(out).toContain("tool_info did not find that built-in catalog slug");
+    expect(out).toContain("higgsfield_generate_image");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).params.name).toBe("unclick_search");
   });
 });
