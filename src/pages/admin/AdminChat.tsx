@@ -126,6 +126,10 @@ function friendlyChatError(message: string): string {
 
 const SEATS_STORAGE_KEY = "unclick_chat_seats";
 type ChatToolMode = "read" | "build";
+type CouncilRunSeat = Pick<
+  AiSeat,
+  "id" | "label" | "handle" | "slug" | "model"
+>;
 
 function seatsStorageKey(userId: string | undefined): string | null {
   return userId ? `${SEATS_STORAGE_KEY}:${userId}` : null;
@@ -167,6 +171,7 @@ export default function AdminChatPage() {
     () => null,
   );
   const [workingSeatIds, setWorkingSeatIds] = useState<string[]>([]);
+  const [councilRunSeats, setCouncilRunSeats] = useState<CouncilRunSeat[]>([]);
   const [input, setInput] = useState("");
   const [toolMode, setToolMode] = useState<ChatToolMode>("build");
 
@@ -215,7 +220,10 @@ export default function AdminChatPage() {
   }
 
   useEffect(() => {
-    if (!busy) setWorkingSeatIds([]);
+    if (!busy) {
+      setWorkingSeatIds([]);
+      setCouncilRunSeats([]);
+    }
   }, [busy]);
 
   useEffect(() => {
@@ -228,12 +236,14 @@ export default function AdminChatPage() {
       setLoadedSeatStoreKey(null);
       setActiveSeatId(null);
       setWorkingSeatIds([]);
+      setCouncilRunSeats([]);
       return;
     }
     setSeats(loadSeats(seatStoreKey));
     setLoadedSeatStoreKey(seatStoreKey);
     setActiveSeatId(null);
     setWorkingSeatIds([]);
+    setCouncilRunSeats([]);
   }, [seatStoreKey]);
 
   function stripLeadingMention(text: string): string {
@@ -350,6 +360,7 @@ export default function AdminChatPage() {
     if (!accessToken) return;
     setActiveThread(id);
     setWorkingSeatIds([]);
+    setCouncilRunSeats([]);
     setActiveSeatId(null);
     setActiveHumanMemberId(null);
     setInput("");
@@ -387,6 +398,7 @@ export default function AdminChatPage() {
     setMessages([]);
     setSeatByMsg({});
     setWorkingSeatIds([]);
+    setCouncilRunSeats([]);
     setHumanMembers([]);
     setActiveSeatId(null);
     setActiveHumanMemberId(null);
@@ -447,6 +459,7 @@ export default function AdminChatPage() {
         setMessages([]);
         setSeatByMsg({});
         setWorkingSeatIds([]);
+        setCouncilRunSeats([]);
         setHumanMembers([]);
         setActiveSeatId(null);
         setActiveHumanMemberId(null);
@@ -472,6 +485,7 @@ export default function AdminChatPage() {
         setMessages([]);
         setSeatByMsg({});
         setWorkingSeatIds([]);
+        setCouncilRunSeats([]);
         setHumanMembers([]);
         setActiveSeatId(null);
         setActiveHumanMemberId(null);
@@ -585,6 +599,7 @@ export default function AdminChatPage() {
     setSeats((prev) => prev.filter((s) => s.id !== id));
     setActiveSeatId((cur) => (cur === id ? null : cur));
     setWorkingSeatIds((prev) => prev.filter((seatId) => seatId !== id));
+    setCouncilRunSeats((prev) => prev.filter((seat) => seat.id !== id));
   }
 
   function toggleSeatActive(id: string) {
@@ -733,6 +748,17 @@ export default function AdminChatPage() {
     if (targetSeats.length > 1) setActiveSeatId(null);
     setActiveHumanMemberId(null);
     setWorkingSeatIds(targetSeats.map((seat) => seat.id));
+    setCouncilRunSeats(
+      targetSeats.length > 1
+        ? targetSeats.map(({ id, label, handle, slug, model }) => ({
+            id,
+            label,
+            handle,
+            slug,
+            model,
+          }))
+        : [],
+    );
     setInput("");
     setAttachments([]);
     scrollMessagesToBottom();
@@ -1028,6 +1054,59 @@ export default function AdminChatPage() {
                 </div>
               );
             })}
+            {busy && councilRunSeats.length > 1 && (
+              <div className="text-left">
+                <div className="inline-block max-w-[92%] rounded-lg border border-cyan-300/25 bg-cyan-400/10 px-3 py-2 text-[12px] text-body shadow-[0_0_0_1px_rgba(34,211,238,0.05)]">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan-200/80">
+                        Council working
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-body">
+                        {councilRunSeats.length} independent model passes are
+                        being gathered, then one synthesis answer returns here.
+                      </p>
+                    </div>
+                    <span className="flex items-center gap-1 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-2 py-0.5 text-[10px] text-cyan-100">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      synthesising
+                    </span>
+                  </div>
+                  <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                    {councilRunSeats.map((seat, index) => (
+                      <div
+                        key={seat.id}
+                        className="flex min-w-0 items-center gap-2 rounded-md border border-cyan-300/15 bg-background/20 px-2 py-1.5"
+                      >
+                        <span className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-300/15 text-[10px] font-semibold text-cyan-100">
+                          <span className="absolute inset-0 rounded-full border border-cyan-300/40 animate-ping" />
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[12px] text-body">
+                            {seat.label}
+                          </span>
+                          <span className="block truncate text-[10px] text-muted-foreground">
+                            @{seat.handle} - independent brief
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] text-cyan-100/75">
+                    <span className="rounded-full border border-cyan-300/20 px-2 py-0.5">
+                      1. Briefs
+                    </span>
+                    <span className="rounded-full border border-cyan-300/20 px-2 py-0.5">
+                      2. Compare
+                    </span>
+                    <span className="rounded-full border border-cyan-300/20 px-2 py-0.5">
+                      3. Synthesis
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
             {error && (
               <div className="text-xs text-red-400">
                 {friendlyChatError(error.message)}
