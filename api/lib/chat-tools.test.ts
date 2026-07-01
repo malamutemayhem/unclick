@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { isReadOnlyEndpointId, internalMcpCall, buildChatTools, type ChatMemory } from "./chat-tools";
+import {
+  isBuildModeEndpointId,
+  isReadOnlyEndpointId,
+  internalMcpCall,
+  buildChatTools,
+  type ChatMemory,
+} from "./chat-tools";
 
 // A fake memory backend that records calls, so the memory tools can be tested
 // without a real Supabase backend.
@@ -66,6 +72,30 @@ describe("isReadOnlyEndpointId", () => {
     expect(isReadOnlyEndpointId("attendance.check_in")).toBe(false);
     expect(isReadOnlyEndpointId("calendar.checkin")).toBe(false);
     expect(isReadOnlyEndpointId("")).toBe(false);
+  });
+});
+
+describe("isBuildModeEndpointId", () => {
+  it("includes read endpoints", () => {
+    expect(isBuildModeEndpointId("gmail_search")).toBe(true);
+    expect(isBuildModeEndpointId("dropbox_list_folder")).toBe(true);
+  });
+
+  it("allows non-destructive build and generation endpoints", () => {
+    expect(isBuildModeEndpointId("higgsfield_generate_image")).toBe(true);
+    expect(isBuildModeEndpointId("openai_generate_image")).toBe(true);
+    expect(isBuildModeEndpointId("stability_text_to_image")).toBe(true);
+    expect(isBuildModeEndpointId("github_create_branch")).toBe(true);
+    expect(isBuildModeEndpointId("github_write_file")).toBe(true);
+  });
+
+  it("keeps high-risk actions blocked", () => {
+    expect(isBuildModeEndpointId("gmail_send")).toBe(false);
+    expect(isBuildModeEndpointId("dropbox_delete")).toBe(false);
+    expect(isBuildModeEndpointId("stripe_charge")).toBe(false);
+    expect(isBuildModeEndpointId("github_merge_pull_request")).toBe(false);
+    expect(isBuildModeEndpointId("vercel_deploy")).toBe(false);
+    expect(isBuildModeEndpointId("drive_share_file")).toBe(false);
   });
 });
 
@@ -230,7 +260,7 @@ describe("connector tools (require a validated connector key)", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("call_tool refuses a write endpoint even WITH a connector key (read-first, unconditional)", async () => {
+  it("call_tool refuses a write endpoint in read mode even WITH a connector key", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
@@ -239,6 +269,50 @@ describe("connector tools (require a validated connector key)", () => {
     const out = await callTool.execute({ endpoint_id: "gmail.send", params: {} });
 
     expect(out).toMatch(/read-first mode/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("call_tool allows a build endpoint when Build mode is active", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "image job queued" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({
+      endpoint_id: "higgsfield_generate_image",
+      params: { prompt: "robot, cyberpunk, train station" },
+    });
+
+    expect(out).toBe("image job queued");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.params.arguments).toEqual({
+      endpoint_id: "higgsfield_generate_image",
+      params: { prompt: "robot, cyberpunk, train station" },
+    });
+  });
+
+  it("call_tool still refuses high-risk endpoints in Build mode", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({ endpoint_id: "gmail_send", params: {} });
+
+    expect(out).toMatch(/blocked in Build mode/i);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

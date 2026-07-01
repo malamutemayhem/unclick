@@ -118,6 +118,15 @@ describe("validateChatRequest", () => {
     if (!("error" in r)) {
       expect(r.system).toBe("be brief");
       expect(r.thread_id).toBe("t1");
+      expect(r.tool_mode).toBe("read");
+    }
+  });
+
+  it("carries explicit Build mode through", () => {
+    const r = validateChatRequest({ ...base, tool_mode: "build" });
+    expect("error" in r).toBe(false);
+    if (!("error" in r)) {
+      expect(r.tool_mode).toBe("build");
     }
   });
 

@@ -1,4 +1,4 @@
-// ─── Chat tool-calling (read-first) ──────────────────────────────────────────
+// ─── Chat tool-calling ───────────────────────────────────────────────────────
 //
 // Wires AI SDK tool-calling into the website chat seat. Two tool families with
 // deliberately different auth paths, because the website authenticates chat with
@@ -21,8 +21,12 @@
 // NEVER mutates process.env.UNCLICK_API_KEY, so concurrent chat requests can
 // never bleed one tenant's key into another (the global-env race).
 //
-// Read-first policy: write/send actions on connected apps are gated off.
-// call_tool refuses any endpoint whose leaf action is not clearly a read.
+// Tool policy:
+//  - read mode allows only clear read/list/search/get/status endpoints.
+//  - build mode additionally allows non-destructive create/write/generate
+//    style endpoints so API seats can build when the operator has enabled it.
+//  - high-risk actions such as send/delete/pay/merge/deploy stay blocked until
+//    the per-action confirmation layer exists.
 // save_memory writes only to the user's OWN UnClick memory, never to a
 // connected app.
 
@@ -35,6 +39,8 @@ const MAX_RESULT_CHARS = 6000;
 
 // Per-call ceiling for the internal /api/mcp round trip.
 const MCP_CALL_TIMEOUT_MS = 20_000;
+
+export type ChatToolMode = "read" | "build";
 
 interface McpContent {
   type?: string;
@@ -216,6 +222,55 @@ const WRITE_VERBS = new Set([
   "write",
 ]);
 
+// Actions still blocked even in Build mode. These need the next confirmation
+// layer because they send externally, destroy state, spend money, ship code, or
+// change permissions.
+const HIGH_RISK_VERBS = new Set([
+  "approve",
+  "auth",
+  "cancel",
+  "charge",
+  "comment",
+  "delete",
+  "deploy",
+  "invite",
+  "merge",
+  "pay",
+  "permission",
+  "permissions",
+  "post",
+  "push",
+  "remove",
+  "reply",
+  "revoke",
+  "rotate",
+  "scope",
+  "scopes",
+  "send",
+  "set",
+  "share",
+  "token",
+  "tokens",
+  "vote",
+]);
+
+// Extra verbs Build mode can run after high-risk verbs are ruled out. This is
+// intentionally broader than media generation so API seats can begin doing real
+// builder work, but not so broad that sends/deletes/deploys slip through.
+const BUILD_VERBS = new Set([
+  "add",
+  "create",
+  "generate",
+  "save",
+  "store",
+  "upload",
+  "write",
+]);
+
+// Some media endpoints are named "text_to_image" / "image_to_image", with no
+// obvious verb token. Treat them as Build-mode actions, not read actions.
+const BUILD_MEDIA_TOKENS = new Set(["audio", "image", "images", "media", "video", "videos"]);
+
 function endpointTokens(endpointId: string): string[] {
   return endpointId
     .trim()
@@ -239,8 +294,20 @@ export function isReadOnlyEndpointId(endpointId: string): boolean {
   return tokens.some((token) => READ_VERBS.has(token));
 }
 
+export function isBuildModeEndpointId(endpointId: string): boolean {
+  if (isReadOnlyEndpointId(endpointId)) return true;
+  if (typeof endpointId !== "string" || !endpointId.trim()) return false;
+  const tokens = endpointTokens(endpointId);
+  if (tokens.some((token) => HIGH_RISK_VERBS.has(token))) return false;
+  if (tokens.some((token) => BUILD_VERBS.has(token))) return true;
+  return tokens.includes("to") && tokens.some((token) => BUILD_MEDIA_TOKENS.has(token));
+}
+
 const REFUSAL =
   "Write/send actions on connected apps are not enabled yet (read-first mode). I can only call read or list endpoints right now.";
+
+const BUILD_REFUSAL =
+  "That connector action is still blocked in Build mode. I can read/list/search and run non-destructive create/write/generate actions, but sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions need the next approval layer.";
 
 // Returned by every connector tool when no valid connector key is available, so
 // the seat tells the user how to unlock connectors instead of failing silently.
@@ -268,6 +335,9 @@ export interface BuildChatToolsOpts {
   connectorKey: string | null;
   // Direct, lane-scoped memory access for the logged-in account.
   memory: ChatMemory;
+  // Read is the default for compatibility. Build mode is explicit and lets API
+  // seats run non-destructive write/generate connector endpoints.
+  toolMode?: ChatToolMode;
 }
 
 /**
@@ -275,7 +345,13 @@ export interface BuildChatToolsOpts {
  * a string and never throws; on failure it returns a short error string so the
  * model surfaces the failure honestly instead of fabricating a result.
  */
-export function buildChatTools({ origin, connectorKey, memory }: BuildChatToolsOpts): Record<string, Tool> {
+export function buildChatTools({
+  origin,
+  connectorKey,
+  memory,
+  toolMode = "read",
+}: BuildChatToolsOpts): Record<string, Tool> {
+  const isBuildMode = toolMode === "build";
   return {
     search_memory: tool({
       description:
@@ -352,15 +428,18 @@ export function buildChatTools({ origin, connectorKey, memory }: BuildChatToolsO
 
     call_tool: tool({
       description:
-        "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list/search/get/status endpoints are allowed right now (e.g. 'gmail.read', 'gmail_search', 'google-drive.list', 'dropbox_list_folder'). Write, send, generate, or mutate endpoints are refused.",
+        isBuildMode
+          ? "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Build mode is active: READ/list/search/get/status endpoints are allowed, and non-destructive create/write/generate endpoints are allowed. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are refused."
+          : "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list/search/get/status endpoints are allowed right now (e.g. 'gmail.read', 'gmail_search', 'google-drive.list', 'dropbox_list_folder'). Write, send, generate, or mutate endpoints are refused.",
       inputSchema: z.object({
         endpoint_id: z.string().describe("The endpoint to call, e.g. 'gmail.read'"),
         params: z.record(z.unknown()).optional().describe("Parameters for the endpoint"),
       }),
       execute: async ({ endpoint_id, params }) => {
-        // Read-first guarantee is unconditional: a write/send endpoint is
-        // refused whether or not a connector key is present.
-        if (!isReadOnlyEndpointId(endpoint_id)) return REFUSAL;
+        // Permission guarantee is unconditional: refused endpoint classes are
+        // denied whether or not a connector key is present.
+        const allowed = isBuildMode ? isBuildModeEndpointId(endpoint_id) : isReadOnlyEndpointId(endpoint_id);
+        if (!allowed) return isBuildMode ? BUILD_REFUSAL : REFUSAL;
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
           return await internalMcpCall(origin, connectorKey, "unclick_call", {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
-import { Paperclip, X, Loader2, FileText } from "lucide-react";
+import { Hammer, Paperclip, X, Loader2, FileText } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import {
   ACCEPT,
@@ -17,6 +17,7 @@ import {
   type ChatThread,
 } from "@/components/admin/ChatSessionList";
 import { CacheKeyPrompt } from "@/components/admin/CacheKeyPrompt";
+import { Switch } from "@/components/ui/switch";
 import { StartSharedRoomButton } from "@/components/admin/StartSharedRoomButton";
 import {
   PendingHandshakeBanner,
@@ -124,6 +125,7 @@ function friendlyChatError(message: string): string {
 }
 
 const SEATS_STORAGE_KEY = "unclick_chat_seats";
+type ChatToolMode = "read" | "build";
 
 function seatsStorageKey(userId: string | undefined): string | null {
   return userId ? `${SEATS_STORAGE_KEY}:${userId}` : null;
@@ -166,6 +168,7 @@ export default function AdminChatPage() {
   );
   const [workingSeatIds, setWorkingSeatIds] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const [toolMode, setToolMode] = useState<ChatToolMode>("build");
 
   // Pending attachments waiting to be sent with the next turn, plus a flag
   // while files are being read/extracted.
@@ -838,6 +841,7 @@ export default function AdminChatPage() {
           slug: leadSeat.slug,
           model: leadSeat.model,
           lane: "api",
+          tool_mode: toolMode,
           thread_id: threadId ?? undefined,
           council_seats:
             targetSeats.length > 1
@@ -904,20 +908,41 @@ export default function AdminChatPage() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 md:min-h-0">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Link
-              to="/admin/agents/api"
-              className="text-primary hover:underline"
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Link
+                to="/admin/agents/api"
+                className="text-primary hover:underline"
+              >
+                Set up API keys
+              </Link>
+              <span className="text-border">|</span>
+              <Link
+                to="/admin/agents/local"
+                className="text-primary hover:underline"
+              >
+                Local models
+              </Link>
+            </div>
+            <label
+              className={`flex items-center gap-2 rounded-md border px-2 py-1 ${
+                toolMode === "build"
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border/50 bg-card/40"
+              }`}
+              title="Build mode lets called-in seats run non-destructive create, write, and generate connector actions. High-risk sends, deletes, payments, merges, deploys, and permission changes stay blocked."
             >
-              Set up API keys
-            </Link>
-            <span className="text-border">|</span>
-            <Link
-              to="/admin/agents/local"
-              className="text-primary hover:underline"
-            >
-              Local models
-            </Link>
+              <Hammer className="h-3.5 w-3.5" />
+              <span>Build mode</span>
+              <Switch
+                checked={toolMode === "build"}
+                onCheckedChange={(checked) =>
+                  setToolMode(checked ? "build" : "read")
+                }
+                aria-label="Build mode"
+                className="h-5 w-9 data-[state=checked]:bg-primary/80"
+              />
+            </label>
           </div>
 
           <PendingHandshakeBanner
@@ -938,10 +963,10 @@ export default function AdminChatPage() {
             {messages.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 {calledInSeats.length > 1
-                  ? `${calledInSeats.length} seats called in - your next message routes as a council answer. @mention one seat to override for a single turn.`
+                  ? `${calledInSeats.length} seats called in - your next message routes as a council answer${toolMode === "build" ? " with Build mode on" : ""}. @mention one seat to override for a single turn.`
                   : activeSeat
                     ? calledInSeat
-                      ? `${calledInSeat.label} called in - messages auto-route. @mention to override. Replies show which seat answered and an estimated token cost.`
+                      ? `${calledInSeat.label} called in - messages auto-route${toolMode === "build" ? " with Build mode on" : ""}. @mention to override. Replies show which seat answered and an estimated token cost.`
                       : `Ask ${activeSeat.label} anything, or @mention another seat. Call in a seat to skip the @mention. Replies show which seat answered and an estimated token cost.`
                   : canMessageRoomWithoutBot
                     ? "Send a room message, or select an AI seat when you want a bot to answer."
@@ -1096,9 +1121,13 @@ export default function AdminChatPage() {
               placeholder={
                 apiKey
                   ? calledInSeats.length > 1
-                    ? `Message ${calledInSeats.length} AI seats`
+                    ? toolMode === "build"
+                      ? `Build with ${calledInSeats.length} AI seats`
+                      : `Message ${calledInSeats.length} AI seats`
                     : activeSeat
-                    ? `Message ${activeSeat.label}`
+                    ? toolMode === "build"
+                      ? `Build with ${activeSeat.label}`
+                      : `Message ${activeSeat.label}`
                     : activeHumanMember
                       ? `Message ${activeHumanMember.label}`
                       : canMessageRoomWithoutBot

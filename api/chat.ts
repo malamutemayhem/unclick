@@ -40,24 +40,35 @@ import {
 import { decideChatProviderCall } from "./lib/chat-spend.js";
 import { resolveAccountLane } from "./lib/account-lane.js";
 import { fetchMemoryBlock, buildChatMemory } from "./lib/chat-memory.js";
-import { buildChatTools } from "./lib/chat-tools.js";
+import { buildChatTools, type ChatToolMode } from "./lib/chat-tools.js";
 import { redactSensitive } from "./lib/orchestrator-context.js";
 
 const MAX_STEPS = 5;
 
 // Prepended to every seat so it knows it is running inside UnClick and treats
 // the user's loaded memory as authoritative context (see fetchMemoryBlock).
-const UNCLICK_SEAT_PREAMBLE =
-  "You are an AI seat running inside UnClick, the user's AI operating system. " +
-  "You are connected to the user's UnClick workspace, and the memory shown below is theirs: treat it as authoritative context about who they are, their standing rules, and what they are working on. " +
-  "If asked whether you are connected to UnClick, the answer is yes - you are running inside their UnClick account with their memory loaded. " +
-  "Use the memory naturally; do not recite it verbatim unless asked.\n\n" +
-  "You have tools to read the user's UnClick memory and their connected apps. " +
-  "Use search_memory to recall what the user told you before, and save_memory to remember new durable facts about them. " +
-  "To use a connected app, first call find_tools to discover the relevant connector (for example gmail, google-drive, dropbox, onedrive), then tool_info to learn its exact endpoint_id and parameters, then call_tool to run a READ or list endpoint. " +
-  "Endpoint IDs may be dotted or snake-case; read-first permits clear read/list/search/get/status endpoints such as gmail_search, drive_search, onedrive_list, and dropbox_list_folder. " +
-  "Write and send actions are NOT enabled yet (read-first mode), so do not attempt to send, create, update, or delete anything in a connected app; call_tool will refuse those. " +
-  "Never fabricate tool results: if a tool returns a 'tool error' or empty result, tell the user plainly that the tool failed instead of inventing an answer.";
+function buildUnclickSeatPreamble(toolMode: ChatToolMode): string {
+  const base =
+    "You are an AI seat running inside UnClick, the user's AI operating system. " +
+    "You are connected to the user's UnClick workspace, and the memory shown below is theirs: treat it as authoritative context about who they are, their standing rules, and what they are working on. " +
+    "If asked whether you are connected to UnClick, the answer is yes - you are running inside their UnClick account with their memory loaded. " +
+    "Use the memory naturally; do not recite it verbatim unless asked.\n\n" +
+    "You have tools to read the user's UnClick memory and their connected apps. " +
+    "Use search_memory to recall what the user told you before, and save_memory to remember new durable facts about them. " +
+    "To use a connected app, first call find_tools to discover the relevant connector (for example gmail, google-drive, dropbox, onedrive), then tool_info to learn its exact endpoint_id and parameters, then call_tool to run the endpoint. " +
+    "Endpoint IDs may be dotted or snake-case; read endpoints include gmail_search, drive_search, onedrive_list, and dropbox_list_folder. ";
+
+  const policy =
+    toolMode === "build"
+      ? "Build mode is active for this turn. You may use call_tool for read/list/search/get/status endpoints and for non-destructive create/write/generate endpoints when the user's request clearly asks for it. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are still blocked until the approval layer exists. "
+      : "Read-first mode is active for this turn. Do not attempt to send, create, update, delete, generate, or mutate anything in a connected app; call_tool will refuse those actions. ";
+
+  return (
+    base +
+    policy +
+    "Never fabricate tool results: if a tool returns a 'tool error' or empty result, tell the user plainly that the tool failed instead of inventing an answer."
+  );
+}
 
 // ─── pure, testable helpers ──────────────────────────────────────
 
@@ -123,6 +134,7 @@ export interface ChatRequest {
   messages: UIMessage[];
   system?: string;
   thread_id?: string;
+  tool_mode?: ChatToolMode;
   council_seats?: Array<{
     slug: string;
     model: string;
@@ -154,6 +166,8 @@ export function validateChatRequest(
   const out: ChatRequest = { slug, model, messages: b.messages as UIMessage[] };
   if (typeof b.system === "string") out.system = b.system;
   if (typeof b.thread_id === "string") out.thread_id = b.thread_id;
+  if (b.tool_mode === "build") out.tool_mode = "build";
+  else out.tool_mode = "read";
   if (Array.isArray(b.council_seats)) {
     out.council_seats = b.council_seats
       .map((raw) => {
@@ -463,7 +477,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     apiKeyHash,
   );
   const groundedSystem = [
-    UNCLICK_SEAT_PREAMBLE,
+    buildUnclickSeatPreamble(parsed.tool_mode ?? "read"),
     memoryBlock ? `The user's UnClick memory:\n\n${memoryBlock}` : "",
     parsed.council_seats && parsed.council_seats.length > 1
       ? [
@@ -481,7 +495,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .filter(Boolean)
     .join("\n\n");
 
-  // Build the read-first tool surface.
+  // Build the chat tool surface.
   //  - Memory tools run DIRECTLY against the caller's lane-scoped backend, so
   //    they work on the logged-in session alone (no cached key needed).
   //  - Connector tools need the user's raw uc_/agt_ key (connector creds are
@@ -513,6 +527,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     origin,
     connectorKey: origin ? connectorKey : null,
     memory: buildChatMemory(supabaseUrl, serviceKey, apiKeyHash),
+    toolMode: parsed.tool_mode ?? "read",
   });
 
   const result = streamText({
