@@ -196,6 +196,9 @@ export async function ebayGetCategories(args: Record<string, unknown>): Promise<
 
   const url = `https://api.ebay.com/commerce/taxonomy/v1/category_tree/${encodeURIComponent(category_tree_id)}`;
 
+  const EBAY_TIMEOUT_MS = Number(process.env.EBAY_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EBAY_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -203,9 +206,15 @@ export async function ebayGetCategories(args: Record<string, unknown>): Promise<
         Authorization:           `Bearer ${tokenResult}`,
         "X-EBAY-C-MARKETPLACE-ID": cfg.marketplace ?? "EBAY_US",
       },
+      signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `eBay category tree request timed out after ${EBAY_TIMEOUT_MS}ms.` };
+    }
     return { error: `Network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 429) {

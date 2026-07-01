@@ -673,15 +673,29 @@ function bridgeStatus(
 }
 
 async function openRouterPost<T>(apiKey: string, path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${OPENROUTER_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "X-OpenRouter-Title": NUDGEONLY_POLICY.official_name,
-    },
-    body: JSON.stringify(body),
-  });
+  const NUDGEONLY_TIMEOUT_MS = Number(process.env.NUDGEONLY_TIMEOUT_MS) || 30000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), NUDGEONLY_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${OPENROUTER_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-OpenRouter-Title": NUDGEONLY_POLICY.official_name,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`OpenRouter NudgeOnlyAPI request timed out after ${NUDGEONLY_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`OpenRouter NudgeOnlyAPI network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   const data = await res.json() as Record<string, unknown>;
   if (!res.ok) {

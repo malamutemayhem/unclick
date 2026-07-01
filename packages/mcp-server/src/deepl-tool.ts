@@ -141,9 +141,22 @@ export async function deeplListLanguages(args: Record<string, unknown>): Promise
   if (typeof _creds !== "object" || "not_connected" in _creds) return _creds as NotConnectedResult;
   const { key, base } = _creds;
   const type = String(args.type ?? "target");
-  const res = await fetch(`${base}/languages?type=${encodeURIComponent(type)}`, {
-    headers: { "DeepL-Auth-Key": key },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEEPL_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(`${base}/languages?type=${encodeURIComponent(type)}`, {
+      headers: { "DeepL-Auth-Key": key },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL request timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL network error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await res.json() as unknown[];
   if (!res.ok) throw new Error(`DeepL error (${res.status})`);
   return { type, count: data.length, languages: data };
@@ -159,7 +172,19 @@ export async function deeplTranslateDocument(args: Record<string, unknown>): Pro
   if (!targetLang)  throw new Error("target_lang is required.");
 
   // Fetch the document
-  const docRes = await fetch(documentUrl);
+  const dlController = new AbortController();
+  const dlTimer = setTimeout(() => dlController.abort(), DEEPL_TIMEOUT_MS);
+  let docRes: Response;
+  try {
+    docRes = await fetch(documentUrl, { signal: dlController.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Document download timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`Failed to fetch document: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(dlTimer);
+  }
   if (!docRes.ok) throw new Error(`Failed to fetch document_url: HTTP ${docRes.status}`);
   const docBlob = await docRes.blob();
   const filename = args.filename ? String(args.filename) : documentUrl.split("/").pop() ?? "document.pdf";
@@ -170,11 +195,24 @@ export async function deeplTranslateDocument(args: Record<string, unknown>): Pro
   if (args.source_lang) form.append("source_lang", String(args.source_lang).toUpperCase());
   if (args.formality)   form.append("formality", String(args.formality));
 
-  const uploadRes = await fetch(`${base}/document`, {
-    method: "POST",
-    headers: { "DeepL-Auth-Key": key },
-    body: form,
-  });
+  const upController = new AbortController();
+  const upTimer = setTimeout(() => upController.abort(), DEEPL_TIMEOUT_MS);
+  let uploadRes: Response;
+  try {
+    uploadRes = await fetch(`${base}/document`, {
+      method: "POST",
+      headers: { "DeepL-Auth-Key": key },
+      body: form,
+      signal: upController.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`DeepL document upload timed out after ${DEEPL_TIMEOUT_MS}ms.`);
+    }
+    throw new Error(`DeepL upload error: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    clearTimeout(upTimer);
+  }
   const uploadData = await uploadRes.json() as { document_id?: string; document_key?: string; message?: string };
   if (!uploadRes.ok) throw new Error(`DeepL document upload error (${uploadRes.status}): ${uploadData.message ?? "unknown error"}`);
 

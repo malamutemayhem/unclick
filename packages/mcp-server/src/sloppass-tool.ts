@@ -33,14 +33,28 @@ function getApiKey(): string | NotConnectedResult {
 async function callApi(body: Record<string, unknown>): Promise<unknown> {
   const apiKey = getApiKey();
   if (typeof apiKey !== "string") return apiKey;
-  const response = await fetch(`${getApiBase()}/api/sloppass?action=run`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
+  const SLOPPASS_TIMEOUT_MS = Number(process.env.SLOPPASS_TIMEOUT_MS) || 30000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLOPPASS_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBase()}/api/sloppass?action=run`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `SlopPass API request timed out after ${SLOPPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `SlopPass network error: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const text = await response.text();
   let parsed: unknown = text;
   try {
@@ -156,9 +170,23 @@ async function fetchGithubPrDiff(target: Record<string, unknown>): Promise<
   const resolved = resolveGithubPrDiffTarget(target);
   if ("error" in resolved) return resolved;
 
-  const response = await fetch(resolved.diffUrl, {
-    headers: { Accept: "text/plain" },
-  });
+  const SLOPPASS_TIMEOUT_MS = Number(process.env.SLOPPASS_TIMEOUT_MS) || 30000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SLOPPASS_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(resolved.diffUrl, {
+      headers: { Accept: "text/plain" },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `GitHub PR diff download timed out after ${SLOPPASS_TIMEOUT_MS}ms.` };
+    }
+    return { error: `GitHub PR diff fetch failed: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
   const diff = await response.text();
   if (!response.ok) {
     return { error: `GitHub PR diff fetch failed (HTTP ${response.status})` };
