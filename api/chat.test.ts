@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import {
+  buildCouncilTraceBlock,
   extractApiKey,
   extractConnectorKeyHeader,
   resolveThreadPersistenceLane,
@@ -144,6 +145,33 @@ describe("validateChatRequest", () => {
         { slug: "openrouter", model: "openai/gpt-4o-mini", label: "GPT", handle: "GPT" },
       ]);
     }
+  });
+
+  it("builds a transparent council trace without exposing hidden reasoning", () => {
+    const trace = buildCouncilTraceBlock([
+      {
+        label: "Claude",
+        handle: "Claude",
+        slug: "anthropic",
+        model: "claude-haiku",
+        status: "answered",
+        text: "Prioritise the permission check and cite the failing endpoint.",
+      },
+      {
+        label: "GPT",
+        handle: "GPT",
+        slug: "openrouter",
+        model: "openai/gpt-4o-mini",
+        status: "answered",
+        text: "Add a user-visible trace so humans can see the council work.",
+      },
+    ]);
+
+    expect(trace).toContain("Council fan-out evidence");
+    expect(trace).toContain("Claude (@Claude)");
+    expect(trace).toContain("GPT (@GPT)");
+    expect(trace).toContain("one short line per contributing seat");
+    expect(trace.toLowerCase()).not.toContain("chain of thought");
   });
 });
 

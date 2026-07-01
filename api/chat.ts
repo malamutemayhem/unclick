@@ -25,6 +25,7 @@
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
+  generateText,
   streamText,
   stepCountIs,
   convertToModelMessages,
@@ -44,6 +45,7 @@ import { buildChatTools, type ChatToolMode } from "./lib/chat-tools.js";
 import { redactSensitive } from "./lib/orchestrator-context.js";
 
 const MAX_STEPS = 10;
+const COUNCIL_BRIEF_TIMEOUT_MS = 25_000;
 
 // Prepended to every seat so it knows it is running inside UnClick and treats
 // the user's loaded memory as authoritative context (see fetchMemoryBlock).
@@ -143,6 +145,69 @@ export interface ChatRequest {
     label: string;
     handle: string;
   }>;
+}
+
+type CouncilSeat = NonNullable<ChatRequest["council_seats"]>[number];
+
+export interface CouncilBrief {
+  label: string;
+  handle: string;
+  slug: string;
+  model: string;
+  status: "answered" | "skipped" | "failed";
+  text?: string;
+  error?: string;
+}
+
+function seatLabel(seat: CouncilSeat): string {
+  return seat.label || seat.model || seat.slug;
+}
+
+function cleanBriefText(text: string): string {
+  return redactSensitive(text).replace(/\s+/g, " ").trim().slice(0, 1400);
+}
+
+export function buildCouncilTraceBlock(briefs: CouncilBrief[]): string {
+  if (briefs.length < 2) return "";
+  const rows = briefs.map((brief, index) => {
+    const who = `${brief.label} (@${brief.handle || brief.slug}) - ${brief.slug}/${brief.model}`;
+    if (brief.status === "answered" && brief.text) {
+      return `${index + 1}. ${who}\n   Status: contributed\n   Brief: ${brief.text}`;
+    }
+    const reason = brief.error ? ` - ${brief.error}` : "";
+    return `${index + 1}. ${who}\n   Status: ${brief.status}${reason}`;
+  });
+  return [
+    "Council fan-out evidence for this turn:",
+    ...rows,
+    "",
+    "Use these independent model briefs as evidence for the final synthesis. Because transparency is important, include a compact visible Council trace with one short line per contributing seat when multiple seats answered. Do not expose hidden chain-of-thought; summarize only observable briefs, agreement, dissent, and the final recommendation.",
+  ].join("\n");
+}
+
+function buildCouncilBriefSystem(opts: {
+  seat: CouncilSeat;
+  allSeats: CouncilSeat[];
+  memoryBlock: string;
+  userSystem?: string;
+}): string {
+  const roster = opts.allSeats
+    .map(
+      (seat, index) =>
+        `${index + 1}. ${seatLabel(seat)} (@${seat.handle || seat.slug}) - ${seat.slug}/${seat.model}`,
+    )
+    .join("\n");
+  return [
+    "You are one independently called-in AI seat in an UnClick council run.",
+    `Your seat is ${seatLabel(opts.seat)} (@${opts.seat.handle || opts.seat.slug}) using ${opts.seat.slug}/${opts.seat.model}.`,
+    "Other selected seats in this council:",
+    roster,
+    "Produce a concise private brief for the synthesis seat, not a final answer to the user. Keep it under 140 words. Include your stance, important evidence or tool needs, risks, and the recommended next step. Do not claim to speak for other seats. Do not reveal hidden chain-of-thought.",
+    opts.memoryBlock ? `The user's UnClick memory:\n\n${opts.memoryBlock}` : "",
+    opts.userSystem ?? "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 // Validate the request body. This endpoint is api-lane only; local and
@@ -249,6 +314,143 @@ async function fetchServerVaultRow(
   if (!r.ok) return null;
   const rows = (await r.json()) as EncryptedCredential[] | null;
   return rows && rows.length > 0 ? rows[0] : null;
+}
+
+async function resolveProviderKeyForSlug(opts: {
+  supabaseUrl: string;
+  serviceKey: string;
+  lane: string;
+  slug: string;
+  authHeader: string | undefined;
+}): Promise<string | null> {
+  const aiSecret =
+    process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
+  if (aiSecret) {
+    try {
+      const row = await fetchServerVaultRow(
+        opts.supabaseUrl,
+        opts.serviceKey,
+        opts.lane,
+        opts.slug,
+      );
+      if (row) {
+        const key = readProviderKeyForAccount(aiSecret, opts.lane, row);
+        if (key) return key;
+      }
+    } catch {
+      /* fall through to legacy row */
+    }
+  }
+
+  const apiKey = extractApiKey(opts.authHeader);
+  if (!apiKey) return null;
+  try {
+    const row = await fetchVaultRow(
+      opts.supabaseUrl,
+      opts.serviceKey,
+      sha256hex(apiKey),
+      opts.slug,
+    );
+    return row ? readProviderKey(apiKey, row) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function buildCouncilBriefs(opts: {
+  seats: CouncilSeat[];
+  supabaseUrl: string;
+  serviceKey: string;
+  lane: string;
+  authHeader: string | undefined;
+  memoryBlock: string;
+  userSystem?: string;
+  modelMessages: Awaited<ReturnType<typeof convertToModelMessages>>;
+}): Promise<CouncilBrief[]> {
+  if (opts.seats.length < 2) return [];
+
+  const keyCache = new Map<string, Promise<string | null>>();
+  const providerKeyFor = (slug: string) => {
+    const existing = keyCache.get(slug);
+    if (existing) return existing;
+    const next = resolveProviderKeyForSlug({
+      supabaseUrl: opts.supabaseUrl,
+      serviceKey: opts.serviceKey,
+      lane: opts.lane,
+      slug,
+      authHeader: opts.authHeader,
+    });
+    keyCache.set(slug, next);
+    return next;
+  };
+
+  return Promise.all(
+    opts.seats.map(async (seat) => {
+      const base: Omit<CouncilBrief, "status"> = {
+        label: seatLabel(seat),
+        handle: seat.handle,
+        slug: seat.slug,
+        model: seat.model,
+      };
+
+      try {
+        const providerKey = await providerKeyFor(seat.slug);
+        const decision = decideChatProviderCall({
+          lane: "api",
+          slug: seat.slug,
+          hasVaultKey: Boolean(providerKey),
+        });
+        if (!decision.allowed || !providerKey) {
+          return {
+            ...base,
+            status: "skipped" as const,
+            error: `${providerDisplayName(seat.slug)} key is not connected`,
+          };
+        }
+
+        const model = resolveApiChatModel({
+          slug: seat.slug,
+          model: seat.model,
+          apiKey: providerKey,
+        });
+        const controller = new AbortController();
+        const timer = setTimeout(
+          () => controller.abort(),
+          COUNCIL_BRIEF_TIMEOUT_MS,
+        );
+        let result: Awaited<ReturnType<typeof generateText>>;
+        try {
+          result = await generateText({
+            model,
+            system: buildCouncilBriefSystem({
+              seat,
+              allSeats: opts.seats,
+              memoryBlock: opts.memoryBlock,
+              userSystem: opts.userSystem,
+            }),
+            messages: opts.modelMessages,
+            maxOutputTokens: 260,
+            abortSignal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+        return {
+          ...base,
+          status: "answered" as const,
+          text: cleanBriefText(result.text),
+        };
+      } catch (err) {
+        const message =
+          err instanceof Error ? redactSensitive(err.message) : "brief failed";
+        return {
+          ...base,
+          status: "failed" as const,
+          error: message.slice(0, 180),
+        };
+      }
+    }),
+  );
 }
 
 interface ThreadOwnerRow {
@@ -406,43 +608,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(403).json({ error: "Not a member of this chat room." });
   }
 
-  // Read and decrypt the provider key. Prefer the account-scoped (server-scheme)
-  // row, which survives rotation and needs only a session. Fall back to a legacy
-  // master-key-encrypted row when the caller sent a uc_/agt_ key.
-  // Fallback to a V2 name so a typo or stray character in the original env var
-  // name can be sidestepped without another code change.
-  const aiSecret =
-    process.env.UNCLICK_AI_KEY_SECRET || process.env.UNCLICK_AI_KEY_SECRET_V2;
-  let providerKey: string | null = null;
-  if (aiSecret) {
-    try {
-      const row = await fetchServerVaultRow(
-        supabaseUrl,
-        serviceKey,
-        lane,
-        parsed.slug,
-      );
-      if (row) providerKey = readProviderKeyForAccount(aiSecret, lane, row);
-    } catch {
-      providerKey = null;
-    }
-  }
-  if (!providerKey) {
-    const apiKey = extractApiKey(req.headers.authorization);
-    if (apiKey) {
-      try {
-        const row = await fetchVaultRow(
-          supabaseUrl,
-          serviceKey,
-          sha256hex(apiKey),
-          parsed.slug,
-        );
-        if (row) providerKey = readProviderKey(apiKey, row);
-      } catch {
-        providerKey = null;
-      }
-    }
-  }
+  // Read and decrypt the lead provider key. Prefer the account-scoped
+  // (server-scheme) row, which survives rotation and needs only a session. Fall
+  // back to a legacy master-key-encrypted row when the caller sent a uc_/agt_ key.
+  const providerKey = await resolveProviderKeyForSlug({
+    supabaseUrl,
+    serviceKey,
+    lane,
+    slug: parsed.slug,
+    authHeader: req.headers.authorization,
+  });
 
   const decision = decideChatProviderCall({
     lane: "api",
@@ -478,20 +653,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     serviceKey,
     apiKeyHash,
   );
+  const councilSeats =
+    parsed.council_seats && parsed.council_seats.length > 1
+      ? parsed.council_seats
+      : [];
+  const councilBriefs =
+    councilSeats.length > 1
+      ? await buildCouncilBriefs({
+          seats: councilSeats,
+          supabaseUrl,
+          serviceKey,
+          lane,
+          authHeader: req.headers.authorization,
+          memoryBlock,
+          userSystem: parsed.system,
+          modelMessages,
+        })
+      : [];
+  const councilTraceBlock = buildCouncilTraceBlock(councilBriefs);
   const groundedSystem = [
     buildUnclickSeatPreamble(parsed.tool_mode ?? "read"),
     memoryBlock ? `The user's UnClick memory:\n\n${memoryBlock}` : "",
-    parsed.council_seats && parsed.council_seats.length > 1
+    councilSeats.length > 1
       ? [
           "Council mode is active for this turn.",
           "The user selected these AI seats:",
-          ...parsed.council_seats.map(
+          ...councilSeats.map(
             (seat, index) =>
               `${index + 1}. ${seat.label || seat.model} (@${seat.handle || seat.slug}) - ${seat.slug}/${seat.model}`,
           ),
-          "Answer as the council's synthesis: briefly surface meaningful agreement or dissent when it changes the recommendation, then give one clear final answer. Do not pretend you literally called separate models unless tool output or system context proves that.",
+          councilTraceBlock
+            ? "Separate model briefs were requested before this synthesis call. Use the council fan-out evidence below to prove which seats contributed."
+            : "Answer as the council's synthesis: briefly surface meaningful agreement or dissent when it changes the recommendation, then give one clear final answer. Do not pretend you literally called separate models unless tool output or system context proves that.",
         ].join("\n")
       : "",
+    councilTraceBlock,
     parsed.system ?? "",
   ]
     .filter(Boolean)
