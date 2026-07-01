@@ -51,6 +51,45 @@ function capText(text: string): string {
   return `${text.slice(0, MAX_RESULT_CHARS - 1)}...`;
 }
 
+function parseSseJsonRpc(text: string): JsonRpcToolResult | null {
+  const events: string[][] = [];
+  let current: string[] = [];
+
+  for (const line of text.split(/\r?\n/)) {
+    if (line === "") {
+      if (current.length > 0) {
+        events.push(current);
+        current = [];
+      }
+      continue;
+    }
+    if (line.startsWith("data:")) current.push(line.slice(5).trimStart());
+  }
+  if (current.length > 0) events.push(current);
+
+  for (const event of events) {
+    const data = event.join("\n").trim();
+    if (!data || data === "[DONE]") continue;
+    try {
+      const parsed = JSON.parse(data) as JsonRpcToolResult;
+      if (parsed?.result || parsed?.error) return parsed;
+    } catch {
+      // Skip non-JSON SSE data frames.
+    }
+  }
+  return null;
+}
+
+function parseJsonRpcToolResult(text: string): JsonRpcToolResult | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  try {
+    return JSON.parse(trimmed) as JsonRpcToolResult;
+  } catch {
+    return parseSseJsonRpc(trimmed);
+  }
+}
+
 /**
  * Call a tool on the hosted UnClick MCP endpoint via an internal HTTPS request.
  *
@@ -93,7 +132,8 @@ export async function internalMcpCall(
 
     if (!r.ok) return `tool error: mcp responded ${r.status}`;
 
-    const body = (await r.json()) as JsonRpcToolResult;
+    const body = parseJsonRpcToolResult(await r.text());
+    if (!body) return "tool error: invalid mcp response";
     if (body.error) {
       return `tool error: ${capText(body.error.message ?? "mcp error")}`;
     }
