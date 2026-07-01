@@ -97,8 +97,15 @@ function userAvatarUrl(
   const photo = meta.avatar_photo;
   if (typeof photo === "string" && photo.startsWith("data:image/"))
     return photo;
-  const avatar = meta.avatar_url;
-  if (typeof avatar === "string" && /^https:\/\//i.test(avatar)) return avatar;
+  const face = meta.avatar_face;
+  if (typeof face === "string" && /^face-(0[1-9]|1[0-2])$/.test(face)) {
+    return `/faces/library/${face}.svg`;
+  }
+  for (const key of ["avatar_url", "picture", "photo_url", "image_url"]) {
+    const avatar = meta[key];
+    if (typeof avatar === "string" && /^https:\/\//i.test(avatar))
+      return avatar;
+  }
   return null;
 }
 

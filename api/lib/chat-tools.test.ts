@@ -23,6 +23,22 @@ function fakeMemory(overrides: Partial<ChatMemory> = {}): ChatMemory & {
   };
 }
 
+function mcpJsonResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify(body),
+  };
+}
+
+function mcpSseResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    text: async () => `event: message\ndata: ${JSON.stringify(body)}\n\n`,
+  };
+}
+
 describe("isReadOnlyEndpointId", () => {
   it("allows clear read/list endpoints", () => {
     expect(isReadOnlyEndpointId("gmail.read")).toBe(true);
@@ -52,12 +68,11 @@ describe("internalMcpCall", () => {
   });
 
   it("POSTs a JSON-RPC tools/call with the bearer and returns the extracted text", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({
         result: { content: [{ type: "text", text: "hello world" }] },
       }),
-    });
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     const out = await internalMcpCall("https://example.test", "uc_abc", "unclick_search", {
@@ -79,8 +94,23 @@ describe("internalMcpCall", () => {
     expect(body.params.arguments).toEqual({ query: "gmail" });
   });
 
+  it("parses an MCP event-stream tools/call response", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpSseResponse({
+        result: { content: [{ type: "text", text: "gmail, dropbox" }] },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const out = await internalMcpCall("https://example.test", "uc_abc", "unclick_search", {
+      query: "gmail",
+    });
+
+    expect(out).toBe("gmail, dropbox");
+  });
+
   it("returns a tool error string on a non-ok response (does not throw)", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "" });
     vi.stubGlobal("fetch", fetchMock);
 
     const out = await internalMcpCall("https://example.test", "uc_abc", "unclick_call", {});
@@ -206,10 +236,9 @@ describe("connector tools (require a validated connector key)", () => {
   });
 
   it("call_tool allows a read endpoint through to the internal mcp call with the connector key", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { content: [{ type: "text", text: "inbox: 3 unread" }] } }),
-    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "inbox: 3 unread" }] } }),
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     const tools = buildChatTools({ origin: "https://example.test", connectorKey: "uc_abc", memory: fakeMemory() });
@@ -226,10 +255,9 @@ describe("connector tools (require a validated connector key)", () => {
   });
 
   it("find_tools forwards the query to unclick_search with the connector key", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ result: { content: [{ type: "text", text: "gmail, gmail_search" }] } }),
-    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "gmail, gmail_search" }] } }),
+    );
     vi.stubGlobal("fetch", fetchMock);
 
     const tools = buildChatTools({ origin: "https://example.test", connectorKey: "uc_abc", memory: fakeMemory() });

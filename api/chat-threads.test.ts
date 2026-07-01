@@ -131,7 +131,10 @@ interface RouteConfig {
       user_id: string;
       email: string;
       display_name?: string | null;
+      avatar_face?: string | null;
+      avatar_photo?: string | null;
       avatar_url?: string | null;
+      picture?: string | null;
     }
   >;
   // capture sink for inserts/patches
@@ -198,7 +201,10 @@ function stubFetch(cfg: RouteConfig) {
               email: profile.email,
               user_metadata: {
                 display_name: profile.display_name,
+                avatar_face: profile.avatar_face,
+                avatar_photo: profile.avatar_photo,
                 avatar_url: profile.avatar_url,
+                picture: profile.picture,
               },
             })
           : jsonRes(null, false, 404);
@@ -641,6 +647,7 @@ describe("chat-threads shared rooms", () => {
           user_id: CALLER_USER,
           email: "creativelead@example.com",
           display_name: "Creative Lead",
+          avatar_face: "face-07",
           avatar_url: null,
         },
         [TARGET_LANE]: {
@@ -666,6 +673,10 @@ describe("chat-threads shared rooms", () => {
     const members = (res.body as { members: Array<Record<string, unknown>> })
       .members;
     expect(members).toHaveLength(2);
+    expect(members[0]).toMatchObject({
+      id: "m-owner",
+      avatar_url: "/faces/library/face-07.svg",
+    });
     expect(members[1]).toMatchObject({
       id: "m-target",
       member_lane_hash: TARGET_LANE,
