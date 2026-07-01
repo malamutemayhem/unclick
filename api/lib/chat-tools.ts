@@ -159,13 +159,70 @@ export async function internalMcpCall(
 }
 
 // Leaf actions that READ. Read-first is conservative: anything not clearly a
-// read is denied.
-const READ_PREFIX = /^(get|list|search|browse|fetch|read|view|describe|lookup|query|status|info|find|count)/i;
+// read is denied. Live connector IDs are not always dotted ("gmail.read");
+// many arrive as snake-case tool IDs ("gmail_search", "dropbox_list_folder"),
+// so we tokenise before deciding.
+const READ_VERBS = new Set([
+  "browse",
+  "count",
+  "describe",
+  "fetch",
+  "find",
+  "get",
+  "info",
+  "list",
+  "lookup",
+  "query",
+  "read",
+  "search",
+  "status",
+  "view",
+]);
 
-// Leaf actions that mutate, send, or otherwise act on the world. These are
-// explicitly NOT read even if they happen to start with a read-ish word.
-const WRITE_HINT =
-  /(create|add|update|delete|remove|set|save|store|send|post|write|modify|rotate|revoke|invite|pay|charge|cancel|approve|merge|push|deploy|upload|move|copy|share|reply|comment|vote|complete|promote)/i;
+// Actions that mutate, spend, send, or otherwise act on the world. These are
+// explicitly NOT read even if the endpoint also contains a read-ish word.
+const WRITE_VERBS = new Set([
+  "add",
+  "approve",
+  "cancel",
+  "charge",
+  "comment",
+  "complete",
+  "copy",
+  "create",
+  "delete",
+  "deploy",
+  "generate",
+  "invite",
+  "merge",
+  "modify",
+  "move",
+  "pay",
+  "post",
+  "promote",
+  "push",
+  "remove",
+  "reply",
+  "revoke",
+  "rotate",
+  "save",
+  "send",
+  "set",
+  "share",
+  "store",
+  "update",
+  "upload",
+  "vote",
+  "write",
+]);
+
+function endpointTokens(endpointId: string): string[] {
+  return endpointId
+    .trim()
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
 
 /**
  * True only when the endpoint's leaf action is clearly a read. The leaf is the
@@ -177,10 +234,9 @@ const WRITE_HINT =
  */
 export function isReadOnlyEndpointId(endpointId: string): boolean {
   if (typeof endpointId !== "string" || !endpointId.trim()) return false;
-  const afterDot = endpointId.trim().split(".").pop() ?? "";
-  const leaf = afterDot.split("_")[0] ?? "";
-  if (WRITE_HINT.test(afterDot)) return false;
-  return READ_PREFIX.test(leaf);
+  const tokens = endpointTokens(endpointId);
+  if (tokens.some((token) => WRITE_VERBS.has(token))) return false;
+  return tokens.some((token) => READ_VERBS.has(token));
 }
 
 const REFUSAL =
@@ -296,7 +352,7 @@ export function buildChatTools({ origin, connectorKey, memory }: BuildChatToolsO
 
     call_tool: tool({
       description:
-        "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list endpoints are allowed right now (e.g. 'gmail.read', 'google-drive.list', 'dropbox.list'). Write or send endpoints are refused.",
+        "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list/search/get/status endpoints are allowed right now (e.g. 'gmail.read', 'gmail_search', 'google-drive.list', 'dropbox_list_folder'). Write, send, generate, or mutate endpoints are refused.",
       inputSchema: z.object({
         endpoint_id: z.string().describe("The endpoint to call, e.g. 'gmail.read'"),
         params: z.record(z.unknown()).optional().describe("Parameters for the endpoint"),

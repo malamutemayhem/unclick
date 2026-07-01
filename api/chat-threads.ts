@@ -37,6 +37,7 @@ import {
   resolveCallerUserId,
   laneForUserId,
 } from "./lib/account-lane.js";
+import { redactSensitive } from "./lib/orchestrator-context.js";
 
 function sbHeaders(serviceKey: string): Record<string, string> {
   return {
@@ -258,6 +259,31 @@ async function fetchMemberByLane(
   if (!r.ok) return null;
   const rows = (await r.json().catch(() => [])) as MemberRow[];
   return Array.isArray(rows) ? (rows[0] ?? null) : null;
+}
+
+async function persistChatContextTurn(opts: {
+  rest: string;
+  serviceKey: string;
+  ownerLane: string;
+  threadId: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+}): Promise<void> {
+  const safeContent = redactSensitive(opts.content);
+  if (!safeContent.trim()) return;
+  await fetch(`${opts.rest}/mc_conversation_log`, {
+    method: "POST",
+    headers: { ...sbHeaders(opts.serviceKey), Prefer: "return=minimal" },
+    body: JSON.stringify({
+      api_key_hash: opts.ownerLane,
+      session_id: `chat:${opts.threadId}`,
+      role: opts.role,
+      content: safeContent,
+      has_code: /```/.test(opts.content),
+    }),
+  }).catch(() => {
+    // Chat history remains authoritative; Context capture is best-effort.
+  });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -601,6 +627,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .status(insert.status)
         .json({ error: "Failed to save message." });
     }
+
+    await persistChatContextTurn({
+      rest,
+      serviceKey,
+      ownerLane,
+      threadId,
+      role: "user",
+      content,
+    });
 
     // Touch updated_at, and auto-title from the first human turn if still
     // default. Scope by the owner lane of the thread so a member cannot

@@ -44,13 +44,20 @@ describe("isReadOnlyEndpointId", () => {
     expect(isReadOnlyEndpointId("gmail.read")).toBe(true);
     expect(isReadOnlyEndpointId("drive.list")).toBe(true);
     expect(isReadOnlyEndpointId("dropbox.list")).toBe(true);
+    expect(isReadOnlyEndpointId("gmail_search")).toBe(true);
+    expect(isReadOnlyEndpointId("drive_search")).toBe(true);
+    expect(isReadOnlyEndpointId("onedrive_list")).toBe(true);
+    expect(isReadOnlyEndpointId("dropbox_list_folder")).toBe(true);
+    expect(isReadOnlyEndpointId("dropbox_get_account")).toBe(true);
     expect(isReadOnlyEndpointId("memory.search_memory")).toBe(true);
     expect(isReadOnlyEndpointId("x.get_status")).toBe(true);
   });
 
   it("denies write/send endpoints", () => {
     expect(isReadOnlyEndpointId("gmail.send")).toBe(false);
+    expect(isReadOnlyEndpointId("gmail_send")).toBe(false);
     expect(isReadOnlyEndpointId("dropbox.delete")).toBe(false);
+    expect(isReadOnlyEndpointId("higgsfield_generate_image")).toBe(false);
     expect(isReadOnlyEndpointId("x.create_y")).toBe(false);
   });
 
@@ -252,6 +259,22 @@ describe("connector tools (require a validated connector key)", () => {
     const body = JSON.parse(init.body);
     expect(body.params.name).toBe("unclick_call");
     expect(body.params.arguments).toEqual({ endpoint_id: "gmail.read", params: { limit: 5 } });
+  });
+
+  it("call_tool allows live snake-case read connector IDs through", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "dropbox folders" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({ origin: "https://example.test", connectorKey: "uc_abc", memory: fakeMemory() });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({ endpoint_id: "dropbox_list_folder", params: { path: "" } });
+
+    expect(out).toBe("dropbox folders");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.params.arguments).toEqual({ endpoint_id: "dropbox_list_folder", params: { path: "" } });
   });
 
   it("find_tools forwards the query to unclick_search with the connector key", async () => {

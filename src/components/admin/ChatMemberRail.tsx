@@ -490,7 +490,7 @@ export function ChatMemberRail({
                   "shrink-0 rounded p-1 transition-colors",
                   s.active
                     ? "text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
-                    : "text-muted-foreground opacity-0 hover:bg-card/60 hover:text-body group-hover:opacity-100",
+                    : "text-muted-foreground hover:bg-card/60 hover:text-body",
                 )}
                 aria-label={
                   s.active ? `Bench ${s.label}` : `Call in ${s.label}`
@@ -526,7 +526,8 @@ export function ChatMemberRail({
               type="button"
               className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
             >
-              <Plus className="h-4 w-4 shrink-0" /> Add AI seat
+              <Plus className="h-4 w-4 shrink-0" />{" "}
+              {seats.length > 0 ? "Add another AI seat" : "Add AI seat"}
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0">
