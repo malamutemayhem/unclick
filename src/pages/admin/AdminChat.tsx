@@ -48,7 +48,6 @@ import {
 } from "@/components/admin/chatSync";
 import {
   CHAT_BRIDGE_ENDPOINT,
-  bridgeCommand,
   buildEnqueueBody,
   findSubscriptionRuntime,
   isSubscriptionSeat,
@@ -972,10 +971,11 @@ export default function AdminChatPage() {
       };
       if (!body.bridge?.online) {
         append(
-          "My bridge is offline. On the machine where the " +
-            `${runtime === "codex-cli" ? "Codex CLI" : "Claude Code CLI"} is signed in, run:\n\n` +
-            `\`${bridgeCommand(runtime, seat.handle)}\`\n\n` +
-            "This turn stays queued for 15 minutes and answers here once the bridge picks it up.",
+          "My computer link is offline, so I cannot answer yet. " +
+            'Tap the amber "Wake this seat" button next to my name in the ' +
+            "Members list - it walks you through starting the link on your PC. " +
+            "This message waits up to 15 minutes and I will answer here the " +
+            "moment the link is running.",
         );
       }
       const outcome = await pollBridgeJob({

@@ -127,9 +127,17 @@ export function newSubscriptionSeat(
   };
 }
 
+// The exact package version the bridge one-liner installs. Pinned because an
+// unpinned `npx @unclick/mcp-server` resolves whatever is on the registry;
+// registry versions older than 0.3.110 do not know the `seat-bridge`
+// subcommand and silently start the plain stdio server instead, which looks
+// like "bridge never connects" to the user. Must equal
+// packages/mcp-server/package.json version (consistency-tested).
+export const BRIDGE_PACKAGE_VERSION = "0.3.110";
+
 // The one-liner the user runs on the machine where the CLI is signed in.
 export function bridgeCommand(runtime: string, handle: string): string {
-  return `npx @unclick/mcp-server seat-bridge --runtime ${runtime} --handle ${handle}`;
+  return `npx @unclick/mcp-server@${BRIDGE_PACKAGE_VERSION} seat-bridge --runtime ${runtime} --handle ${handle}`;
 }
 
 // ─── setup wizard helpers ────────────────────────────────────

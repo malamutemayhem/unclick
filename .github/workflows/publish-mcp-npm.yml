@@ -1,0 +1,73 @@
+name: Publish MCP server to npm
+
+# Restores the npm publish channel for @unclick/mcp-server.
+#
+# History: the original npm publish workflow was removed and its replacement
+# (GitHub Release tarball, publish-mcp-package.yml) was manually disabled, so
+# the registry froze at 0.3.99 while the repo moved on. Every user-facing
+# bridge command runs `npx @unclick/mcp-server@<version> seat-bridge ...`,
+# and versions at or before 0.3.99 do not know the seat-bridge subcommand,
+# so subscription seats could never come online for real users.
+#
+# This workflow publishes the workspace package whenever the version in
+# packages/mcp-server/package.json is not yet on the registry. It needs an
+# NPM_TOKEN repo secret (npm automation token with publish rights to the
+# @unclick scope). Without the secret it fails with a clear message instead
+# of silently doing nothing.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/mcp-server/**"
+      - "package-lock.json"
+      - ".github/workflows/publish-mcp-npm.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-mcp-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Require NPM_TOKEN
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is not set. Create an npm automation token with publish rights to @unclick/mcp-server and add it as a repo secret named NPM_TOKEN."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compare local version with the registry
+        id: gate
+        run: |
+          LOCAL=$(node -p "require('./packages/mcp-server/package.json').version")
+          PUBLISHED=$(npm view @unclick/mcp-server version 2>/dev/null || echo "none")
+          echo "Local $LOCAL vs published $PUBLISHED"
+          if [ "$LOCAL" = "$PUBLISHED" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.gate.outputs.publish == 'true'
+        run: npm publish --workspace=@unclick/mcp-server --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

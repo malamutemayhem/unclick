@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi } from "vitest";
 import {
+  BRIDGE_PACKAGE_VERSION,
   SUBSCRIPTION_RUNTIMES,
   bridgeCommand,
   buildEnqueueBody,
@@ -96,10 +98,17 @@ describe("makeSubscriptionHandle / newSubscriptionSeat", () => {
 });
 
 describe("bridgeCommand", () => {
-  it("prints the npx one-liner for the seat", () => {
+  it("prints the npx one-liner for the seat, pinned to the exact package version", () => {
     expect(bridgeCommand("claude-code", "claude-sub")).toBe(
-      "npx @unclick/mcp-server seat-bridge --runtime claude-code --handle claude-sub",
+      `npx @unclick/mcp-server@${BRIDGE_PACKAGE_VERSION} seat-bridge --runtime claude-code --handle claude-sub`,
     );
+  });
+
+  it("pins the version that is actually in the repo (unpinned npx resolved a stale registry version with no seat-bridge)", () => {
+    const pkg = JSON.parse(
+      readFileSync("packages/mcp-server/package.json", "utf8"),
+    ) as { version: string };
+    expect(BRIDGE_PACKAGE_VERSION).toBe(pkg.version);
   });
 });
 
@@ -126,7 +135,7 @@ describe("fullBridgeCommand", () => {
         os: "windows",
       }),
     ).toBe(
-      '$env:UNCLICK_API_KEY="uk_test123"; npx @unclick/mcp-server seat-bridge --runtime claude-code --handle claude-sub',
+      `$env:UNCLICK_API_KEY="uk_test123"; npx @unclick/mcp-server@${BRIDGE_PACKAGE_VERSION} seat-bridge --runtime claude-code --handle claude-sub`,
     );
     expect(
       fullBridgeCommand({
@@ -136,7 +145,7 @@ describe("fullBridgeCommand", () => {
         os: "mac",
       }),
     ).toBe(
-      'UNCLICK_API_KEY="uk_test123" npx @unclick/mcp-server seat-bridge --runtime codex-cli --handle gpt-sub',
+      `UNCLICK_API_KEY="uk_test123" npx @unclick/mcp-server@${BRIDGE_PACKAGE_VERSION} seat-bridge --runtime codex-cli --handle gpt-sub`,
     );
   });
 
