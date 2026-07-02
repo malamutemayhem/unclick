@@ -37,6 +37,16 @@ import {
   findChatProvider,
   estimateTokens,
 } from "@/components/admin/chatTransportConfig";
+import {
+  CHAT_BRIDGE_ENDPOINT,
+  bridgeCommand,
+  isSubscriptionSeat,
+  newSubscriptionSeat,
+  pollBridgeJob,
+  toBridgeMessages,
+  type BridgeTurn,
+  type SubscriptionRuntime,
+} from "@/components/admin/subscriptionSeats";
 
 // Join the text parts of a UI message into a single string. Non-text parts
 // (tool calls, files, reasoning) are ignored, so a tool-call step never breaks
@@ -171,6 +181,12 @@ export default function AdminChatPage() {
     () => null,
   );
   const [workingSeatIds, setWorkingSeatIds] = useState<string[]>([]);
+  // Subscription seats waiting on their local bridge. Tracked separately from
+  // workingSeatIds because that one is cleared whenever the api-lane stream
+  // goes idle, while a bridge turn outlives any stream.
+  const [bridgeWorkingSeatIds, setBridgeWorkingSeatIds] = useState<string[]>(
+    [],
+  );
   const [councilRunSeats, setCouncilRunSeats] = useState<CouncilRunSeat[]>([]);
   const [input, setInput] = useState("");
   const [toolMode, setToolMode] = useState<ChatToolMode>("build");
@@ -584,6 +600,16 @@ export default function AdminChatPage() {
     }
   }, [loadedSeatStoreKey, seatStoreKey, seats]);
 
+  function addSubscriptionSeat(runtime: SubscriptionRuntime) {
+    setSeats((prev) => [
+      ...prev,
+      newSubscriptionSeat(
+        runtime,
+        prev.map((s) => s.handle),
+      ) as AiSeat,
+    ]);
+  }
+
   function addSeat(slug: string, model: string) {
     setSeats((prev) => [
       ...prev,
@@ -599,6 +625,7 @@ export default function AdminChatPage() {
     setSeats((prev) => prev.filter((s) => s.id !== id));
     setActiveSeatId((cur) => (cur === id ? null : cur));
     setWorkingSeatIds((prev) => prev.filter((seatId) => seatId !== id));
+    setBridgeWorkingSeatIds((prev) => prev.filter((seatId) => seatId !== id));
     setCouncilRunSeats((prev) => prev.filter((seat) => seat.id !== id));
   }
 
@@ -732,25 +759,102 @@ export default function AdminChatPage() {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
 
+  // One subscription seat turn: enqueue on the bridge endpoint, wait for the
+  // local worker to answer on the user's own plan, then append the reply.
+  // The server persists the turn to the thread; this only updates the canvas.
+  async function runSubscriptionTurn(
+    seat: AiSeat,
+    threadId: string | null,
+    bridgeMessages: BridgeTurn[],
+  ) {
+    setBridgeWorkingSeatIds((prev) =>
+      prev.includes(seat.id) ? prev : [...prev, seat.id],
+    );
+    const runtime = seat.runtime ?? "claude-code";
+    const append = (text: string) => {
+      const id = crypto.randomUUID();
+      setMessages((prev) => [
+        ...prev,
+        { id, role: "assistant" as const, parts: [{ type: "text" as const, text }] },
+      ]);
+      setSeatByMsg((prev) => ({ ...prev, [id]: seat.label }));
+      scrollMessagesToBottom();
+    };
+    try {
+      const r = await fetch(`${CHAT_BRIDGE_ENDPOINT}?action=enqueue`, {
+        method: "POST",
+        headers: authHeaders(true),
+        body: JSON.stringify({
+          seat_handle: seat.handle,
+          runtime,
+          thread_id: threadId ?? undefined,
+          messages: bridgeMessages,
+        }),
+      });
+      if (!r.ok) {
+        const body = (await r.json().catch(() => ({}))) as { error?: string };
+        append(
+          `Could not queue this turn${body.error ? `: ${body.error}` : ""}.`,
+        );
+        return;
+      }
+      const body = (await r.json()) as {
+        job_id: string;
+        bridge?: { online?: boolean };
+      };
+      if (!body.bridge?.online) {
+        append(
+          "My bridge is offline. On the machine where the " +
+            `${runtime === "codex-cli" ? "Codex CLI" : "Claude Code CLI"} is signed in, run:\n\n` +
+            `\`${bridgeCommand(runtime, seat.handle)}\`\n\n` +
+            "This turn stays queued for 15 minutes and answers here once the bridge picks it up.",
+        );
+      }
+      const outcome = await pollBridgeJob({
+        jobId: body.job_id,
+        headers: authHeaders(),
+      });
+      if (outcome.status === "done" && outcome.content) {
+        append(outcome.content);
+      } else {
+        append(outcome.error ?? "The bridge returned no reply.");
+      }
+    } catch (err) {
+      append(
+        `Bridge request failed: ${err instanceof Error ? err.message : "network error"}`,
+      );
+    } finally {
+      setBridgeWorkingSeatIds((prev) => prev.filter((id) => id !== seat.id));
+    }
+  }
+
   async function onSend() {
     const raw = input.trim();
     const pending = attachments;
     if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
     const { seats: targetSeats, text } = resolveTarget(raw);
-    const leadSeat = targetSeats[0] ?? null;
+    // Subscription seats answer through their local bridge, independently of
+    // the api-lane stream; only api seats ride /api/chat (and its council).
+    const subscriptionTargets = targetSeats.filter((seat) =>
+      isSubscriptionSeat(seat),
+    );
+    const apiTargets = targetSeats.filter(
+      (seat) => !isSubscriptionSeat(seat),
+    );
+    const leadSeat = apiTargets[0] ?? null;
     const councilLabel =
       targetSeats.length > 1
         ? `Council: ${targetSeats.map((seat) => seat.label).join(", ")}`
-        : (leadSeat?.label ?? "AI");
-    if (!leadSeat && !canMessageRoomWithoutBot) return;
+        : (targetSeats[0]?.label ?? "AI");
+    if (targetSeats.length === 0 && !canMessageRoomWithoutBot) return;
     targetSeatLabelRef.current = councilLabel;
-    if (targetSeats.length === 1 && leadSeat) setActiveSeatId(leadSeat.id);
+    if (targetSeats.length === 1) setActiveSeatId(targetSeats[0].id);
     if (targetSeats.length > 1) setActiveSeatId(null);
     setActiveHumanMemberId(null);
-    setWorkingSeatIds(targetSeats.map((seat) => seat.id));
+    setWorkingSeatIds(apiTargets.map((seat) => seat.id));
     setCouncilRunSeats(
-      targetSeats.length > 1
-        ? targetSeats.map(({ id, label, handle, slug, model }) => ({
+      apiTargets.length > 1
+        ? apiTargets.map(({ id, label, handle, slug, model }) => ({
             id,
             label,
             handle,
@@ -836,8 +940,36 @@ export default function AdminChatPage() {
       }
     }
 
+    // Launch subscription turns first: each runs independently on its own
+    // local bridge while any api seats stream below.
+    if (subscriptionTargets.length > 0) {
+      const priorTurns = messages.map((m) => ({
+        role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+        text: messageText(m.parts),
+        author: m.role === "user" ? undefined : seatByMsg[m.id],
+      }));
+      const bridgeMessages = toBridgeMessages(priorTurns, combined);
+      if (!leadSeat) {
+        // No api stream will echo the human turn onto the canvas, so show it.
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "user" as const,
+            parts: [{ type: "text" as const, text: combined }],
+          },
+        ]);
+        scrollMessagesToBottom();
+      }
+      for (const seat of subscriptionTargets) {
+        void runSubscriptionTurn(seat, threadId, bridgeMessages);
+      }
+    }
+
     if (!leadSeat) {
-      if (threadId) await selectThread(threadId);
+      if (subscriptionTargets.length === 0) {
+        if (threadId) await selectThread(threadId);
+      }
       await refreshThreads();
       return;
     }
@@ -870,8 +1002,8 @@ export default function AdminChatPage() {
           tool_mode: toolMode,
           thread_id: threadId ?? undefined,
           council_seats:
-            targetSeats.length > 1
-              ? targetSeats.map((seat) => ({
+            apiTargets.length > 1
+              ? apiTargets.map((seat) => ({
                   slug: seat.slug,
                   model: seat.model,
                   label: seat.label,
@@ -905,7 +1037,8 @@ export default function AdminChatPage() {
           <p className="mt-1 text-sm text-body">
             A room for you, your people, and your AI seats. Call in one or more
             seats for a council answer, or @mention one to direct a single turn.
-            Each seat runs on your own provider key.
+            Each seat runs on your own provider key, your own subscription plan
+            (via a local bridge), or a local model.
           </p>
         </div>
         <div className="shrink-0 text-xs text-muted-foreground">
@@ -921,12 +1054,13 @@ export default function AdminChatPage() {
           accessToken={accessToken}
           seats={seats}
           activeSeatId={selectedSeat?.id ?? null}
-          workingSeatIds={workingSeatIds}
+          workingSeatIds={[...workingSeatIds, ...bridgeWorkingSeatIds]}
           humanMembers={humanMembers}
           onSelectSeat={selectSeat}
           activeHumanMemberId={activeHumanMemberId}
           onSelectHumanMember={selectHumanMember}
           onAddSeat={addSeat}
+          onAddSubscriptionSeat={addSubscriptionSeat}
           onRemoveSeat={removeSeat}
           onToggleSeatActive={toggleSeatActive}
           onAddHumanMember={addHumanMember}
