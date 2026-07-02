@@ -197,7 +197,13 @@ export function getBackendCacheMetrics(): BackendCacheMetrics {
 function instanceKey(): string {
   const hash = process.env.UNCLICK_API_KEY_HASH;
   if (hash) return `mc:${hash}`;
-  if (process.env.SUPABASE_URL) return `byod-explicit:${process.env.SUPABASE_URL}`;
+  if (process.env.SUPABASE_URL) {
+    // The api key participates in lane resolution (a registered lane wins
+    // over the explicit URL), so it must participate in the cache key too,
+    // or two seats with the same URL but different keys share a backend.
+    const keyPart = process.env.UNCLICK_API_KEY ? `:${process.env.UNCLICK_API_KEY}` : "";
+    return `byod-explicit:${process.env.SUPABASE_URL}${keyPart}`;
+  }
   if (process.env.UNCLICK_API_KEY) return `byod-remote:${process.env.UNCLICK_API_KEY}`;
   return "local";
 }

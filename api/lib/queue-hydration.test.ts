@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   HYDRATION_OWNER_FRESH_WINDOW_MS,
+  HYDRATION_TENANT_ACTIVE_WINDOW_MS,
   planQueueHydrationSignals,
 } from "./queue-hydration";
 
@@ -19,7 +20,9 @@ describe("planQueueHydrationSignals", () => {
         { api_key_hash: TENANT, status: "open", assigned_to_agent_id: null },
         { api_key_hash: TENANT, status: "open", assigned_to_agent_id: "seat-x" },
       ],
-      profilesByTenant: new Map(),
+      profilesByTenant: new Map([
+        [TENANT, [{ agent_id: "human-1", last_seen_at: iso(60 * 60 * 1000) }]],
+      ]),
       nowMs: NOW,
     });
     expect(plans).toHaveLength(1);
@@ -89,11 +92,39 @@ describe("planQueueHydrationSignals", () => {
         { api_key_hash: "hash-b", status: "open", assigned_to_agent_id: null },
       ],
       profilesByTenant: new Map([
+        ["hash-a", [{ agent_id: "human-1", last_seen_at: iso(60 * 60 * 1000) }]],
         ["hash-b", [{ agent_id: "seat-live", last_seen_at: iso(60_000) }]],
       ]),
       nowMs: NOW,
     });
     expect(plans).toHaveLength(1);
     expect(plans[0].api_key_hash).toBe("hash-a");
+  });
+
+  it("stays quiet for a dormant tenant (no profile seen within the active window)", () => {
+    const plans = planQueueHydrationSignals({
+      todos: [
+        { api_key_hash: TENANT, status: "open", assigned_to_agent_id: null },
+      ],
+      profilesByTenant: new Map([
+        [
+          TENANT,
+          [{ agent_id: "seat-gone", last_seen_at: iso(HYDRATION_TENANT_ACTIVE_WINDOW_MS + 60_000) }],
+        ],
+      ]),
+      nowMs: NOW,
+    });
+    expect(plans).toHaveLength(0);
+  });
+
+  it("stays quiet for a tenant with no profiles at all", () => {
+    const plans = planQueueHydrationSignals({
+      todos: [
+        { api_key_hash: TENANT, status: "open", assigned_to_agent_id: null },
+      ],
+      profilesByTenant: new Map(),
+      nowMs: NOW,
+    });
+    expect(plans).toHaveLength(0);
   });
 });

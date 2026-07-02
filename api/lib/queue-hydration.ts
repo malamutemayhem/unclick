@@ -15,6 +15,14 @@
 
 export const HYDRATION_OWNER_FRESH_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * A tenant only gets hydration signals while its fleet is plausibly alive:
+ * at least one profile seen within this window. Without this gate an
+ * abandoned tenant with old open todos would be flagged twice a day forever,
+ * which is the same signal noise this sweep exists to surface, not add.
+ */
+export const HYDRATION_TENANT_ACTIVE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** One signal per tenant per this window, so the cron reminds daily-ish instead of every 15 minutes. */
 export const HYDRATION_SIGNAL_DEDUP_WINDOW_MS = 12 * 60 * 60 * 1000;
 
@@ -57,10 +65,18 @@ function ownerSeenWithinWindow(
 ): boolean {
   if (!agentId) return false;
   const profile = profiles.find((p) => p.agent_id === agentId);
-  if (!profile?.last_seen_at) return false;
-  const seenMs = Date.parse(profile.last_seen_at);
+  return seenWithin(profile?.last_seen_at ?? null, nowMs, HYDRATION_OWNER_FRESH_WINDOW_MS);
+}
+
+function seenWithin(lastSeenAt: string | null, nowMs: number, windowMs: number): boolean {
+  if (!lastSeenAt) return false;
+  const seenMs = Date.parse(lastSeenAt);
   if (!Number.isFinite(seenMs)) return false;
-  return nowMs - seenMs <= HYDRATION_OWNER_FRESH_WINDOW_MS;
+  return nowMs - seenMs <= windowMs;
+}
+
+function tenantRecentlyActive(profiles: HydrationProfileRow[], nowMs: number): boolean {
+  return profiles.some((p) => seenWithin(p.last_seen_at, nowMs, HYDRATION_TENANT_ACTIVE_WINDOW_MS));
 }
 
 /**
@@ -84,6 +100,7 @@ export function planQueueHydrationSignals(input: {
   const plans: QueueHydrationSignalPlan[] = [];
   for (const [tenant, todos] of byTenant.entries()) {
     const profiles = input.profilesByTenant.get(tenant) ?? [];
+    if (!tenantRecentlyActive(profiles, input.nowMs)) continue;
     let activeJobs = 0;
     let inProgress = 0;
     let openUnassigned = 0;
