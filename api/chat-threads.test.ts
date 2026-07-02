@@ -954,7 +954,7 @@ describe("chat-threads shared rooms", () => {
     });
   });
 
-  // ── leave ───────────────────────────────────────────────────────────────
+  // ── leave ────────────────────────────────────────────────────────────────
   it("leave sets the caller's own membership to left", async () => {
     const cfg: RouteConfig = {
       calls: [],
@@ -1011,7 +1011,7 @@ describe("chat-threads shared rooms", () => {
     ).toBeUndefined();
   });
 
-  // ── messages: incremental sync cursor ───────────────────────────────────
+  // ── messages: incremental sync cursor ───────────────────────
   it("messages passes a valid after cursor through as a created_at filter", async () => {
     const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE };
     stubFetch(cfg);
@@ -1062,7 +1062,7 @@ describe("chat-threads shared rooms", () => {
     expect(messagesUrl).not.toContain("created_at=gt.");
   });
 
-  // ── mark_read: the caller's read cursor ─────────────────────────────────
+  // ── mark_read: the caller's read cursor ─────────────────────
   it("mark_read stamps the caller's own membership row", async () => {
     const cfg: RouteConfig = {
       calls: [],
@@ -1117,7 +1117,7 @@ describe("chat-threads shared rooms", () => {
     ).toBeUndefined();
   });
 
-  // ── append: send idempotency ─────────────────────────────────────────────
+  // ── append: send idempotency ─────────────────────────────────
   it("append carries the client_msg_id into the insert", async () => {
     const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE };
     stubFetch(cfg);
@@ -1170,6 +1170,46 @@ describe("chat-threads shared rooms", () => {
     expect(res.body).toMatchObject({ success: true, deduped: true });
   });
 
+  it("append ignores a spoofed sender_id and signs with the verified email", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      // The caller's verified auth profile: append must sign with THIS email,
+      // not whatever sender_id the request body claims.
+      roomMemberProfiles: {
+        [CALLER_LANE]: {
+          user_id: CALLER_USER,
+          email: "Caller@Example.com",
+        },
+      },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: {
+          thread_id: "thread-1",
+          content: "hello",
+          sender_id: "victim@example.com",
+        },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const insert = cfg.calls.find(
+      (c) => c.url.includes("/chat_thread_messages") && c.method === "POST",
+    );
+    expect(insert).toBeTruthy();
+    expect(insert!.body).toMatchObject({ sender_id: "caller@example.com" });
+    expect((insert!.body as { sender_id: string }).sender_id).not.toBe(
+      "victim@example.com",
+    );
+  });
+
   it("append without a client_msg_id still surfaces a 409 as a failure", async () => {
     const cfg: RouteConfig = {
       calls: [],
@@ -1192,7 +1232,7 @@ describe("chat-threads shared rooms", () => {
     expect(res.body).toMatchObject({ error: "Failed to save message." });
   });
 
-  // ── list: read cursor surfaced for unread indicators ────────────────────
+  // ── list: read cursor surfaced for unread indicators ────────────────
   it("list returns the caller's my_last_read_at for a shared room", async () => {
     const cfg: RouteConfig = {
       calls: [],
