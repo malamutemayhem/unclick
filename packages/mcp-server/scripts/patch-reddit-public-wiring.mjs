@@ -17,6 +17,17 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const wiringPath = path.resolve(here, "../src/tool-wiring.ts");
 const handlersPath = path.resolve(here, "../src/additional-handlers.ts");
 const toolsPath = path.resolve(here, "../src/additional-tools.ts");
+// Stage 3b moved Reddit wiring into src/wiring/reddit.ts, maintained directly with
+// the public read-only tools already present, so this shim is a no-op there. It
+// still patches the pre-3b monolith layouts below.
+const redditWiringPath = path.resolve(here, "../src/wiring/reddit.ts");
+if (fs.existsSync(redditWiringPath)) {
+  const txt = fs.readFileSync(redditWiringPath, "utf8");
+  if (txt.includes("reddit_thread") && txt.includes("redditThread")) {
+    console.log("Reddit wiring already aligned (src/wiring/reddit.ts); nothing to patch.");
+    process.exit(0);
+  }
+}
 // post-split, ADDITIONAL_TOOLS lives in additional-tools.ts and the imports +
 // ADDITIONAL_HANDLERS in additional-handlers.ts; pre-split both are tool-wiring.ts.
 const toolsSchemaPath = fs.existsSync(toolsPath) ? toolsPath : wiringPath;
