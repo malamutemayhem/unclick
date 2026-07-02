@@ -186,7 +186,12 @@ function getImportPreview(file: File): ImportPreview {
 const NUDGE_DISMISS_KEY = "unclick_admin_memory_nudge_dismissed_at";
 const NUDGE_SNOOZE_MS = 24 * 60 * 60 * 1000; // 24h
 
-function MemoryNudgeBanner({ apiKey }: { apiKey: string }) {
+// Connection status MUST come from the signed-in account (session JWT), never
+// from the raw key cached in localStorage. The cached key goes stale after a
+// rotation, and a stale key hashes to nothing on the backend, so the banner
+// would claim "not connected" while the header pill (already on the JWT path)
+// correctly said "Memory on".
+function MemoryNudgeBanner({ token }: { token: string }) {
   const [state, setState] = useState<MemoryNudge | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
@@ -200,13 +205,13 @@ function MemoryNudgeBanner({ apiKey }: { apiKey: string }) {
     } catch {
       // ignore
     }
-    if (!apiKey) return;
+    if (!token) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
-        );
+        const res = await fetch("/api/memory-admin?action=admin_check_connection", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) return;
         const body = (await res.json()) as MemoryNudge;
         if (!cancelled) setState(body);
@@ -217,7 +222,7 @@ function MemoryNudgeBanner({ apiKey }: { apiKey: string }) {
     return () => {
       cancelled = true;
     };
-  }, [apiKey]);
+  }, [token]);
 
   if (dismissed || !state) return null;
 
@@ -228,7 +233,7 @@ function MemoryNudgeBanner({ apiKey }: { apiKey: string }) {
     ? "Finish connecting UnClick"
     : "Your memory is empty";
   const body = !state.connected
-    ? "UnClick is installed but your AI hasn't checked in yet. Run the Connect command so your sessions can load memory automatically."
+    ? "Your AI hasn't said hello yet. Open the Connect page, paste the one address into your AI, and sign in when it asks."
     : "Add your identity or a few facts so every AI session starts with context instead of from scratch.";
   const cta = !state.connected ? "Connect UnClick" : "Add memory";
   const to = !state.connected ? "/memory/connect" : "/admin/memory?tab=identity";
@@ -685,6 +690,15 @@ export default function AdminYou() {
     return () => { cancelled = true; };
   }, [session, sessionLoading]);
 
+  // Deep links like /admin/you#you-worker-keys arrive before the cards exist
+  // (the profile fetch gates the render), so scroll once loading settles.
+  useEffect(() => {
+    if (sessionLoading || loading) return;
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+  }, [sessionLoading, loading]);
+
   useEffect(() => {
     if (sessionLoading || loading || !session || !detectedTimezone) return;
     if (operatorTime?.source === "manual") return;
@@ -977,8 +991,8 @@ export default function AdminYou() {
       </div>
 
       <ClaimKeyBanner />
-      {profile?.api_key?.prefix ? (
-        <MemoryNudgeBanner apiKey={localStorage.getItem("unclick_api_key") ?? ""} />
+      {session && profile?.api_key?.prefix ? (
+        <MemoryNudgeBanner token={session.access_token} />
       ) : null}
 
       {sessionLoading || loading ? (
@@ -1211,9 +1225,6 @@ export default function AdminYou() {
             </div>
             {aboutYouError && <p className="mt-2 text-[11px] text-red-400">{aboutYouError}</p>}
           </section>
-
-          {/* Worker Keys card */}
-          <WorkerKeysCard />
 
           {/* AI Style card */}
           <section id="you-style" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
@@ -1548,6 +1559,9 @@ export default function AdminYou() {
               </div>
             )}
           </section>
+
+          {/* Worker Keys card - optional, advanced; kept below Connection to match the nav order */}
+          <WorkerKeysCard />
 
           {/* My Data card */}
           <section id="you-my-data" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">

@@ -494,11 +494,12 @@ export default function MemoryConnectPage() {
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
                 <span className="font-semibold">Heads up:</span> this link contains your key, so treat
-                it like a password. For unattended workers, mint a dedicated worker key at{" "}
-                <Link to="/admin/you" className="underline">
-                  Admin, then You, then Worker Keys
+                it like a password. If an AI runs by itself while you are away, give it its own spare
+                key from{" "}
+                <Link to="/admin/you#you-worker-keys" className="underline">
+                  Worker Keys
                 </Link>{" "}
-                so you can revoke it on its own and your main key never rides along.
+                instead, so you can remove that key later without touching your main one.
               </span>
             </div>
           </section>

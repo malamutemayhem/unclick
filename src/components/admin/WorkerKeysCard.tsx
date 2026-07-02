@@ -8,6 +8,10 @@
  * but are independently revocable, and rotating the main uc_ key never breaks
  * them.
  *
+ * All user-facing copy on this card must stay in plain English: this is an
+ * advanced, optional feature and most customers will meet the words before
+ * the concept.
+ *
  * Talks to /api/worker-keys (login-authed via the Supabase session JWT):
  *   POST   -> mint (returns the plaintext once)
  *   GET    -> list (masked prefix only)
@@ -165,18 +169,19 @@ export default function WorkerKeysCard() {
   const workerUrl = minted ? `${MCP_BASE_URL}?key=${minted.api_key}` : "";
 
   return (
-    <div id="you-worker-keys" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+    <section id="you-worker-keys" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
         <Bot className="h-4 w-4 text-[#E2B93B]" />
         Worker Keys
         <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
-          Headless agents
+          Optional
         </span>
       </h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-[#888]">
-        Static keys for cloud, CI, or headless agents. A worker key carried in the connection URL
-        reconnects itself, so an unattended session never goes dark. Each key shares your memory and
-        connections, is revocable on its own, and survives rotating your main key.
+        Most people can skip this. A worker key is a spare key for an AI that works while you are
+        away, like a cloud helper or an automated job, so it can let itself back in without you at
+        the keyboard. Each key shares your memory, and you can remove one at any time without
+        breaking anything else.
       </p>
 
       {/* Create */}
@@ -185,7 +190,7 @@ export default function WorkerKeysCard() {
           type="text"
           value={label}
           onChange={(e) => setLabel(e.target.value.slice(0, 80))}
-          placeholder="Label (e.g. CI runner, laptop agent)"
+          placeholder="Name this key (e.g. cloud helper, CI runner)"
           aria-label="Worker key label"
           className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-xs text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/50"
         />
@@ -207,12 +212,12 @@ export default function WorkerKeysCard() {
           <div className="flex items-start gap-2 text-xs text-[#E2B93B]">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
-              Copy this worker key now. It is shown only once and cannot be retrieved later. Treat the
-              URL like a password.
+              Copy this key now. It is shown only once, then locked away for safety. Treat it and
+              its address like a password.
             </span>
           </div>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <code className="min-w-0 flex-1 truncate rounded bg-[#0A0A0A] px-3 py-2 font-mono text-xs text-white">
+            <code className="min-w-0 flex-1 truncate rounded bg-black/30 px-3 py-2 font-mono text-xs text-white">
               {revealed ? minted.api_key : `${minted.prefix}${"•".repeat(12)}`}
             </code>
             <button
@@ -234,7 +239,7 @@ export default function WorkerKeysCard() {
           </div>
           <div className="mt-3">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
-              Connection URL (self-reconnecting)
+              Ready-to-paste address (key included)
             </p>
             <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
               <code className="min-w-0 flex-1 truncate rounded bg-black/30 px-3 py-2 font-mono text-xs text-white/70">
@@ -264,7 +269,7 @@ export default function WorkerKeysCard() {
         ) : keys.length === 0 ? (
           <div className="rounded-lg border border-dashed border-white/[0.08] p-4 text-center">
             <p className="text-xs text-[#666]">
-              No worker keys yet. Create one for any headless or CI agent that needs to stay connected on its own.
+              No worker keys yet. You only need one if an AI runs by itself while you are away.
             </p>
           </div>
         ) : (
@@ -295,13 +300,13 @@ export default function WorkerKeysCard() {
                   ) : (
                     <Trash2 className="h-3.5 w-3.5" />
                   )}
-                  {revokingId === k.id ? "Revoking..." : "Revoke"}
+                  {revokingId === k.id ? "Removing..." : "Remove"}
                 </button>
               </div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

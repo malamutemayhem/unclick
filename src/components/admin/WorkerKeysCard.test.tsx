@@ -59,7 +59,7 @@ describe("WorkerKeysCard", () => {
     expect(screen.getByRole("button", { name: /Create worker key/i })).toBeInTheDocument();
   });
 
-  it("lists existing worker keys with a revoke button", async () => {
+  it("lists existing worker keys with a remove button", async () => {
     stubFetch({
       list: {
         worker_keys: [
@@ -77,7 +77,7 @@ describe("WorkerKeysCard", () => {
     render(<WorkerKeysCard />);
     expect(await screen.findByText("CI runner")).toBeInTheDocument();
     expect(screen.getByText(/agt_abcd1234/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Revoke/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Remove/i })).toBeInTheDocument();
   });
 
   it("reveals the minted key and its self-reconnecting URL once after create", async () => {
