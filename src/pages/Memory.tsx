@@ -43,24 +43,24 @@ const MEMORY_PILLARS = [
   { title: "Session continuity", desc: "One summary per session: decisions, open loops, key topics. New sessions read the last few and carry on.", icon: History },
   { title: "Code memory", desc: "Code stored on its own and expanded on demand. Language and file tagged, searchable, loaded only when needed.", icon: Code },
   { title: "Recall and hygiene", desc: "Used memories surface first and stale ones fade to save context. Everything stays searchable by keyword.", icon: Gauge },
-  { title: "Data island", desc: "It all lives in your own database. We never see it, and if you leave, your data stays yours.", icon: Database },
+  { title: "Yours to keep", desc: "Hosted for you, so turning it on takes minutes. Export or delete everything any time; it is your data.", icon: Database },
 ];
 
 const SETUP_STEPS = [
   {
     step: 1,
-    title: "Connect your database",
-    desc: "Supabase free tier, or any PostgreSQL.",
+    title: "Create your account",
+    desc: "One email. Free while we are in beta.",
   },
   {
     step: 2,
-    title: "Run one migration",
-    desc: "We do it for you. One click.",
+    title: "Connect your AI once",
+    desc: "One address, sign in in the browser, no key to carry.",
   },
   {
     step: 3,
-    title: "Add one line to your MCP config",
-    desc: "That is it. Every session now has memory.",
+    title: "That is it. Memory is on.",
+    desc: "Every session loads it first and saves before it ends.",
   },
 ];
 
@@ -69,7 +69,7 @@ const Memory = () => {
   useMetaTags({
     title: "One memory for every AI you use - UnClick Memory",
     description:
-      "Persistent cross-session memory for AI agents. Tell it once: ChatGPT, Claude, Cursor, and your local model read the same identity, facts, and session history, stored in your own database.",
+      "Persistent cross-session memory for AI agents. Tell it once: ChatGPT, Claude, Cursor, and your local model read the same identity, facts, and session history. Hosted for you, yours to export.",
     ogTitle: "UnClick Memory - One memory for every AI you use",
     ogDescription:
       "Tell it once. Every AI knows. Eight pillars of persistent memory, cross-session and cross-agent, in your own database.",
@@ -173,20 +173,20 @@ const Memory = () => {
             <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary mb-6">
               <Shield className="h-6 w-6" />
             </div>
-            <h2 className={presets.h2}>Your data. Your database.</h2>
+            <h2 className={presets.h2}>Yours, without the homework.</h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-6 text-lg text-body leading-relaxed">
-              UnClick Memory stores everything in your own Supabase instance.
-              We never see your data. If you leave, your data stays. It is
-              already yours.
+              We host your memory so turning it on takes minutes, not a
+              database migration. It stays yours the whole time: export it or
+              delete it whenever you like.
             </p>
           </FadeIn>
           <FadeIn delay={0.15}>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/60 px-4 py-2 backdrop-blur-sm">
               <Database className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs text-body">
-                Others store your memories in their cloud. We store them in yours.
+                Prefer full custody? The bring-your-own-Supabase lane is in the setup wizard.
               </span>
             </div>
           </FadeIn>
@@ -246,7 +246,8 @@ const Memory = () => {
 
           <FadeIn delay={0.2}>
             <p className="mt-8 text-center text-xs text-muted-foreground">
-              Coming from another memory tool? Import in one click.
+              Coming from another memory tool? Import in one click. Want it in
+              your own Supabase? The wizard has that lane too.
             </p>
           </FadeIn>
         </div>

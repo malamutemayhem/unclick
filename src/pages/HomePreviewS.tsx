@@ -159,7 +159,7 @@ const HomePreviewS = () => {
             </div>
             <FadeIn delay={0.2}>
               <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground/65">
-                stored in your database, yours to export or delete
+                hosted for you · export or delete any time
               </p>
             </FadeIn>
           </div>
