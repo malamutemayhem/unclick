@@ -72,6 +72,60 @@ function currentApiKeyHash(): string | null {
   return process.env.UNCLICK_API_KEY_HASH ?? null;
 }
 
+function memoryBackendMode(db: MemoryBackend): "managed" | "byod" | "local" | "unknown" {
+  const mode = (db as { tenancy?: { mode?: unknown } }).tenancy?.mode;
+  if (mode === "managed" || mode === "byod") return mode;
+  if (db.constructor.name === "LocalBackend") return "local";
+  return "unknown";
+}
+
+function memoryAdminBaseUrl(): string {
+  return (
+    process.env.UNCLICK_MEMORY_BASE_URL ||
+    process.env.UNCLICK_SITE_URL ||
+    "https://unclick.world"
+  ).replace(/\/+$/, "");
+}
+
+async function mirrorConversationTurnToHostedOrchestrator(input: {
+  session_id: string;
+  role: string;
+  content: string;
+}): Promise<{ turn_id: string | null; conversation_log_id: string | null } | null> {
+  const apiKey = process.env.UNCLICK_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const hostedRole = input.role === "tool" ? "system" : input.role;
+  if (!["user", "assistant", "system"].includes(hostedRole)) return null;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
+  const res = await fetch(`${memoryAdminBaseUrl()}/api/memory-admin?action=admin_conversation_turn_ingest`, {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      session_id: input.session_id,
+      role: hostedRole,
+      content: input.content,
+      source_app: input.role === "tool" ? "unclick-mcp-tool-turn" : "unclick-mcp-save_conversation_turn",
+      client_session_id: input.session_id,
+    }),
+  }).finally(() => clearTimeout(timeout));
+  if (!res.ok) return null;
+  const data = (await res.json()) as {
+    turn_id?: unknown;
+    conversation_log_id?: unknown;
+  };
+  return {
+    turn_id: typeof data.turn_id === "string" ? data.turn_id : null,
+    conversation_log_id: typeof data.conversation_log_id === "string" ? data.conversation_log_id : null,
+  };
+}
+
 type Args = Record<string, unknown>;
 
 // --- lane-07: write-gate admission ---
@@ -1031,27 +1085,39 @@ export const MEMORY_HANDLERS: Record<string, (args: Args) => Promise<unknown>> =
 
   async log_conversation(args) {
     const db = await getBackend();
-    const receipt = await db.logConversation({
+    const input = {
       session_id: str(args.session_id),
       role: str(args.role),
       content: str(args.content),
       has_code: bool(args.has_code),
+    };
+    const receipt = await db.logConversation({
+      session_id: input.session_id,
+      role: input.role,
+      content: input.content,
+      has_code: input.has_code,
     });
     await persistTypedLinksForMemoryWrite(db, {
       source_kind: "conversation_turn",
       source_id: receipt.receipt_id,
-      text: str(args.content),
+      text: input.content,
     });
+    let hosted_orchestrator_receipt: Awaited<ReturnType<typeof mirrorConversationTurnToHostedOrchestrator>> = null;
+    if (memoryBackendMode(db) !== "managed") {
+      hosted_orchestrator_receipt = await mirrorConversationTurnToHostedOrchestrator(input).catch(() => null);
+    }
     // Auto-capture (flag-gated, default off, best-effort). When both flags are
     // off this is a no-op and the write path is byte-identical to before.
     if (codeAutoCaptureEnabled() || libraryAutoCaptureEnabled()) {
       await autoCaptureFromTurn(db, {
-        session_id: str(args.session_id),
-        role: str(args.role),
-        content: str(args.content),
+        session_id: input.session_id,
+        role: input.role,
+        content: input.content,
       }).catch(() => undefined);
     }
-    return receipt;
+    return hosted_orchestrator_receipt
+      ? { ...receipt, hosted_orchestrator_receipt }
+      : receipt;
   },
 
   // --- lane-09: typed memory split ---
