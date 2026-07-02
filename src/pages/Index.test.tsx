@@ -27,7 +27,7 @@ describe("the live homepage (BubbleHome)", () => {
         <Index />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/One\s?bubble\./);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/One\s?context\./);
     expect(document.getElementById("install")).not.toBeNull();
   });
 

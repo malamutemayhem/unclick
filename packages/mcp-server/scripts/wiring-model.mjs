@@ -1,54 +1,151 @@
 // wiring-model.mjs
-// Single source of truth for parsing tool-wiring.ts as text.
+// Single source of truth for parsing the tool wiring as text.
 //
 // Three build-time generators (generate-tool-index, generate-standalone-mcp,
 // audit-integrations) and a couple of guards used to each carry their own copy
 // of the brittle regexes that slice ADDITIONAL_TOOLS / ADDITIONAL_HANDLERS and
 // walk the `// ── <slug>-tool.ts ──` block headers. That duplication is the
-// thing that makes restructuring tool-wiring.ts dangerous: a layout change has
-// to be reasoned about against N independent parsers.
+// thing that makes restructuring the wiring dangerous: a layout change has to
+// be reasoned about against N independent parsers.
 //
 // This module centralises every one of those parses in one place. The logic is
 // lifted verbatim from the original generators (only parameterised by text), so
 // output is byte-identical; the win is that future layout changes touch this
 // one file instead of being scattered across the scripts.
 //
-// Pure functions: every parser takes source text and returns data. The only IO
-// is the readWiring() convenience reader.
+// Stage 3b split the catalogue into one module per connector under src/wiring/.
+// readTools()/readHandlers() reconstruct the ADDITIONAL_TOOLS / ADDITIONAL_HANDLERS
+// text from those per-app modules so every downstream parser below is unchanged.
+// Pre-3b layouts (additional-tools.ts / additional-handlers.ts monoliths, or the
+// original tool-wiring.ts) still work via the fallbacks.
 
 import fs from "node:fs";
 import path from "node:path";
+
+const camel = (slug) => slug.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 
 /** Read tool-wiring.ts from a package src directory. */
 export function readWiring(srcDir) {
   return fs.readFileSync(path.join(srcDir, "tool-wiring.ts"), "utf8");
 }
 
+// ─── Stage 3b reconstruction ─────────────────────────────────────────
+// Rebuild the ADDITIONAL_TOOLS body and the ADDITIONAL_HANDLERS map (plus a
+// category-tagged import region) from src/wiring/<slug>.ts, in the original
+// order recorded in wiring/_manifest.json. The reconstructed text is for the
+// text parsers below only; it is not emitted to disk.
+
+function reconstructFromWiring(srcDir) {
+  const wdir = path.join(srcDir, "wiring");
+  const manifestPath = path.join(wdir, "_manifest.json");
+  if (!fs.existsSync(manifestPath)) return null;
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const cache = {};
+  const wfile = (slug) =>
+    (cache[slug] ??= fs.readFileSync(path.join(wdir, `${slug}.ts`), "utf8").replace(/\r\n/g, "\n"));
+
+  const extractTools = (slug) => {
+    const src = wfile(slug);
+    const marker = `export const ${camel(slug)}Tools = [`;
+    const a = src.indexOf(marker) + marker.length;
+    return src.slice(a, src.indexOf("] as const;", a));
+  };
+  const extractHandlers = (slug) => {
+    const src = wfile(slug);
+    const a = src.indexOf(`${camel(slug)}Handlers`);
+    const open = src.indexOf("= {", a) + 3;
+    return src.slice(open, src.lastIndexOf("};"));
+  };
+
+  // Walk the compact segment manifest: chunks come from the per-app wiring
+  // modules in recorded order; the rare verbatim literals (leading scaffolding,
+  // empty/stray headers) are re-inserted at their recorded walk positions. The
+  // result is the original ADDITIONAL_TOOLS body / ADDITIONAL_HANDLERS map
+  // byte-for-byte.
+  const walk = (order, lits, extract) => {
+    const total = order.length + Object.keys(lits).length;
+    let out = "";
+    let next = 0;
+    for (let i = 0; i < total; i++) {
+      if (lits[i] !== undefined) out += lits[i];
+      else out += extract(order[next++]);
+    }
+    return out;
+  };
+  // Chunk order is the import order of the generated index files (the
+  // generator emits both from the same order list, so they cannot drift).
+  const orderFrom = (file, kind) => {
+    const text = fs.readFileSync(path.join(srcDir, file), "utf8");
+    return [...text.matchAll(new RegExp(`import \\{ \\w+${kind} \\} from "\\./wiring/([a-z0-9-]+)\\.js";`, "g"))].map((x) => x[1]);
+  };
+  const toolsBody = walk(orderFrom("additional-tools.ts", "Tools"), manifest.toolLits, extractTools);
+  const mapBody = walk(orderFrom("additional-handlers.ts", "Handlers"), manifest.handlerLits, extractHandlers);
+
+  // Synthesize a category-tagged import region. Two jobs:
+  //   1. parseImportCategories must keep producing the same slug -> category
+  //      map the monolith's imports produced. Each wiring file records its
+  //      category in a "// category:" header, and the file's OWN connector
+  //      import sits directly under that header (first-import-wins keeps the
+  //      map stable).
+  //   2. Consumers that map imported function names to source files (the
+  //      schema-handler-contract static fallback) need the REAL import lines,
+  //      so each file's imports are re-emitted with "../" rewritten to "./"
+  //      (wiring/ is one level deeper than the monolith was). Cross-module
+  //      imports (a chunk that hosts handlers for sibling connectors) are
+  //      emitted LAST so they cannot claim another slug's category slot.
+  let importsText = "";
+  const crossImports = new Set();
+  for (const f of fs.readdirSync(wdir).filter((x) => x.endsWith(".ts")).sort()) {
+    const slug = f.replace(/\.ts$/, "");
+    const src = wfile(slug);
+    const cat = (src.match(/^\/\/ category: (.+)$/m) || [])[1];
+    if (!cat) continue;
+    importsText += `// ─── ${cat} ───\n`;
+    const own = [];
+    for (const line of src.match(/^import .+$/gm) || []) {
+      const rewritten = line.replace(/from "\.\.\//, 'from "./');
+      if (line.endsWith(`from "../${slug}-tool.js";`)) own.push(rewritten);
+      else crossImports.add(rewritten);
+    }
+    if (own.length) importsText += own.join("\n") + "\n";
+    else importsText += `import { _ } from "./${slug}-tool.js";\n`;
+  }
+  if (crossImports.size) {
+    importsText += "// cross-module imports used by handler chunks\n";
+    importsText += [...crossImports].join("\n") + "\n";
+  }
+
+  const toolsText = `${manifest.toolMarker}${toolsBody}${manifest.toolsTail}`;
+  const handlersText = `${importsText}\n${manifest.handlerMarkerLine}${mapBody}${manifest.handlersTail}`;
+
+  return { toolsText, handlersText };
+}
+
 /**
- * Read additional-handlers.ts (the connector imports + ADDITIONAL_HANDLERS map,
- * split out of tool-wiring.ts). Falls back to tool-wiring.ts when the split file
- * is absent, so this module also works against the pre-split layout.
+ * Read the ADDITIONAL_HANDLERS source text (connector imports + the handler map).
+ * Post-3b: reconstructed from src/wiring/. Pre-3b: additional-handlers.ts, then
+ * tool-wiring.ts.
  */
 export function readHandlers(srcDir) {
+  const r = reconstructFromWiring(srcDir);
+  if (r) return r.handlersText;
   const split = path.join(srcDir, "additional-handlers.ts");
   return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
 }
 
 /**
- * Read additional-tools.ts (the ADDITIONAL_TOOLS catalogue, split out of
- * tool-wiring.ts in Stage 3). Falls back to tool-wiring.ts when the split file
- * is absent, so this module also works against the pre-split layout.
+ * Read the ADDITIONAL_TOOLS source text (the tool catalogue).
+ * Post-3b: reconstructed from src/wiring/. Pre-3b: additional-tools.ts, then
+ * tool-wiring.ts.
  */
 export function readTools(srcDir) {
+  const r = reconstructFromWiring(srcDir);
+  if (r) return r.toolsText;
   const split = path.join(srcDir, "additional-tools.ts");
   return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
 }
 
-// ─── Section slicing ───────────────────────────────────────────────────────
-// Slice the body of an exported literal (ADDITIONAL_TOOLS = [ ... ] or
-// ADDITIONAL_HANDLERS = { ... }) by scanning from its marker to the section's
-// closing "\n];" / "\n};".
-
+// ─── Section slicing ───────────────────────────────────────────
 export function section(wiring, marker, openTok) {
   const start = wiring.indexOf(marker);
   if (start < 0) throw new Error(`marker not found: ${marker}`);
@@ -57,13 +154,8 @@ export function section(wiring, marker, openTok) {
   return wiring.slice(open, close);
 }
 
-// ─── Import-region category map ──────────────────────────────────────────────
-// slug -> category, from the `// ─── Category ───` headers that group the
-// per-connector imports above the ADDITIONAL_TOOLS literal.
-
+// ─── Import-region category map ────────────────────────────────────
 export function parseImportCategories(wiring) {
-  // imports live above the first ADDITIONAL_* export, in whichever file holds
-  // them (tool-wiring.ts pre-split, additional-handlers.ts post-split).
   const cut = ["export const ADDITIONAL_TOOLS", "export const ADDITIONAL_HANDLERS"]
     .map((m) => wiring.indexOf(m))
     .filter((i) => i >= 0)
@@ -80,15 +172,8 @@ export function parseImportCategories(wiring) {
   return slugCategory;
 }
 
-// ─── Tool index ──────────────────────────────────────────────────────────────
-// [{ app, category, tools: [{ name, description }] }], parsed from the
-// ADDITIONAL_TOOLS literal and the import-region category map. Drives
-// generate-tool-index.mjs.
-
+// ─── Tool index ──────────────────────────────────────────────────
 export function parseToolIndex(toolsText, importsText) {
-  // tools come from the ADDITIONAL_TOOLS literal (tool-wiring.ts); categories
-  // come from the import region (additional-handlers.ts post-split). When called
-  // with one argument, both are read from the same text (pre-split layout).
   const slugCategory = parseImportCategories(importsText ?? toolsText);
 
   const wiring = toolsText;
@@ -111,13 +196,9 @@ export function parseToolIndex(toolsText, importsText) {
   return index;
 }
 
-// ─── Per-connector standalone extraction ─────────────────────────────────────
-// Used by generate-standalone-mcp.mjs. Pass the already-sliced section bodies
-// (see section()) so callers can reuse them across many slugs.
-
-/** Tool-definition object text for a connector, from the ADDITIONAL_TOOLS body. */
+// ─── Per-connector standalone extraction ─────────────────────────────
 export function toolDefsFor(toolsBody, slug) {
-  const re = new RegExp(`//\\s*[─-]+\\s*${slug}-tool\\.ts\\s*[─-]*`, "g");
+  const re = new RegExp(`//\\s*[\\u2500-]+\\s*${slug}-tool\\.ts\\s*[\\u2500-]*`, "g");
   const m = re.exec(toolsBody);
   if (!m) return null;
   const from = m.index + m[0].length;
@@ -128,7 +209,6 @@ export function toolDefsFor(toolsBody, slug) {
   return toolsBody.slice(from, to).replace(/^\s*\n/, "").replace(/,?\s*$/, "");
 }
 
-/** [{ tool, fn }] handler-map entries for a connector, from the ADDITIONAL_HANDLERS body. */
 export function handlersFor(handlersBody, slug) {
   const re = new RegExp(`//\\s*${slug}-tool\\.ts`, "g");
   const m = re.exec(handlersBody);
@@ -144,11 +224,7 @@ export function handlersFor(handlersBody, slug) {
   return entries.length ? entries : null;
 }
 
-// ─── Audit blocks ──────────────────────────────────────────────────────────
-// file -> { toolNames, toolCount, props, describedProps }, split by the
-// `// ── <file>.ts ─` headers inside the ADDITIONAL_TOOLS region. Drives the
-// schema-completeness heuristics in audit-integrations.mjs.
-
+// ─── Audit blocks ──────────────────────────────────────────
 export function loadWiringBlocks(wiring) {
   const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
   const end = wiring.indexOf("export const ADDITIONAL_HANDLERS");
@@ -163,7 +239,6 @@ export function loadWiringBlocks(wiring) {
     const to = i + 1 < headers.length ? headers[i + 1].index : body.length;
     const chunk = body.slice(from, to);
     const names = [...chunk.matchAll(/^\s*name:\s*"([^"]+)"/gm)].map((m) => m[1]);
-    // crude param + description tallies (heuristic schema-completeness signal)
     const props = [...chunk.matchAll(/\{\s*type:\s*"/g)].length;
     const describedProps = [...chunk.matchAll(/description:\s*"/g)].length;
     blocks[file] = { toolNames: names, toolCount: names.length, props, describedProps };

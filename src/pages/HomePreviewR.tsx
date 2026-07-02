@@ -15,9 +15,9 @@ const HomePreviewR = () => {
   useMetaTags({
     title: "UnClick. The universal remote for AI.",
     description:
-      "Everyone's AI. One bubble. The whole team holds a string to the same layer: memory, apps, gates, proof, and one running story.",
+      "Everyone's AI. One context. The whole team holds a string to the same layer: memory, apps, gates, proof, and one running story.",
     ogTitle: "UnClick. The universal remote for AI.",
-    ogDescription: "Everyone's AI. One bubble.",
+    ogDescription: "Everyone's AI. One context.",
     ogUrl: "https://unclick.world/home-preview-r",
   });
 

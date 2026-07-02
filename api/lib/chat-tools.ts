@@ -181,6 +181,14 @@ const REFUSAL = READ_MODE_REFUSAL;
 
 const BUILD_REFUSAL = BUILD_MODE_REFUSAL;
 
+// Returned when the model called call_tool with a meta name (unclick_call,
+// call_tool, ...) and the real endpoint could not be recovered from the
+// wrapper. Before this existed the call fell through to the mode refusal,
+// which misled models into blaming Read/Build mode when the actual problem
+// was the call shape.
+const META_CALL_GUIDE =
+  "tool error: call_tool needs the real endpoint id, not a wrapper name like unclick_call. Retry call_tool with endpoint_id set to the exact tool name from find_tools (for example 'gmail_search' or 'higgsfield_generate_image') and that endpoint's parameters in params.";
+
 const TOOL_INFO_FALLBACK_PREFIX =
   "tool_info did not find that built-in catalog slug, but integration tools can still be called directly by endpoint_id. Here are the matching integration results from find_tools. Use the exact tool name shown below as call_tool.endpoint_id; do not pass unclick_call as the endpoint_id.";
 
@@ -277,7 +285,12 @@ export function normalizeConnectorCall(
   let resolvedParams = params ?? {};
 
   const args = isPlainRecord(resolvedParams.arguments) ? resolvedParams.arguments : null;
-  const nestedRecords = [resolvedParams, args].filter(isPlainRecord);
+  // Models wrap the real call one level deeper in several shapes; some put
+  // the real endpoint under an inner "params" record instead of "arguments"
+  // ({endpoint_id: "unclick_call", params: {params: {endpoint_id, ...}}}),
+  // so that record is scanned too.
+  const inner = isPlainRecord(resolvedParams.params) ? resolvedParams.params : null;
+  const nestedRecords = [resolvedParams, args, inner].filter(isPlainRecord);
   const nestedEndpoint = nestedRecords.map(pickEndpointId).find((value): value is string => Boolean(value));
 
   if ((isMetaCallEndpoint(resolvedEndpointId) || !resolvedEndpointId) && nestedEndpoint) {
@@ -422,12 +435,23 @@ export function buildChatTools({
       }),
       execute: async ({ endpoint_id, params }) => {
         const normalized = normalizeConnectorCall(endpoint_id, params);
+        // A wrapper name that could not be unwrapped is a call-shape problem,
+        // not a permission problem: answer with retry guidance instead of a
+        // misleading mode refusal.
+        if (!normalized.endpointId || isMetaCallEndpoint(normalized.endpointId)) {
+          return META_CALL_GUIDE;
+        }
         // Permission guarantee is unconditional: refused endpoint classes are
         // denied whether or not a connector key is present.
         const allowed = isBuildMode
           ? isBuildModeEndpointId(normalized.endpointId)
           : isReadOnlyEndpointId(normalized.endpointId);
-        if (!allowed) return isBuildMode ? BUILD_REFUSAL : REFUSAL;
+        if (!allowed) {
+          // Name the refused endpoint so users and models can see WHAT was
+          // judged high-risk instead of guessing.
+          const refusal = isBuildMode ? BUILD_REFUSAL : REFUSAL;
+          return `${refusal} (refused endpoint: "${normalized.endpointId}")`;
+        }
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
           return await internalMcpCall(origin, connectorKey, "unclick_call", {

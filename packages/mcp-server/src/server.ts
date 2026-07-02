@@ -1922,6 +1922,26 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
     c.call("POST", "/v1/report-bug", a as Record<string, unknown>),
 };
 
+// Resolution for unclick_call endpoint ids against the generated
+// connector/integration handler table. Checked BEFORE the built-in
+// ENDPOINT_MAP in the dispatcher: live connector tools such as
+// gmail_search, dropbox_list_folder, or higgsfield_generate_image exist
+// only as generated handlers, and the old map-first order answered
+// "Endpoint not found" for them even though unclick_search had just
+// listed them. Dotted ids ("gmail.search") resolve via dot-to-underscore
+// conversion.
+export function resolveUnclickCallHandlerKey(
+  endpointId: string,
+  handlers: Record<string, unknown> = ADDITIONAL_HANDLERS,
+): string | null {
+  const clean = endpointId.trim();
+  if (!clean) return null;
+  const underscored = clean.replace(/\./g, "_");
+  if (handlers[underscored]) return underscored;
+  if (handlers[clean]) return clean;
+  return null;
+}
+
 // ─── Server factory ─────────────────────────────────────────────────────────
 
 export function createServer(): Server {
@@ -2538,6 +2558,21 @@ export function createServer(): Server {
           };
         }
 
+        // Generated connector/integration handlers come BEFORE the built-in
+        // endpoint map: connector tools discovered by unclick_search live
+        // only here, and the old map-first order rejected them as
+        // "Endpoint not found" (see resolveUnclickCallHandlerKey).
+        const handlerKey = resolveUnclickCallHandlerKey(endpointId);
+        if (handlerKey) {
+          const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
+          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
+          const result = await additionalHandler(handlerArgs);
+          signalToolFailure(handlerKey, result, handlerArgs);
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
         const entry = ENDPOINT_MAP.get(endpointId);
         if (!entry) {
           return {
@@ -2548,18 +2583,6 @@ export function createServer(): Server {
               },
             ],
             isError: true,
-          };
-        }
-
-        // Try ADDITIONAL_HANDLERS via dot-to-underscore key conversion ("foo.bar" -> "foo_bar")
-        const handlerKey = endpointId.replace(/\./g, "_");
-        const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
-        if (additionalHandler) {
-          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
-          const result = await additionalHandler(handlerArgs);
-          signalToolFailure(handlerKey, result, handlerArgs);
-          return {
-            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
         }
 

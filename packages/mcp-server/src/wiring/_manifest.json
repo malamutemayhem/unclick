@@ -1,0 +1,13 @@
+{
+  "toolMarker": "export const ADDITIONAL_TOOLS = [",
+  "toolLits": {
+    "0": "\n"
+  },
+  "toolsTail": "] as const;",
+  "handlerMarkerLine": "export const ADDITIONAL_HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {",
+  "handlerLits": {
+    "0": "\n",
+    "467": "\n  // klaviyo-tool.ts"
+  },
+  "handlersTail": "\n};\n"
+}

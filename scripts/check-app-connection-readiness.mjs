@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -303,11 +303,18 @@ export async function loadConnectionReadinessSources(cwd = process.cwd()) {
   const sources = Object.fromEntries(entries);
 
   const wiringParts = [sources.toolWiring];
-  for (const splitPath of TOOL_WIRING_SPLIT_PATHS) {
-    try {
-      wiringParts.push(await readSourceFile(cwd, splitPath));
-    } catch {
-      // Pre-split checkout: the decomposed wiring files do not exist yet.
+  const wiringDir = "packages/mcp-server/src/wiring";
+  try {
+    const files = (await readdir(path.join(cwd, wiringDir))).filter((f) => f.endsWith(".ts")).sort();
+    for (const f of files) wiringParts.push(await readSourceFile(cwd, `${wiringDir}/${f}`));
+  } catch {
+    // Pre-3b checkout: no wiring/ dir; fold the monolith / split files back in.
+    for (const splitPath of TOOL_WIRING_SPLIT_PATHS) {
+      try {
+        wiringParts.push(await readSourceFile(cwd, splitPath));
+      } catch {
+        // Pre-split checkout: the decomposed wiring files do not exist yet.
+      }
     }
   }
   sources.toolWiring = wiringParts.join("\n");
