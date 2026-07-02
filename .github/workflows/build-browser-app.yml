@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - claude/unclick-browser-app
+      - main
     paths:
       - "apps/unclick-browser/**"
       - ".github/workflows/build-browser-app.yml"

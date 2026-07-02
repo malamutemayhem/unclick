@@ -1,6 +1,6 @@
 [package]
 name = "unclick-browser"
-version = "0.5.13"
+version = "0.6.0"
 description = "UnClick Browser"
 edition = "2021"
 

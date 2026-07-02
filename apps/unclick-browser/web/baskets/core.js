@@ -84,7 +84,7 @@ UCB.baskets = UCB.baskets || {};
   // textContent (or, for figures, a resolved image URL), so the result is safe
   // to assign to innerHTML.
   function serializeProse(container, ctx, skipNode) {
-    var ALLOW = { P: 1, H2: 1, H3: 1, H4: 1, H5: 1, UL: 1, OL: 1, BLOCKQUOTE: 1, PRE: 1, FIGURE: 1 };
+    var ALLOW = { P: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, UL: 1, OL: 1, BLOCKQUOTE: 1, PRE: 1, FIGURE: 1 };
     var SKIP_TAG = { NAV: 1, HEADER: 1, FOOTER: 1, ASIDE: 1, FORM: 1, SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, BUTTON: 1, SELECT: 1 };
     var SKIP_CLS = /(^|[^a-z])(ad|ads|advert|promo|sponsor|sponsored|newsletter|signup|sign-up|subscribe|share|social|byline|author-byline|tags|tag-list|breadcrumb|pagination|pager|related|recommend|most-read|sidebar|widget|comment|paywall|cookie|skip-link)([^a-z]|$)/i;
     var out = [], seen = {}, count = 0;
@@ -112,6 +112,7 @@ UCB.baskets = UCB.baskets || {};
       }
       if (tag === "PRE") { var pt = (el.textContent || ""); if (pt.trim()) { out.push("<pre>" + esc(pt.replace(/\s+$/, "")) + "</pre>"); count++; } return; }
       if (tag === "BLOCKQUOTE") { pushText("blockquote", el.textContent); return; }
+      if (tag === "H1") { pushText("h1", el.textContent); return; }
       if (tag === "H2") { pushText("h2", el.textContent); return; }
       if (tag === "H3") { pushText("h3", el.textContent); return; }
       if (tag === "H4" || tag === "H5") { pushText("h4", el.textContent); return; }
@@ -158,6 +159,62 @@ UCB.baskets = UCB.baskets || {};
     } catch (e) { return ""; }
   }
 
+  // Class + id string of a node, lowercased, for boilerplate pattern checks.
+  function clsIdOf(n) {
+    try {
+      var c = (typeof n.className === "string") ? n.className : (n.getAttribute ? (n.getAttribute("class") || "") : "");
+      return (c + " " + (n.id || "")).toLowerCase();
+    } catch (e) { return ""; }
+  }
+
+  // Sponsored / advertisement region: the node or a near ancestor is marked as
+  // paid content (class, id, or a data-commercial/data-ad-* attribute). These
+  // strips are dressed up to look like story rows; without this check they
+  // render as real content grids and heroes.
+  var AD_RE = /(^|[-_ ])(ad|ads|advert|advertisement|advertorial|sponsor|sponsored|promoted|promo-source|paid-content|commercial|dfp|gpt|taboola|outbrain|mgid|adsbygoogle)([-_ ]|$)/;
+  function isAdRegion(node) {
+    try {
+      var n = node, hops = 0;
+      while (n && n.getAttribute && hops < 4) {
+        if (AD_RE.test(clsIdOf(n))) return true;
+        if (n.getAttribute("data-commercial") != null || n.getAttribute("data-ad-slot") != null || n.getAttribute("data-ad") != null) return true;
+        n = n.parentElement || n.parentNode; hops++;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // Explicit carousel markers on a group node or its immediate parent. Sites
+  // often put the swiper/carousel class on a wrapper one level above the track
+  // that actually groups, so both must be checked. Teaser defers to these so
+  // the carousel basket (media.js) can claim the strip.
+  var CAROUSEL_RE = /(^|[-_ ])(carousel|slider|slick|swiper|glide|embla|flickity|keen-slider|splide|owl-carousel|slideshow)([-_ ]|$)/;
+  function hasCarouselMarkers(node) {
+    try {
+      var n = node, hops = 0;
+      while (n && n.getAttribute && hops < 2) {
+        if (CAROUSEL_RE.test(clsIdOf(n))) return true;
+        if (n.getAttribute("data-carousel") != null || n.getAttribute("aria-roledescription") === "carousel") return true;
+        n = n.parentElement || n.parentNode; hops++;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // Breadcrumb / pager rails: real navigation, but never the page's menu and
+  // never a content grid. Checked on the node and its immediate parent.
+  var CRUMB_RE = /(^|[-_ ])(breadcrumb|breadcrumbs|crumbs|pager|pagination|page-numbers)([-_ ]|$)/;
+  function isCrumbTrail(node) {
+    try {
+      var n = node, hops = 0;
+      while (n && n.getAttribute && hops < 2) {
+        if (CRUMB_RE.test(clsIdOf(n) + " " + (n.getAttribute("aria-label") || "").toLowerCase())) return true;
+        n = n.parentElement || n.parentNode; hops++;
+      }
+    } catch (e) {}
+    return false;
+  }
+
   // ---- classify: best-scoring basket per region; claimed regions are not descended ----
   // A region is only claimed when its own best score is at least as high as the
   // best score found anywhere below it. This stops a broad container (e.g. body)
@@ -195,15 +252,98 @@ UCB.baskets = UCB.baskets || {};
       return here.score > sub ? here.score : sub;
     }
 
+    // A child region that reads as one unit of running text. Used by the
+    // remainder sweep below to rescue prose that sits BETWEEN claimed blocks
+    // (a wiki body interleaved with TOC grids and heading wrappers) - the
+    // article basket cannot claim the shared container because a stronger
+    // winner lives beneath it, so without this the paragraphs simply vanish.
+    function proseLeafish(r) {
+      try {
+        var n = r.node;
+        if (!n || !n.tagName) return false;
+        if (AD_RE.test(clsIdOf(n))) return false;
+        if (/(^|[-_ ])(newsletter|subscribe|signup|cookie|consent|social|share|byline|tags|tag-list|related|recommend|widget|sidebar|comment)([-_ ]|$)/.test(clsIdOf(n))) return false;
+        var tag = n.tagName;
+        var txt = (n.textContent || "").trim();
+        if (tag === "P" || tag === "BLOCKQUOTE" || /^H[1-5]$/.test(tag)) return txt.length >= 8;
+        if (tag === "PRE") return txt.length >= 1;
+        if (tag === "FIGURE") return true;
+        if (tag === "UL" || tag === "OL") {
+          if (txt.length < 24) return false;
+          // A list whose text is mostly anchors is a menu, not prose.
+          var as = n.querySelectorAll ? n.querySelectorAll("a") : [];
+          var at = 0;
+          for (var i = 0; i < as.length; i++) at += (as[i].textContent || "").trim().length;
+          return at / Math.max(1, txt.length) <= 0.6;
+        }
+        if ((tag === "DIV" || tag === "SECTION") && r.kind === "leaf") {
+          // Heading wrappers ("<div class=mw-heading><h2>...</h2></div>") count
+          // as prose so a wrapped section title does not break the run.
+          var h = n.querySelector ? n.querySelector("h1,h2,h3,h4,h5") : null;
+          if (h && txt.length <= 200) return true;
+        }
+        return false;
+      } catch (e) { return false; }
+    }
+
+    // Sweep only inside a real content region; a stray paragraph in chrome or
+    // marketing shell must not resurrect as an article block.
+    function isContentContext(node) {
+      try {
+        if (!node || !node.closest) return false;
+        return !!node.closest('main, article, [role="main"], [class*="content"], [class*="article"], [class*="post"], [class*="entry"], [class*="body"]');
+      } catch (e) { return false; }
+    }
+
+    function proseRunWinner(parentRegion, nodes) {
+      return {
+        region: { node: parentRegion.node, kind: "prose-run" },
+        type: "article",
+        score: 0.58,
+        basket: {
+          normalize: function (rg, c) {
+            var html = serializeProse({ children: nodes }, c, null);
+            if (!html) return null;
+            return { kind: "article", title: "", html: html };
+          }
+        }
+      };
+    }
+
     function walk(region) {
-      if (!region) return;
+      if (!region) return false;
       var me = selfScore.get(region) || { score: 0 };
       if (me.basket && me.score >= THRESH && me.score >= (below.get(region) || 0)) {
         winners.push({ region: region, basket: me.basket, type: me.type, score: me.score });
-        return;
+        return true;
       }
       var kids = region.children || [];
-      for (var i = 0; i < kids.length; i++) walk(kids[i]);
+      var anyClaimed = false;
+      var run = [];               // consecutive unclaimed prose children
+      var contentOk = null;       // lazily: is this container inside content?
+      function flush(at) {
+        if (!run.length) return;
+        var nodes = run; run = [];
+        var chars = 0;
+        for (var q = 0; q < nodes.length; q++) chars += (nodes[q].textContent || "").trim().length;
+        // Enough substance to be a real body run, not a stray label.
+        if (!((nodes.length >= 2 && chars >= 120) || chars >= 280)) return;
+        if (contentOk === null) contentOk = isContentContext(region.node);
+        if (!contentOk) return;
+        var w = proseRunWinner(region, nodes);
+        if (typeof at === "number" && at < winners.length) winners.splice(at, 0, w);
+        else winners.push(w);
+        anyClaimed = true;
+      }
+      for (var i = 0; i < kids.length; i++) {
+        var before = winners.length;
+        var claimed = walk(kids[i]);
+        if (claimed) { anyClaimed = true; flush(before); }
+        else if (proseLeafish(kids[i])) run.push(kids[i].node);
+        else flush();
+      }
+      flush();
+      return anyClaimed;
     }
 
     annotate(rootRegion);
@@ -360,7 +500,9 @@ UCB.baskets = UCB.baskets || {};
         var withBlurb = 0, total = 0;
         for (var i = 0; i < items.length; i++) { if (!items[i]) continue; total++; if (items[i].blurb) withBlurb++; }
         var compact = b.kind === "gallery" || b.kind === "carousel" || (total >= 3 && withBlurb <= total * 0.34);
-        var wrap = el("div", "cards " + (b.kind === "stats" ? "stat-grid" : (compact ? "card-grid" : "card-list")));
+        // Link-less content lists (reviews, Q&A) show their full text; the
+        // 2-line blurb clamp is for navigational teasers only.
+        var wrap = el("div", "cards " + (b.kind === "stats" ? "stat-grid" : (compact ? "card-grid" : "card-list")) + (b.kind === "list" ? " cards-full" : ""));
         for (var j = 0; j < items.length; j++) { var c = renderBlock(items[j]); if (c) wrap.appendChild(c); }
         if (!wrap.childNodes.length) return null;
         if (b.title) { var sec = el("section", "sec"); sec.appendChild(el("h2", "sec-title", b.title)); sec.appendChild(wrap); return sec; }
@@ -403,8 +545,19 @@ UCB.baskets = UCB.baskets || {};
       case "menu": return renderMenu(b);
       case "link": return renderLink(b);
       default: {
+        // Embeds and any future kind: title (clickable when there is a target),
+        // blurb, nothing else. Keeps unknown blocks readable instead of lost.
         var d = el("div", "doc");
-        if (b.title) d.appendChild(el("h2", null, b.title));
+        if (b.title) {
+          if (b.href) {
+            var hh = el("h2");
+            var la = document.createElement("a");
+            la.setAttribute("data-href", b.href);
+            la.textContent = b.title;
+            hh.appendChild(la);
+            d.appendChild(hh);
+          } else d.appendChild(el("h2", null, b.title));
+        }
         if (b.blurb) d.appendChild(el("p", null, b.blurb));
         return d.childNodes.length ? d : null;
       }
@@ -415,6 +568,38 @@ UCB.baskets = UCB.baskets || {};
     for (var i = 0; i < blocks.length; i++) { var node = renderBlock(blocks[i]); if (node) frag.appendChild(node); }
     return frag;
   };
+
+  // Head-metadata fallback for pages whose body carries nothing readable.
+  function metaFallback(doc, ctx) {
+    try {
+      var title = util.meta(doc, "og:title") || (doc.title || "").trim();
+      var desc = util.meta(doc, "og:description") || util.meta(doc, "description");
+      var site = util.meta(doc, "og:site_name");
+      if (!site) {
+        // JSON-LD Organization/WebSite name, when present.
+        var lds = doc.querySelectorAll('script[type="application/ld+json"]');
+        for (var i = 0; i < lds.length && !site; i++) {
+          try {
+            var d = JSON.parse(lds[i].textContent);
+            var arr = Array.isArray(d) ? d : (d["@graph"] || [d]);
+            for (var j = 0; j < arr.length; j++) {
+              var t = arr[j] && arr[j]["@type"];
+              if ((t === "Organization" || t === "WebSite") && arr[j].name) { site = arr[j].name; break; }
+            }
+          } catch (e2) {}
+        }
+      }
+      if (!title && !desc) return [];
+      var blocks = [{ kind: "masthead", title: site || ctx.host || title, href: ctx.base, meta: { host: ctx.host } }];
+      var html = "";
+      var img = util.resolve(util.meta(doc, "og:image"), ctx.base);
+      if (img) html += '<figure><img src="' + esc(img) + '" loading="lazy"></figure>';
+      if (desc) html += "<p>" + esc(desc) + "</p>";
+      blocks.push({ kind: "article", title: (title || "").slice(0, 200), html: html });
+      blocks.push({ kind: "footer", title: site || ctx.host || "", href: ctx.base, meta: { source: ctx.host, openInNative: true } });
+      return blocks;
+    } catch (e) { return []; }
+  }
 
   // ---- pipeline.run: the single entry point app.js will call at integration ----
   // Until baskets are registered this returns { blocks: [] }, so the app keeps
@@ -433,6 +618,10 @@ UCB.baskets = UCB.baskets || {};
 
       var winners = UCB.classify(root, ctx);
       var blocks = UCB.assemble(winners, ctx);
+      // An SPA shell ships an empty <body> but rich head metadata. Rather than
+      // returning nothing (a blank page), synthesize a minimal read from
+      // og:/meta/JSON-LD: site bar + title + description + share image.
+      if (!blocks.length) blocks = metaFallback(doc, ctx);
       var shapes = (typeof UCB.toShapes === "function") ? (safe(function () { return UCB.toShapes(blocks, ctx); }) || []) : [];
       if (UCB.learned && typeof UCB.learned.record === "function") safe(function () { UCB.learned.record(winners, ctx); });
       return { blocks: blocks, shapes: shapes, usedNative: false };
@@ -447,6 +636,11 @@ UCB.baskets = UCB.baskets || {};
     type: "teaser",
     detect: function (region, ctx) {
       if (!region || region.kind !== "group" || !region.items || region.items.length < 3) return 0;
+      // Paid strips never become content grids; explicit carousels belong to
+      // the carousel basket (media.js); breadcrumb/pager rails are not menus.
+      if (isAdRegion(region.node)) return 0;
+      if (hasCarouselMarkers(region.node)) return 0;
+      if (isCrumbTrail(region.node)) return 0;
       var good = 0;
       for (var i = 0; i < region.items.length; i++) {
         var n = region.items[i].node;
@@ -458,8 +652,12 @@ UCB.baskets = UCB.baskets || {};
     },
     normalize: function (region, ctx) {
       var items = [], seen = {};
+      // A ranked <ol> ("Most read" 1-5) keeps its ordinals: each card gets its
+      // position as the eyebrow so the numbering survives the rebuild.
+      var ranked = region.node && region.node.tagName === "OL";
       for (var i = 0; i < region.items.length; i++) {
         var n = region.items[i].node;
+        if (n && isAdRegion(n) && !isAdRegion(region.node)) continue;  // skip injected ad tiles
         if (!n || !n.querySelector) { if (n && !n.querySelector) { /* text node */ } }
         var a = (n.tagName === "A" && n.getAttribute("href")) ? n : (n.querySelector ? n.querySelector("a[href]") : null);
         // Search the whole item (title/price are often siblings of an image-only link).
@@ -476,11 +674,19 @@ UCB.baskets = UCB.baskets || {};
         // never let eyebrow/blurb echo the title (that is the doubled-text bug).
         if (eyebrow && (title.indexOf(eyebrow) === 0 || eyebrow.length > 30)) eyebrow = "";
         if (blurb && blurb === title) blurb = "";
-        if (price && price.length > 16) price = "";
+        // The price selector often lands on a wrapper holding both the sale and
+        // the was-price ("$148.00 $185.00 Save 20%"). Pull the first money token
+        // (the current price) instead of throwing the whole thing away.
+        if (price && price.length > 16) {
+          // Currency glyphs written as escapes to keep this file ASCII-only.
+          var money = price.match(new RegExp("(?:[$\\u00A3\\u20AC\\u00A5]|USD|AUD|EUR|GBP|NZD|CAD)\\s?\\d[\\d,]*(?:\\.\\d{1,2})?"));
+          price = money ? money[0] : "";
+        }
         var src = util.imgSrc(n);
         var key = title.trim().toLowerCase();
         if (!key || seen[key]) continue;
         seen[key] = 1;
+        if (ranked && !eyebrow) eyebrow = String(items.length + 1);
         items.push({
           kind: "teaser",
           eyebrow: eyebrow ? eyebrow.slice(0, 32) : "",
@@ -533,13 +739,22 @@ UCB.baskets = UCB.baskets || {};
   // It scores below a real teaser group, and a group container is always
   // claimed by teaser at the parent before the classifier descends to a child,
   // so cards inside a grid never get mistaken for heroes.
+  // The lead unit's headline: h1/h2, or an h3 when the unit is explicitly
+  // marked as featured/lead (video sites title their hero card with an h3).
+  function heroHeading(n) {
+    var h = n.querySelector("h1, h2");
+    if (!h && /(^|[-_ ])(featured|lead|hero|spotlight)([-_ ]|$)/.test(clsIdOf(n))) h = n.querySelector("h3");
+    return h;
+  }
+
   UCB.baskets.hero = {
     type: "hero",
     detect: function (region, ctx) {
       if (!region || region.kind === "group") return 0;
       var n = region.node;
       if (!n || !n.querySelector) return 0;
-      var h = n.querySelector("h1, h2");
+      if (isAdRegion(n)) return 0;               // promo slabs are not heroes
+      var h = heroHeading(n);
       if (!h) return 0;
       var htext = (h.textContent || "").trim();
       if (htext.length < 18) return 0;                 // a real headline, not "Sport"
@@ -550,7 +765,7 @@ UCB.baskets = UCB.baskets || {};
     },
     normalize: function (region, ctx) {
       var n = region.node;
-      var h = n.querySelector("h1, h2");
+      var h = heroHeading(n);
       var a = (h && h.querySelector("a[href]")) || n.querySelector("a[href]");
       var title = (h && (h.textContent || "").trim()) || (a && util.text(a));
       if (!title) return null;
@@ -589,6 +804,7 @@ UCB.baskets = UCB.baskets || {};
         if (!n || !n.querySelector) return 0;
         var tag = n.tagName;
         if (tag === "BODY" || tag === "HTML" || tag === "HEADER" || tag === "FOOTER" || tag === "NAV" || tag === "FORM") return 0;
+        if (isAdRegion(n)) return 0;
         // Count block-level prose units. Paragraphs must carry real sentences;
         // headings/lists/quotes/code/figures each count once.
         var units = 0;
@@ -621,6 +837,61 @@ UCB.baskets = UCB.baskets || {};
         var html = serializeProse(n, ctx, h1);
         if (!html) return null;
         return { kind: "article", title: title.slice(0, 200), html: html };
+      } catch (e) { return null; }
+    }
+  };
+
+  // ---- content-list basket: repeated text units that carry no links. ----
+  // Teaser requires anchors, so reviews, KPI tiles, pros/cons and citation
+  // lists (>= 3 link-less siblings, each with real text) were dropped whole.
+  // Scores 0.6: above article (0.58) so the group is claimed as cards rather
+  // than flattened into prose, below teaser so anchored grids are untouched.
+  UCB.baskets.contentlist = {
+    type: "contentlist",
+    detect: function (region, ctx) {
+      try {
+        if (!region || region.kind !== "group" || !region.items || region.items.length < 3) return 0;
+        if (isAdRegion(region.node)) return 0;
+        var texty = 0, anchored = 0, structured = 0, prosey = 0;
+        for (var i = 0; i < region.items.length; i++) {
+          var n = region.items[i].node;
+          if (!n) continue;
+          var t = (n.textContent || "").trim();
+          if (t.length >= 30) texty++;
+          if (n.querySelector && n.querySelector("a[href]")) anchored++;
+          if (n.querySelector && n.querySelector("h1,h2,h3,h4,h5,h6,strong,b,[class*=title],[class*=name],[class*=author],[class*=value],[class*=label]")) structured++;
+          if (n.querySelector && n.querySelector("ul,ol,pre,blockquote,table")) prosey++;
+        }
+        if (anchored >= 3) return 0;               // teaser's turf
+        if (texty < 3 || structured < 2) return 0; // amorphous text stays prose
+        if (prosey >= 1) return 0;                 // items with inner lists/quotes read better as prose (FAQ, long Q&A)
+        return 0.6;
+      } catch (e) { return 0; }
+    },
+    normalize: function (region, ctx) {
+      try {
+        var items = [], numeric = 0;
+        for (var i = 0; i < region.items.length; i++) {
+          var n = region.items[i].node;
+          if (!n || isAdRegion(n)) continue;
+          var h = n.querySelector ? n.querySelector("h1,h2,h3,h4,h5,h6,[class*=title],[class*=name],[class*=author],[class*=value],[class*=number],strong,b") : null;
+          var title = util.text(h);
+          var full = (n.textContent || "").replace(/\s+/g, " ").trim();
+          if (!title) title = full.slice(0, 80);
+          if (!title) continue;
+          var blurb = full;
+          if (blurb.indexOf(title) === 0) blurb = blurb.slice(title.length).trim();
+          if (blurb === title) blurb = "";
+          if (/^\W*\d/.test(title)) numeric++;
+          items.push({
+            kind: "teaser",
+            title: title.slice(0, 160),
+            blurb: blurb ? blurb.slice(0, 400) : ""
+          });
+        }
+        if (items.length < 3) return null;
+        var kind = numeric >= Math.ceil(items.length * 0.6) ? "stats" : "list";
+        return { kind: kind, items: items, title: sectionHeading(region.node) };
       } catch (e) { return null; }
     }
   };

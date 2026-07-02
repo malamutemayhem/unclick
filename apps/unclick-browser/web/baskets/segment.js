@@ -152,6 +152,20 @@ UCB.baskets = UCB.baskets || {}; // Lane 2 owns this object; we only ensure it e
       } else {
         group = bestGroup(function (r) { return r.signature; }).group;
       }
+      // Inline links flowing through running text are prose, not a card group.
+      // A wiki-style paragraph has >= 3 <a> siblings and used to be claimed as
+      // a menu, destroying the sentence around the links. A real link bar is
+      // almost nothing but its links, so the parent's own text beyond the
+      // grouped items tells the two apart.
+      var INLINE = { A: 1, SPAN: 1, EM: 1, STRONG: 1, B: 1, I: 1, CODE: 1, SMALL: 1, SUP: 1, SUB: 1, MARK: 1, ABBR: 1, TIME: 1 };
+      if (group) {
+        var allInline = true, itemsText = 0;
+        for (var g = 0; g < group.length; g++) {
+          if (!INLINE[group[g].node.tagName]) { allInline = false; break; }
+          itemsText += group[g].textLen;
+        }
+        if (allInline && (region.textLen - itemsText) > 40) group = null;
+      }
       if (group) {
         region.kind = "group";
         region.items = group;

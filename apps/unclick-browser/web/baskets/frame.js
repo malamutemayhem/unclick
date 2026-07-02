@@ -186,6 +186,14 @@
     return "";
   }
 
+  // Strip leading icon glyphs (emoji, arrows, dingbats) glued onto a nav label
+  // by an icon <span> (house-emoji + "Home" -> "Home"). Escapes keep this ASCII.
+  var ICON_GLYPHS = new RegExp("^(?:[\\uD83C-\\uD83E][\\uDC00-\\uDFFF]|[\\u2190-\\u2BFF]|[\\u2600-\\u27BF]|\\uFE0F|\\u200D|\\s)+");
+  function cleanLabel(label) {
+    var out = String(label || "").replace(ICON_GLYPHS, "").trim();
+    return out || String(label || "").trim();
+  }
+
   // Collect deduped link blocks under a node, capped.
   function collectLinks(node, base, max) {
     var out = [];
@@ -195,7 +203,7 @@
     for (var i = 0; i < as.length; i++) {
       if (out.length >= max) break;
       var a = as[i];
-      var label = text(a).replace(/\s+/g, " ").trim();
+      var label = cleanLabel(text(a).replace(/\s+/g, " "));
       var href = abs(a.getAttribute("href"), base);
       if (!label || !href) continue;
       if (label.length > 40) label = label.slice(0, 40).trim();
@@ -221,7 +229,7 @@
         if (tagOf(li) !== "li") continue;
         var a = li.querySelector ? li.querySelector("a[href]") : null;
         if (!a) continue;
-        var label = text(a).replace(/\s+/g, " ").trim();
+        var label = cleanLabel(text(a).replace(/\s+/g, " "));
         var href = abs(a.getAttribute("href"), base);
         if (!label || !href) continue;
         if (label.length > 40) label = label.slice(0, 40).trim();

@@ -284,14 +284,20 @@
         if (!region || region.kind !== 'group') return 0;
         if (!(region.repeat >= 3)) return 0;
         var node = region.node;
-        var cls = classStr(node);
+        // The carousel class/attr often sits on a wrapper one level above the
+        // track that actually repeats, so the parent is checked too.
+        var parent = node && (node.parentElement || node.parentNode);
+        var cls = classStr(node) + ' ' + classStr(parent);
         var style = styleStr(node);
         var byClass = hasToken(cls, CAROUSEL_TOKENS);
         var byStyle = hasToken(style, ['overflow-x:auto', 'overflow-x: auto',
           'overflow-x:scroll', 'overflow-x: scroll', 'scroll-snap']);
-        var byAttr = node && node.getAttribute &&
-          (node.getAttribute('data-carousel') != null ||
-           node.getAttribute('aria-roledescription') === 'carousel');
+        function attrs(n) {
+          return !!(n && n.getAttribute &&
+            (n.getAttribute('data-carousel') != null ||
+             n.getAttribute('aria-roledescription') === 'carousel'));
+        }
+        var byAttr = attrs(node) || attrs(parent);
         if (byClass || byAttr) return 0.85;
         if (byStyle) return 0.6;
         return 0;

@@ -13,6 +13,7 @@
   var reader = document.getElementById("reader");
   var statusEl = document.getElementById("status");
   var themeBtn = document.getElementById("theme");
+  var markBtn = document.getElementById("mark");
   var mainEl = document.querySelector("main");
   var root = document.documentElement;
 
@@ -24,12 +25,44 @@
   var seq = 0;
   var nativeLock = false;
 
+  // ---------- persistence: tiny JSON blobs in localStorage, zero deps ----------
+  function readStore(key, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(key)); return (v === null || v === undefined) ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+  function writeStore(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+  var prefs = readStore("ucb-prefs", {});
+  var pageHistory = readStore("ucb-history", []);   // most recent first, capped
+  var readingList = readStore("ucb-marks", []);     // saved pages, newest first
+  var HIST_MAX = 500;
+
+  if (prefs.theme === "light" || prefs.theme === "dark") root.setAttribute("data-theme", prefs.theme);
+
   themeBtn.addEventListener("click", function () {
     var light = root.getAttribute("data-theme") === "light";
     root.setAttribute("data-theme", light ? "dark" : "light");
+    prefs.theme = light ? "dark" : "light";
+    writeStore("ucb-prefs", prefs);
   });
 
-  function setMode(mode) { root.setAttribute("data-mode", mode); }
+  // ---------- zoom: scales the Zen read only, never the Native frame ----------
+  var ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6];
+  var zoomIdx = ZOOMS.indexOf(prefs.zoom);
+  if (zoomIdx < 0) zoomIdx = 2;
+
+  function setMode(mode) {
+    root.setAttribute("data-mode", mode);
+    reader.style.zoom = (mode === "native") ? 1 : ZOOMS[zoomIdx];
+  }
+  function zoomBy(step) {
+    var n = Math.max(0, Math.min(ZOOMS.length - 1, zoomIdx + step));
+    zoomIdx = n;
+    prefs.zoom = ZOOMS[zoomIdx];
+    writeStore("ucb-prefs", prefs);
+    if (root.getAttribute("data-mode") !== "native") reader.style.zoom = ZOOMS[zoomIdx];
+    flash(Math.round(ZOOMS[zoomIdx] * 100) + "%");
+  }
 
   function normalizeUrl(input) {
     var u = (input || "").trim();
@@ -310,6 +343,67 @@
   function setStatus(html) { statusEl.innerHTML = html || ""; }
   function scrollTop() { if (mainEl) mainEl.scrollTop = 0; }
 
+  // ---------- history + reading list ----------
+  function recordHistory(t) {
+    if (!t || !t.url) return;
+    for (var i = pageHistory.length - 1; i >= 0; i--) { if (pageHistory[i].url === t.url) pageHistory.splice(i, 1); }
+    pageHistory.unshift({ url: t.url, title: t.title || "", host: t.host || "", ts: Date.now() });
+    if (pageHistory.length > HIST_MAX) pageHistory.length = HIST_MAX;
+    writeStore("ucb-history", pageHistory);
+  }
+  function markIndex(url) {
+    for (var i = 0; i < readingList.length; i++) if (readingList[i].url === url) return i;
+    return -1;
+  }
+  function toggleMark() {
+    var t = activeTab();
+    if (!t || !t.url || !t.html) { flash("Open a page first"); return; }
+    var i = markIndex(t.url);
+    if (i >= 0) { readingList.splice(i, 1); flash("Removed from reading list"); }
+    else { readingList.unshift({ url: t.url, title: t.title || t.url, host: t.host || "", ts: Date.now() }); flash("Saved to reading list"); }
+    writeStore("ucb-marks", readingList);
+    syncMarkBtn();
+  }
+  function syncMarkBtn() {
+    if (!markBtn) return;
+    var t = activeTab();
+    var on = !!(t && t.url && t.html && markIndex(t.url) >= 0);
+    markBtn.classList.toggle("on", on);
+    markBtn.title = on ? "Remove from reading list (Ctrl+D)" : "Save to reading list (Ctrl+D)";
+  }
+
+  // ---------- session: restore your tabs on the next launch ----------
+  function saveSession() {
+    var ses = { active: 0, tabs: [] };
+    for (var i = 0; i < tabs.length; i++) {
+      var t = tabs[i];
+      if (!t.url) continue;
+      if (t.id === activeId) ses.active = ses.tabs.length;
+      ses.tabs.push({ url: t.url || "", title: t.title || "", host: t.host || "", hist: (t.hist || []).slice(-50), fwd: (t.fwd || []).slice(-50) });
+    }
+    writeStore("ucb-session", ses);
+  }
+  function restoreSession() {
+    var ses = readStore("ucb-session", null);
+    if (!ses || !ses.tabs || !ses.tabs.length) return false;
+    var any = false;
+    for (var i = 0; i < ses.tabs.length; i++) {
+      var s = ses.tabs[i];
+      if (!s || !s.url) continue;
+      var t = newTab(false);
+      t.url = s.url;
+      t.title = s.title || s.url;
+      t.host = s.host || hostOf(s.url);
+      t.hist = s.hist || [];
+      t.fwd = s.fwd || [];
+      any = true;
+    }
+    if (!any) return false;
+    var idx = Math.min(ses.active || 0, tabs.length - 1);
+    activeId = tabs[idx].id;
+    return true;
+  }
+
   // ---------- tab model ----------
   function newTab(activate) {
     var t = { id: ++seq, url: "", mode: "zen", title: "New tab", host: "", favicon: "", html: "", final: "", hist: [], fwd: [] };
@@ -328,6 +422,7 @@
     if (activeId === id) activeId = tabs[Math.min(idx, tabs.length - 1)].id;
     renderTabs();
     showActive();
+    saveSession();
   }
 
   function chip(t) {
@@ -358,6 +453,28 @@
   }
 
   // ---------- rendering ----------
+  function startCard(it) {
+    var a = document.createElement("a");
+    a.className = "card card-text";
+    a.setAttribute("data-href", it.url);
+    var body = document.createElement("div"); body.className = "card-body";
+    var ti = document.createElement("div"); ti.className = "card-title"; ti.textContent = it.title || it.url;
+    body.appendChild(ti);
+    var bl = document.createElement("div"); bl.className = "card-blurb"; bl.textContent = it.host || it.url;
+    body.appendChild(bl);
+    a.appendChild(body);
+    return a;
+  }
+  function startSection(title, items, action) {
+    var sec = document.createElement("div"); sec.className = "sec";
+    var st = document.createElement("div"); st.className = "sec-title"; st.textContent = title + " ";
+    if (action) st.appendChild(action);
+    sec.appendChild(st);
+    var list = document.createElement("div"); list.className = "card-list";
+    for (var i = 0; i < items.length; i++) list.appendChild(startCard(items[i]));
+    sec.appendChild(list);
+    return sec;
+  }
   function renderWelcome() {
     setMode("zen");
     reader.innerHTML =
@@ -365,8 +482,21 @@
       '<p class="kicker">UnClick / Browser</p>' +
       '<h1>The web, calm.</h1>' +
       '<p class="soft">Type any web address above and press Enter. UnClick rebuilds the page into Zen: one clean, calm, fast read. Flip to Native any time to see the raw live page.</p>' +
-      '<p class="soft">Tabs: <kbd>Ctrl T</kbd> new, <kbd>Ctrl W</kbd> close, <kbd>Ctrl Tab</kbd> next. Move: <kbd>Alt &larr;</kbd> / <kbd>Alt &rarr;</kbd> and your mouse side buttons. <kbd>Ctrl L</kbd> address bar.</p>' +
+      '<p class="soft">Tabs: <kbd>Ctrl T</kbd> new, <kbd>Ctrl W</kbd> close, <kbd>Ctrl Tab</kbd> next. Find: <kbd>Ctrl F</kbd>. Save: <kbd>Ctrl D</kbd>. Zoom: <kbd>Ctrl +</kbd> / <kbd>Ctrl -</kbd>. Address bar: <kbd>Ctrl L</kbd>.</p>' +
       '</div>';
+    // Your own pages, on device only: saved reads first, then recent visits.
+    var wrap = reader.querySelector(".welcome");
+    if (wrap) {
+      if (readingList.length) wrap.appendChild(startSection("Reading list", readingList.slice(0, 8)));
+      if (pageHistory.length) {
+        var clear = document.createElement("a");
+        clear.textContent = "clear";
+        clear.style.cssText = "cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;";
+        clear.addEventListener("click", function () { pageHistory = []; writeStore("ucb-history", pageHistory); renderActive(); });
+        wrap.appendChild(startSection("Recent", pageHistory.slice(0, 8), clear));
+      }
+    }
+    bindLinks();
     setStatus("");
   }
 
@@ -394,43 +524,73 @@
     return { article: article, thin: thin };
   }
 
-  // Engine-first: for listing-shaped pages the baskets engine produces a clean
-  // card grid (its strength). Fully guarded; on anything it does not strongly
-  // simplify (articles, tables, thin pages) it returns false and we fall through
-  // to the proven reader below, so this can never regress a page.
+  // Engine-first: the baskets engine now covers listing pages (card grids),
+  // article pages (a serialized prose body), and data tables. Fully guarded;
+  // on anything it does not strongly simplify it returns false and we fall
+  // through to the proven reader below, so this can never regress a page.
   function tryEngineListing(t) {
     try {
       if (!window.UCB || !UCB.pipeline || typeof UCB.pipeline.run !== "function") return false;
       var res = UCB.pipeline.run(t.html, t.final || t.url);
       if (!res || !res.blocks || !res.blocks.length) return false;
-      // A real listing has a grid/carousel/gallery whose items carry titles - not
-      // just images. (A bare image carousel reads better through the reader.)
-      var listing = false;
+      // What kind of substance did the engine find?
+      //   listing  - a grid/carousel/gallery/list whose items carry titles
+      //   articleChars - total serialized prose across article blocks
+      //   tableRows    - total extracted data rows
+      var listing = false, articleChars = 0, tableRows = 0;
       for (var i = 0; i < res.blocks.length; i++) {
         var b = res.blocks[i];
-        if ((b.kind === "grid" || b.kind === "carousel" || b.kind === "gallery") && b.items && b.items.length >= 3) {
+        if ((b.kind === "grid" || b.kind === "carousel" || b.kind === "gallery" || b.kind === "list" || b.kind === "stats") && b.items && b.items.length >= 3) {
           var titled = 0;
           for (var j = 0; j < b.items.length; j++) { if (b.items[j] && b.items[j].title) titled++; }
-          if (titled >= 3) { listing = true; break; }
+          if (titled >= 3) listing = true;
         }
+        if (b.kind === "article") articleChars += (b.html ? b.html.length : 0) + (b.blurb ? b.blurb.length : 0);
+        if (b.kind === "table" && b.meta && b.meta.rows) tableRows += b.meta.rows.length;
       }
-      if (!listing || typeof UCB.renderCanonical !== "function") return false;
+      // Substance gate: a real listing, a real body, or a real table. Thin
+      // pages still fall through to the reader (and its own fallbacks).
+      if (!listing && articleChars < 600 && tableRows < 3) return false;
+      if (typeof UCB.renderCanonical !== "function") return false;
       var frag = UCB.renderCanonical(res.blocks);
       if (!frag || !frag.childNodes || !frag.childNodes.length) return false;
-      // Quality gate: the engine view must hold real content (cards with text),
-      // not just a masthead + nav. Otherwise fall through to the reader.
+      // Render-quality gate: what actually reached the DOM must hold real
+      // content, not just a masthead + nav bar.
       var probe = document.createElement("div");
       probe.appendChild(frag.cloneNode(true));
-      var allCards = probe.querySelectorAll(".card"), good = 0;
-      for (var c = 0; c < allCards.length; c++) { if (allCards[c].textContent.trim()) good++; }
-      if (good < 2) return false;
+      if (listing) {
+        var allCards = probe.querySelectorAll(".card"), good = 0;
+        for (var c = 0; c < allCards.length; c++) { if (allCards[c].textContent.trim()) good++; }
+        if (good < 2) return false;
+      } else {
+        var bodyText = 0;
+        var docs = probe.querySelectorAll("article.doc, .sec");
+        for (var d = 0; d < docs.length; d++) bodyText += docs[d].textContent.trim().length;
+        if (bodyText < 250) return false;
+      }
       reader.innerHTML = "";
       reader.appendChild(frag);
       setStatus("");
       bindLinks();
       scrollTop();
+      prefetchImageSizes();
       return true;
     } catch (e) { return false; }
+  }
+
+  // Warm the per-url image size cache for whatever just rendered, so the
+  // ~400KB per-image cap gets precise on the next visit. Fire and forget.
+  function prefetchImageSizes() {
+    try {
+      if (!window.UCB || !UCB.imageRules || typeof UCB.imageRules.prefetchSizes !== "function") return;
+      var imgs = reader.querySelectorAll("img");
+      var urls = [];
+      for (var i = 0; i < imgs.length && urls.length < 48; i++) {
+        var s = imgs[i].getAttribute("src");
+        if (s && s.indexOf("http") === 0) urls.push(s);
+      }
+      if (urls.length) UCB.imageRules.prefetchSizes(urls);
+    } catch (e) {}
   }
 
   // Bot-walls / challenge pages (Cloudflare, captcha) have no readable content.
@@ -466,6 +626,7 @@
     setStatus("");
     bindLinks();
     scrollTop();
+    prefetchImageSizes();
   }
 
   // Web apps (search engines, mail, social) have no server-rendered article to
@@ -543,7 +704,14 @@
   function renderActive() {
     var t = activeTab();
     if (!t) return;
-    if (!t.html) { renderZen(t); return; }              // welcome screen
+    closeFind();
+    // A restored tab holds its URL but no content yet: load it on first view.
+    if (!t.html && t.url && !t.pending) { go(t.url, "reload"); return; }
+    if (!t.html) {
+      if (t.pending) { reader.innerHTML = ""; setMode("zen"); setStatus("Loading " + t.url + " ..."); return; }
+      renderZen(t);                                      // welcome screen
+      return;
+    }
     if (nativeLock) { t.mode = "native"; renderNative(t); return; }
     if (t.mode === "native") { renderNative(t); return; }
     renderZen(t);                                        // may auto-fall back to Native
@@ -566,7 +734,116 @@
     for (var i = 0; i < links.length; i++) {
       links[i].addEventListener("click", function (e) { e.preventDefault(); go(this.getAttribute("data-href")); });
     }
+    // The engine footer's "Open in Native" carries data-native instead of a
+    // URL; wire it to the same mode switch as the reader footer.
+    var nats = reader.querySelectorAll("a[data-native]");
+    for (var k = 0; k < nats.length; k++) {
+      nats[k].style.cursor = "pointer";
+      nats[k].addEventListener("click", function (e) {
+        e.preventDefault();
+        var t = activeTab();
+        if (t) setTabMode(t, "native");
+      });
+    }
   }
+
+  // ---------- find in page (works on the Zen read) ----------
+  var findbar = document.getElementById("findbar");
+  var findq = document.getElementById("findq");
+  var findcount = document.getElementById("findcount");
+  var findHits = [];
+  var findIdx = -1;
+  var findTimer = null;
+  var FIND_MAX = 400;
+
+  function clearFind() {
+    var parents = [];
+    for (var i = 0; i < findHits.length; i++) {
+      var m = findHits[i];
+      var p = m.parentNode;
+      if (p) {
+        p.replaceChild(document.createTextNode(m.textContent), m);
+        if (parents.indexOf(p) < 0) parents.push(p);
+      }
+    }
+    for (var j = 0; j < parents.length; j++) parents[j].normalize();
+    findHits = [];
+    findIdx = -1;
+    if (findcount) findcount.textContent = "";
+  }
+  function runFind(q) {
+    clearFind();
+    q = (q || "").trim();
+    if (q.length < 2) return;
+    var needle = q.toLowerCase();
+    var walker = document.createTreeWalker(reader, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    var n;
+    while ((n = walker.nextNode())) {
+      if (n.textContent && n.textContent.toLowerCase().indexOf(needle) >= 0) nodes.push(n);
+    }
+    for (var i = 0; i < nodes.length && findHits.length < FIND_MAX; i++) {
+      var node = nodes[i];
+      var text = node.textContent;
+      var low = text.toLowerCase();
+      var pos = 0, at;
+      var frag = document.createDocumentFragment();
+      while ((at = low.indexOf(needle, pos)) >= 0 && findHits.length < FIND_MAX) {
+        if (at > pos) frag.appendChild(document.createTextNode(text.slice(pos, at)));
+        var mark = document.createElement("mark");
+        mark.className = "uc-hit";
+        mark.textContent = text.slice(at, at + q.length);
+        frag.appendChild(mark);
+        findHits.push(mark);
+        pos = at + q.length;
+      }
+      if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+      node.parentNode.replaceChild(frag, node);
+    }
+    if (findHits.length) setFindCurrent(0);
+    else if (findcount) findcount.textContent = "0";
+  }
+  function setFindCurrent(i) {
+    if (!findHits.length) return;
+    if (findIdx >= 0 && findHits[findIdx]) findHits[findIdx].classList.remove("cur");
+    findIdx = ((i % findHits.length) + findHits.length) % findHits.length;
+    var m = findHits[findIdx];
+    m.classList.add("cur");
+    try { m.scrollIntoView({ block: "center" }); } catch (e) { m.scrollIntoView(); }
+    if (findcount) findcount.textContent = (findIdx + 1) + "/" + findHits.length;
+  }
+  function openFind() {
+    if (!findbar) return;
+    var t = activeTab();
+    if (t && t.html && (nativeLock || t.mode === "native")) { flash("Find works in the Zen view"); return; }
+    findbar.hidden = false;
+    findq.focus();
+    findq.select();
+    if (findq.value) runFind(findq.value);
+  }
+  function closeFind() {
+    if (!findbar || findbar.hidden) return;
+    clearFind();
+    findbar.hidden = true;
+  }
+  if (findq) {
+    findq.addEventListener("input", function () {
+      if (findTimer) clearTimeout(findTimer);
+      findTimer = setTimeout(function () { runFind(findq.value); }, 160);
+    });
+    findq.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); setFindCurrent(e.shiftKey ? findIdx - 1 : findIdx + 1); }
+      else if (e.key === "Escape") { e.preventDefault(); closeFind(); }
+    });
+  }
+  (function () {
+    var prev = document.getElementById("findprev");
+    var next = document.getElementById("findnext");
+    var close = document.getElementById("findclose");
+    if (prev) prev.addEventListener("click", function () { setFindCurrent(findIdx - 1); });
+    if (next) next.addEventListener("click", function () { setFindCurrent(findIdx + 1); });
+    if (close) close.addEventListener("click", closeFind);
+  })();
 
   function syncChrome() {
     var t = activeTab();
@@ -576,6 +853,7 @@
     setMode(showingNative ? "native" : "zen");
     updateSeg(showingNative);
     updateNav();
+    syncMarkBtn();
   }
 
   function updateSeg(showingNative) {
@@ -626,6 +904,7 @@
   }
 
   // histMode: undefined/"new" = fresh nav, "back", "fwd", "reload".
+  var LOAD_TIMEOUT_MS = 30000;
   function go(rawUrl, histMode) {
     if (!invoke) { setStatus("This page only works inside the UnClick Browser app."); return; }
     var url = normalizeUrl(rawUrl);
@@ -636,10 +915,25 @@
     else if (histMode === "back") { if (t.url) t.fwd.push(t.url); }
     else if (histMode === "fwd") { if (t.url) t.hist.push(t.url); }
     t.url = url;
+    // One token per load: a stale response (slow fetch finishing after the user
+    // moved on, or after Stop) must never overwrite the newer page.
+    t.loadSeq = (t.loadSeq || 0) + 1;
+    var token = t.loadSeq;
+    t.pending = true;
     addr.value = url;
     setStatus("Loading " + url + " ...");
     updateNav();
+    // Belt and suspenders: the Rust fetch has its own timeouts, but if anything
+    // slips through, never leave the user staring at "Loading" forever.
+    var watchdog = setTimeout(function () {
+      if (t.loadSeq !== token || !t.pending) return;
+      t.pending = false;
+      if (t.id === activeId) setStatus("That page took too long to load. Press Ctrl+R to try again.");
+    }, LOAD_TIMEOUT_MS);
     invoke("fetch_url", { url: url }).then(function (page) {
+      clearTimeout(watchdog);
+      if (t.loadSeq !== token || !t.pending) return;
+      t.pending = false;
       t.html = (page && page.html) || "";
       t.final = (page && page.final_url) || url;
       var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
@@ -650,9 +944,22 @@
       t.mode = nativeLock ? "native" : "zen";
       if (t.id === activeId) { renderActive(); syncChrome(); }
       renderTabs();
+      recordHistory(t);
+      saveSession();
     }).catch(function (err) {
+      clearTimeout(watchdog);
+      if (t.loadSeq !== token || !t.pending) return;
+      t.pending = false;
       if (t.id === activeId) setStatus("Could not load that page. " + (err && err.toString ? err.toString() : ""));
     });
+  }
+  function stopLoading() {
+    var t = activeTab();
+    if (!t || !t.pending) return false;
+    t.loadSeq = (t.loadSeq || 0) + 1;
+    t.pending = false;
+    setStatus("Stopped.");
+    return true;
   }
 
   function back() { var t = activeTab(); if (t && t.hist.length) go(t.hist.pop(), "back"); }
@@ -661,13 +968,42 @@
   // The UnClick logo returns the active tab to the home (welcome) screen.
   function goHome() {
     var t = activeTab();
-    if (t) { if (t.url) t.hist.push(t.url); t.url = ""; t.html = ""; t.final = ""; t.title = "New tab"; t.host = ""; t.favicon = ""; t.mode = "zen"; }
+    if (t) { if (t.url) t.hist.push(t.url); t.url = ""; t.html = ""; t.final = ""; t.title = "New tab"; t.host = ""; t.favicon = ""; t.mode = "zen"; t.pending = false; t.loadSeq = (t.loadSeq || 0) + 1; }
     addr.value = ""; renderActive(); syncChrome(); renderTabs(); addr.focus();
+    saveSession();
   }
   var brandEl = document.querySelector(".brand");
   if (brandEl) { brandEl.style.cursor = "pointer"; brandEl.title = "Home"; brandEl.addEventListener("click", goHome); }
 
   addr.addEventListener("keydown", function (e) { if (e.key === "Enter") go(addr.value); });
+  // Address suggestions come from your own reading list and history, on device.
+  var addrList = document.getElementById("addrlist");
+  addr.addEventListener("input", function () {
+    if (!addrList) return;
+    var q = addr.value.trim().toLowerCase();
+    addrList.innerHTML = "";
+    if (q.length < 2) return;
+    var seen = {};
+    var added = 0;
+    var pools = [readingList, pageHistory];
+    for (var p = 0; p < pools.length && added < 8; p++) {
+      var pool = pools[p];
+      for (var i = 0; i < pool.length && added < 8; i++) {
+        var it = pool[i];
+        if (!it || !it.url || seen[it.url]) continue;
+        var hay = (it.url + " " + (it.title || "")).toLowerCase();
+        if (hay.indexOf(q) < 0) continue;
+        seen[it.url] = 1;
+        var opt = document.createElement("option");
+        opt.value = it.url;
+        if (it.title) opt.label = it.title;
+        addrList.appendChild(opt);
+        added++;
+      }
+    }
+  });
+  if (markBtn) markBtn.addEventListener("click", toggleMark);
+  window.addEventListener("beforeunload", saveSession);
   if (backBtn) backBtn.addEventListener("click", back);
   if (fwdBtn) fwdBtn.addEventListener("click", forward);
   if (segZen) segZen.addEventListener("click", setPrefZen);
@@ -696,15 +1032,39 @@
     }
     if (mod && (e.key === "l" || e.key === "k" || e.key === "L" || e.key === "K")) { e.preventDefault(); addr.focus(); addr.select(); return; }
     if (mod && (e.key === "r" || e.key === "R")) { e.preventDefault(); var t = activeTab(); if (t && t.url) go(t.url, "reload"); return; }
+    if (mod && (e.key === "f" || e.key === "F")) { e.preventDefault(); openFind(); return; }
+    if (mod && (e.key === "d" || e.key === "D")) { e.preventDefault(); toggleMark(); return; }
+    if (mod && (e.key === "=" || e.key === "+")) { e.preventDefault(); zoomBy(1); return; }
+    if (mod && e.key === "-") { e.preventDefault(); zoomBy(-1); return; }
+    if (mod && e.key === "0") { e.preventDefault(); zoomIdx = 2; zoomBy(0); return; }
+    if (mod && e.key >= "1" && e.key <= "9") {
+      e.preventDefault();
+      var want = e.key === "9" ? tabs.length - 1 : Math.min(parseInt(e.key, 10) - 1, tabs.length - 1);
+      if (want >= 0 && tabs[want] && tabs[want].id !== activeId) { activeId = tabs[want].id; renderTabs(); showActive(); }
+      return;
+    }
     if (e.key === "F5") { e.preventDefault(); var rt = activeTab(); if (rt && rt.url) go(rt.url, "reload"); return; }
     if (e.altKey && e.key === "ArrowLeft") { e.preventDefault(); back(); return; }
     if (e.altKey && e.key === "ArrowRight") { e.preventDefault(); forward(); return; }
     if (e.key === "Backspace" && !inField) { e.preventDefault(); back(); return; }
-    if (e.key === "Escape" && inField) { addr.blur(); }
+    if (e.key === "Escape" && inField) { addr.blur(); return; }
+    if (e.key === "Escape" && !inField) {
+      if (findbar && !findbar.hidden) { closeFind(); return; }
+      if (stopLoading()) return;
+    }
   });
 
-  // start with one Zen tab on the welcome screen
-  newTab();
+  // Wire the precise image-size cap to the Rust HEAD prober: oversized images
+  // are skipped on the next render, and sizes cache per url so a repeat visit
+  // measures nothing. Degrades to allow-all outside the app.
+  if (invoke && window.UCB && UCB.imageRules) {
+    UCB.imageRules.measure = function (urls) {
+      return invoke("image_sizes", { urls: urls }).catch(function () { return {}; });
+    };
+  }
+
+  // Start where you left off; first run gets one Zen tab on the welcome screen.
+  if (!restoreSession()) newTab();
   renderTabs();
   showActive();
 })();

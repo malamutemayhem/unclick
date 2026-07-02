@@ -140,6 +140,11 @@
   .navbar a:hover{color:var(--teal);}
   .sec{margin:0 0 22px;}
   .sec-title{color:var(--head);font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px;}
+  /* Engine data tables (renderBlock "table"): same calm look as .doc tables. */
+  .data-table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:15px;display:block;overflow-x:auto;}
+  .data-table th,.data-table td{border:1px solid var(--line);padding:8px 10px;text-align:left;}
+  .data-table th{color:var(--head);background:var(--panel);}
+  .table-more{color:var(--soft);font-size:13px;margin:-6px 0 14px;}
   .cards{margin:0 0 8px;}
   .card-list{display:flex;flex-direction:column;gap:10px;}
   .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
@@ -148,6 +153,22 @@
   .card-grid .card-thumb{width:100%;height:144px;}
   .card-grid .card-body{width:100%;}
   .stat-grid .card{flex-direction:column;align-items:flex-start;gap:2px;}
+  /* Full-text content lists (reviews, Q&A): no 2-line clamp on the blurb. */
+  .cards-full .card-blurb{display:block;-webkit-line-clamp:unset;-webkit-box-orient:unset;overflow:visible;}
+
+  /* Reading-list bookmark: teal when the open page is saved. */
+  #mark.on{color:var(--teal);border-color:var(--teal);}
+
+  /* Find-in-page bar, tucked under the header on the right. */
+  #findbar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);}
+  #findbar[hidden]{display:none;}
+  #findbar input{width:240px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;}
+  #findbar input:focus{outline:none;border-color:var(--teal);}
+  #findcount{color:var(--soft);font-size:13px;min-width:44px;}
+  .findbtn{width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;background:transparent;color:var(--soft);border:1px solid var(--line);border-radius:8px;}
+  .findbtn:hover{color:var(--head);}
+  mark.uc-hit{background:var(--warm-bg);color:inherit;outline:1px solid var(--warm-line);border-radius:3px;padding:0 1px;}
+  mark.uc-hit.cur{background:var(--warm);color:var(--warm-ink);}
 </style>
 </head>
 <body>
@@ -162,8 +183,10 @@
     </div>
     <div class="brand"><span class="dot"></span> UnClick</div>
     <div class="bar">
-      <input id="addr" type="text" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
+      <input id="addr" type="text" list="addrlist" placeholder="Type a web address, then press Enter" autocomplete="off" spellcheck="false" />
+      <datalist id="addrlist"></datalist>
     </div>
+    <button class="iconbtn" id="mark" title="Save to reading list (Ctrl+D)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
     <div class="modeseg">
       <span class="seg" id="segZen" role="button" tabindex="0" title="Zen: the calm read. Auto-shows Native when a site needs it.">Zen</span>
       <span class="seg" id="segNative" role="button" tabindex="0" title="Native: the raw live page">Native</span>
@@ -171,6 +194,13 @@
     </div>
     <button class="iconbtn" id="theme" title="Light / dark"><svg class="ico ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><svg class="ico ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M4.3 12H2.2M21.8 12h-2.1M5.7 5.7 4.2 4.2M19.8 19.8l-1.5-1.5M18.3 5.7l1.5-1.5M4.2 19.8l1.5-1.5"/></svg></button>
   </header>
+  <div id="findbar" hidden>
+    <input id="findq" type="text" placeholder="Find in page" autocomplete="off" spellcheck="false" />
+    <span id="findcount"></span>
+    <button class="findbtn" id="findprev" title="Previous (Shift+Enter)">&#8249;</button>
+    <button class="findbtn" id="findnext" title="Next (Enter)">&#8250;</button>
+    <button class="findbtn" id="findclose" title="Close (Esc)">&#215;</button>
+  </div>
   <main>
     <div id="status"></div>
     <div id="reader"></div>
