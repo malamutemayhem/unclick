@@ -29,6 +29,33 @@ function cap(value: unknown, max: number): string {
   return s.length > max ? `${s.slice(0, max - 1)}...` : s;
 }
 
+// The ai_style business_context row stores an OBJECT whose `directive` field is
+// the human-readable instruction. Rendering it like other rules (JSON.stringify
+// capped at 200 chars) delivered a truncated JSON blob cut off mid-directive,
+// which no model treats as an instruction - the reason saved AI Style never
+// changed seat behavior. Extract the directive (plus any custom instructions)
+// so it can be emitted as a real, prominent instruction instead.
+function extractAiStyleDirective(
+  rows: Array<{ category?: string; key?: string; value?: unknown }>,
+): string {
+  for (const r of rows) {
+    if ((r.key ?? "") !== "ai_style") continue;
+    const v = r.value;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const style = v as { directive?: unknown; custom_instructions?: unknown };
+      const directive =
+        typeof style.directive === "string" ? style.directive.trim() : "";
+      const custom =
+        typeof style.custom_instructions === "string"
+          ? style.custom_instructions.trim()
+          : "";
+      return [directive, custom].filter(Boolean).join(" ");
+    }
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "";
+}
+
 /**
  * Build a markdown memory block (<= maxChars) for the account, or "" when there
  * is nothing useful or the lookup fails. Never throws.
@@ -49,8 +76,21 @@ export async function fetchMemoryBlock(
     if (!raw || typeof raw !== "object") return "";
 
     const lines: string[] = [];
+    const contextRows = raw.business_context ?? [];
 
-    const rules = (raw.business_context ?? []).slice(0, 8);
+    // Response style first: it is an always-apply instruction, so it must be
+    // readable prose at the top of the block, never a truncated JSON bullet,
+    // and never dropped by the char budget.
+    const aiStyle = extractAiStyleDirective(contextRows);
+    if (aiStyle) {
+      lines.push("## Response style (apply to every reply)");
+      lines.push(`- ${cap(aiStyle, 500)}`);
+      lines.push("");
+    }
+
+    const rules = contextRows
+      .filter((r) => (r.key ?? "") !== "ai_style")
+      .slice(0, 8);
     if (rules.length > 0) {
       lines.push("## Standing rules");
       for (const r of rules) {
