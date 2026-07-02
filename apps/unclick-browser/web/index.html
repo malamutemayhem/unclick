@@ -136,8 +136,11 @@
 
   /* Engine + reader shared layout: inline nav, sections, card collections. */
   .navbar{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin:0 0 20px;padding:11px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);}
-  .navbar a,.navbar span{color:var(--soft);font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;}
+  .navbar a,.navbar span{color:var(--soft);font-size:14px;font-weight:600;white-space:nowrap;}
+  .navbar a{cursor:pointer;}
   .navbar a:hover{color:var(--teal);}
+  /* Plain labels are not links; never dress them as clickable. */
+  .navbar span{cursor:default;opacity:.75;}
   .sec{margin:0 0 22px;}
   .sec-title{color:var(--head);font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px;}
   /* Engine data tables (renderBlock "table"): same calm look as .doc tables. */
@@ -169,6 +172,11 @@
   .findbtn:hover{color:var(--head);}
   mark.uc-hit{background:var(--warm-bg);color:inherit;outline:1px solid var(--warm-line);border-radius:3px;padding:0 1px;}
   mark.uc-hit.cur{background:var(--warm);color:var(--warm-ink);}
+
+  /* Loading rail: instant feedback the moment a link or address is opened. */
+  #loadbar{height:2px;flex:none;background:transparent;}
+  body.loading #loadbar{background:linear-gradient(90deg,transparent,var(--teal) 40%,var(--teal) 60%,transparent);background-size:45% 100%;background-repeat:no-repeat;animation:uc-load 1.1s linear infinite;}
+  @keyframes uc-load{0%{background-position:-45% 0}100%{background-position:145% 0}}
 </style>
 </head>
 <body>
@@ -194,6 +202,7 @@
     </div>
     <button class="iconbtn" id="theme" title="Light / dark"><svg class="ico ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><svg class="ico ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M4.3 12H2.2M21.8 12h-2.1M5.7 5.7 4.2 4.2M19.8 19.8l-1.5-1.5M18.3 5.7l1.5-1.5M4.2 19.8l1.5-1.5"/></svg></button>
   </header>
+  <div id="loadbar"></div>
   <div id="findbar" hidden>
     <input id="findq" type="text" placeholder="Find in page" autocomplete="off" spellcheck="false" />
     <span id="findcount"></span>

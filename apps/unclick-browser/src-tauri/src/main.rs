@@ -1,8 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::time::Duration;
-use tauri::Listener;
+use tauri::{Emitter, Listener, Manager};
 use tauri_plugin_updater::UpdaterExt;
+
+// The one embedded live-page webview, created on first use. It is the real
+// browser surface: real cookies, real scripts, real logins and captchas. Zen
+// renders from the DOM snapshots it streams; Native simply shows it.
+struct LiveState(std::sync::Mutex<Option<tauri::Webview>>);
 
 #[derive(serde::Serialize)]
 struct Page {
@@ -122,6 +127,106 @@ const RENDER_SNAPSHOT_JS: &str = r#"
 })();
 "#;
 
+// Injected into the embedded live webview on every page it loads. Streams DOM
+// snapshots back to the app as the page settles: an early one for fast Zen, a
+// post-load one once scripts have run, and late ones for slow hydrators. The
+// app decides which snapshot is good enough. Snapshots are capped so a
+// pathological page cannot flood the IPC channel.
+const LIVE_SNAPSHOT_JS: &str = r#"
+(function () {
+  var sent = 0;
+  function snap() {
+    try {
+      if (sent >= 5) return;
+      if (!window.__TAURI__ || !window.__TAURI__.event || !window.__TAURI__.event.emit) return;
+      sent++;
+      var html = "<!doctype html>" + document.documentElement.outerHTML;
+      window.__TAURI__.event.emit("ucb-live-dom", { url: location.href, html: html.slice(0, 6 * 1024 * 1024) });
+    } catch (e) {}
+  }
+  if (document.readyState !== "loading") setTimeout(snap, 400);
+  else document.addEventListener("DOMContentLoaded", function () { setTimeout(snap, 400); });
+  window.addEventListener("load", function () { setTimeout(snap, 900); });
+  setTimeout(snap, 5000);
+  setTimeout(snap, 10000);
+})();
+"#;
+
+// Navigate the embedded live webview (creating it on first use as a hidden
+// child of the main window). The front end hears the results through the
+// ucb-live-dom snapshot stream and ucb-live-nav location events, so this
+// command only has to kick the navigation off.
+#[tauri::command]
+fn live_navigate(
+    app: tauri::AppHandle,
+    state: tauri::State<LiveState>,
+    url: String,
+) -> Result<(), String> {
+    if !is_http_url(&url) {
+        return Err("only http(s) urls are allowed".into());
+    }
+    let parsed: tauri::Url = url.parse().map_err(|e| format!("bad url: {e}"))?;
+    let mut guard = state.0.lock().map_err(|_| "live view is busy".to_string())?;
+    if let Some(wv) = guard.as_mut() {
+        return wv.navigate(parsed).map_err(|e| format!("navigate failed: {e}"));
+    }
+    let window = app.get_window("main").ok_or("no main window")?;
+    let handle = app.clone();
+    let builder = tauri::webview::WebviewBuilder::new(
+        "live",
+        tauri::WebviewUrl::External(parsed),
+    )
+    .initialization_script(LIVE_SNAPSHOT_JS)
+    .on_navigation(move |u| {
+        let _ = handle.emit_to("main", "ucb-live-nav", u.to_string());
+        true
+    });
+    let wv = window
+        .add_child(
+            builder,
+            tauri::LogicalPosition::new(0.0, 0.0),
+            tauri::LogicalSize::new(1.0, 1.0),
+        )
+        .map_err(|e| format!("live view failed: {e}"))?;
+    let _ = wv.hide();
+    *guard = Some(wv);
+    Ok(())
+}
+
+// Position/show/hide the live webview over the reader area. The front end
+// measures where the page should sit (it knows the chrome layout) and sends
+// logical coordinates.
+#[tauri::command]
+fn live_bounds(
+    state: tauri::State<LiveState>,
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+    visible: bool,
+) -> Result<(), String> {
+    let guard = state.0.lock().map_err(|_| "live view is busy".to_string())?;
+    let wv = match guard.as_ref() {
+        Some(wv) => wv,
+        None => {
+            if visible {
+                return Err("live view not started".into());
+            }
+            return Ok(());
+        }
+    };
+    wv.set_position(tauri::LogicalPosition::new(x, y))
+        .map_err(|e| e.to_string())?;
+    wv.set_size(tauri::LogicalSize::new(w.max(1.0), h.max(1.0)))
+        .map_err(|e| e.to_string())?;
+    if visible {
+        wv.show().map_err(|e| e.to_string())?;
+    } else {
+        wv.hide().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 // Load a page in a hidden webview so its JavaScript actually runs, then return
 // the rendered DOM. This is the Zen fallback for client-rendered sites whose
 // fetched HTML is an empty shell. The window is invisible, never focused,
@@ -204,6 +309,7 @@ async fn render_url(app: tauri::AppHandle, url: String) -> Result<Page, String> 
 
 fn main() {
     tauri::Builder::default()
+        .manage(LiveState(std::sync::Mutex::new(None)))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let handle = app.handle().clone();
@@ -218,7 +324,14 @@ fn main() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![fetch_url, open_external, image_sizes, render_url])
+        .invoke_handler(tauri::generate_handler![
+            fetch_url,
+            open_external,
+            image_sizes,
+            render_url,
+            live_navigate,
+            live_bounds
+        ])
         .run(tauri::generate_context!())
         .expect("error while running UnClick Browser");
 }

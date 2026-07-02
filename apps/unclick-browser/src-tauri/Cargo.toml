@@ -1,6 +1,6 @@
 [package]
 name = "unclick-browser"
-version = "0.7.0"
+version = "0.8.0"
 description = "UnClick Browser"
 edition = "2021"
 
@@ -8,7 +8,10 @@ edition = "2021"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# "unstable" unlocks multiwebview (Window::add_child) for the embedded live
+# page view. The API is stable in practice on Windows/WebView2; every use is
+# wrapped so a failure degrades to the fetch-and-read path.
+tauri = { version = "2", features = ["unstable"] }
 tauri-plugin-updater = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

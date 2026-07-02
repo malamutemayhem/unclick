@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "live",
+  "description": "The embedded live-page webview: remote pages may emit only the DOM-snapshot event back to the app. No other IPC is granted to remote content.",
+  "windows": ["main"],
+  "webviews": ["live"],
+  "remote": {
+    "urls": ["https://*", "http://*"]
+  },
+  "permissions": ["core:event:allow-emit"]
+}
