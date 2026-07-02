@@ -1,5 +1,7 @@
 # UnClick MCP server
 
+[![Available on CodeGuilds](https://img.shields.io/badge/Available_on-CodeGuilds-6366f1)](https://codeguilds.dev/packages/unclick)
+
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
 450+ callable endpoints across 178+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
