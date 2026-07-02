@@ -112,7 +112,9 @@ function AddSubscriptionSeatSection({
       ))}
       <p className="px-0.5 text-[10px] leading-relaxed text-muted-foreground">
         No API key: turns run on your own plan through a small bridge you
-        start on your machine. Text-only replies in v1.
+        start on your machine. Images are supported everywhere; UnClick
+        tools (memory + connectors, Build-mode gated) ride on Claude and
+        ChatGPT seats.
       </p>
     </div>
   );

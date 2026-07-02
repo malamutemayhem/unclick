@@ -1,12 +1,69 @@
 import { describe, it, expect, vi } from "vitest";
 import {
+  SUBSCRIPTION_RUNTIMES,
   bridgeCommand,
+  buildEnqueueBody,
   isSubscriptionSeat,
   makeSubscriptionHandle,
   newSubscriptionSeat,
   pollBridgeJob,
   toBridgeMessages,
 } from "./subscriptionSeats";
+import { BRIDGE_RUNTIME_SPECS } from "../../../packages/mcp-server/src/seat-bridge-runtimes";
+
+describe("registry consistency", () => {
+  it("mirrors the canonical runtime registry exactly (id, label, tier, handle)", () => {
+    expect(
+      SUBSCRIPTION_RUNTIMES.map((o) => ({
+        id: o.runtime,
+        label: o.label,
+        tier: o.tier,
+        defaultHandle: o.defaultHandle,
+        cliName: o.cliName,
+      })),
+    ).toEqual(
+      BRIDGE_RUNTIME_SPECS.map((s) => ({
+        id: s.id,
+        label: s.label,
+        tier: s.tier,
+        defaultHandle: s.defaultHandle,
+        cliName: s.cliName,
+      })),
+    );
+  });
+});
+
+describe("buildEnqueueBody", () => {
+  it("carries handle, runtime, tool mode, thread, messages, and capped images", () => {
+    const body = buildEnqueueBody({
+      seatHandle: "claude-sub",
+      runtime: "claude-code",
+      threadId: "t1",
+      messages: [{ role: "user", content: "hi" }],
+      toolMode: "build",
+      images: Array.from({ length: 5 }, (_, i) => ({
+        name: `${i}.png`,
+        data_url: "data:image/png;base64,QUJD",
+      })),
+    });
+    expect(body.seat_handle).toBe("claude-sub");
+    expect(body.tool_mode).toBe("build");
+    expect(body.thread_id).toBe("t1");
+    expect((body.images as unknown[]).length).toBe(3);
+  });
+
+  it("omits thread and images when absent", () => {
+    const body = buildEnqueueBody({
+      seatHandle: "gemini-sub",
+      runtime: "gemini-cli",
+      threadId: null,
+      messages: [{ role: "user", content: "hi" }],
+      toolMode: "read",
+    });
+    expect(body.thread_id).toBeUndefined();
+    expect(body.images).toBeUndefined();
+  });
+});
 
 describe("isSubscriptionSeat", () => {
   it("is true only for the subscription lane (stored api seats have no lane)", () => {

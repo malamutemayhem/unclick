@@ -40,10 +40,13 @@ import {
 import {
   CHAT_BRIDGE_ENDPOINT,
   bridgeCommand,
+  buildEnqueueBody,
+  findSubscriptionRuntime,
   isSubscriptionSeat,
   newSubscriptionSeat,
   pollBridgeJob,
   toBridgeMessages,
+  type BridgeImagePayload,
   type BridgeTurn,
   type SubscriptionRuntime,
 } from "@/components/admin/subscriptionSeats";
@@ -766,12 +769,17 @@ export default function AdminChatPage() {
     seat: AiSeat,
     threadId: string | null,
     bridgeMessages: BridgeTurn[],
+    bridgeImages: BridgeImagePayload[],
   ) {
     setBridgeWorkingSeatIds((prev) =>
       prev.includes(seat.id) ? prev : [...prev, seat.id],
     );
     const runtime = seat.runtime ?? "claude-code";
     const append = (text: string) => {
+      // The user may have switched threads while the bridge worked. The
+      // server already persisted the turn to its thread, so painting it on
+      // a DIFFERENT thread's canvas would misfile it; skip instead.
+      if (activeThreadRef.current !== threadId) return;
       const id = crypto.randomUUID();
       setMessages((prev) => [
         ...prev,
@@ -784,12 +792,16 @@ export default function AdminChatPage() {
       const r = await fetch(`${CHAT_BRIDGE_ENDPOINT}?action=enqueue`, {
         method: "POST",
         headers: authHeaders(true),
-        body: JSON.stringify({
-          seat_handle: seat.handle,
-          runtime,
-          thread_id: threadId ?? undefined,
-          messages: bridgeMessages,
-        }),
+        body: JSON.stringify(
+          buildEnqueueBody({
+            seatHandle: seat.handle,
+            runtime,
+            threadId,
+            messages: bridgeMessages,
+            toolMode,
+            images: bridgeImages,
+          }),
+        ),
       });
       if (!r.ok) {
         const body = (await r.json().catch(() => ({}))) as { error?: string };
@@ -949,6 +961,11 @@ export default function AdminChatPage() {
         author: m.role === "user" ? undefined : seatByMsg[m.id],
       }));
       const bridgeMessages = toBridgeMessages(priorTurns, combined);
+      // Image attachments ride to full-tier subscription runtimes.
+      const bridgeImages: BridgeImagePayload[] = pending
+        .filter((a) => a.kind === "image" && a.dataUrl)
+        .slice(0, 3)
+        .map((a) => ({ name: a.name, data_url: a.dataUrl as string }));
       if (!leadSeat) {
         // No api stream will echo the human turn onto the canvas, so show it.
         setMessages((prev) => [
@@ -962,7 +979,7 @@ export default function AdminChatPage() {
         scrollMessagesToBottom();
       }
       for (const seat of subscriptionTargets) {
-        void runSubscriptionTurn(seat, threadId, bridgeMessages);
+        void runSubscriptionTurn(seat, threadId, bridgeMessages, bridgeImages);
       }
     }
 

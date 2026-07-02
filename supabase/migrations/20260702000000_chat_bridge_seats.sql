@@ -25,10 +25,14 @@
 CREATE TABLE IF NOT EXISTS chat_bridge_seats (
   id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   api_key_hash    TEXT        NOT NULL,
-  -- Which official CLI the bridge drives. The runtime is the traffic
-  -- channel, never an auth gate (see docs/prd/chat.md, lane rules).
+  -- Which official CLI the bridge drives (claude-code, codex-cli,
+  -- gemini-cli, copilot-cli, cursor-cli, ...). The runtime is the traffic
+  -- channel, never an auth gate (see docs/prd/chat.md, lane rules). The
+  -- CHECK is a format guard; the live allowlist is enforced app-side
+  -- (packages/mcp-server/src/seat-bridge-runtimes.ts) so adding a runtime
+  -- does not need a migration.
   runtime         TEXT        NOT NULL
-                               CHECK (runtime IN ('claude-code', 'codex-cli')),
+                               CHECK (runtime ~ '^[a-z0-9][a-z0-9-]{0,31}$'),
   handle          TEXT        NOT NULL,
   label           TEXT,
   last_seen_at    TIMESTAMPTZ,
@@ -51,12 +55,21 @@ CREATE TABLE IF NOT EXISTS chat_bridge_jobs (
   thread_id       UUID,
   seat_handle     TEXT        NOT NULL,
   runtime         TEXT        NOT NULL
-                               CHECK (runtime IN ('claude-code', 'codex-cli')),
+                               CHECK (runtime ~ '^[a-z0-9][a-z0-9-]{0,31}$'),
   status          TEXT        NOT NULL DEFAULT 'pending'
                                CHECK (status IN ('pending', 'claimed', 'done', 'error')),
+  -- The chat Build-mode toggle for this turn. The bridge passes it to the
+  -- tool child, which enforces the same read/build endpoint policy as the
+  -- api lane (packages/mcp-server/src/tool-mode-policy.ts).
+  tool_mode       TEXT        NOT NULL DEFAULT 'read'
+                               CHECK (tool_mode IN ('read', 'build')),
   -- Composed prompt material only. Never a key, never CLI auth state.
   system          TEXT,
   prompt          TEXT        NOT NULL,
+  -- Image attachments for the turn: [{name, media_type, data}] with data
+  -- base64 encoded. Size-capped at enqueue and scrubbed to [] when the
+  -- job finishes so the queue table stays lean.
+  attachments     JSONB       NOT NULL DEFAULT '[]'::jsonb,
   result_content  TEXT,
   error           TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),

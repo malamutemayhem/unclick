@@ -17,7 +17,7 @@
 
 export const CHAT_BRIDGE_ENDPOINT = "/api/chat-bridge";
 
-export type SubscriptionRuntime = "claude-code" | "codex-cli";
+export type SubscriptionRuntime = string;
 
 export interface SubscriptionRuntimeOption {
   runtime: SubscriptionRuntime;
@@ -25,6 +25,10 @@ export interface SubscriptionRuntimeOption {
   cliName: string;
   planHint: string;
   defaultHandle: string;
+  // full = UnClick tools (mode-gated) + image attachments ride the turn;
+  // basic = plain text turn on the plan. Must mirror
+  // packages/mcp-server/src/seat-bridge-runtimes.ts (consistency-tested).
+  tier: "full" | "basic";
 }
 
 export const SUBSCRIPTION_RUNTIMES: SubscriptionRuntimeOption[] = [
@@ -34,6 +38,7 @@ export const SUBSCRIPTION_RUNTIMES: SubscriptionRuntimeOption[] = [
     cliName: "Claude Code CLI",
     planHint: "Claude Pro / Max plan, signed in on your machine",
     defaultHandle: "claude-sub",
+    tier: "full",
   },
   {
     runtime: "codex-cli",
@@ -41,8 +46,39 @@ export const SUBSCRIPTION_RUNTIMES: SubscriptionRuntimeOption[] = [
     cliName: "Codex CLI",
     planHint: "ChatGPT Plus / Pro plan, signed in on your machine",
     defaultHandle: "gpt-sub",
+    tier: "full",
+  },
+  {
+    runtime: "gemini-cli",
+    label: "Gemini subscription",
+    cliName: "Gemini CLI",
+    planHint: "Google account (free tier) or Google AI Pro / Ultra",
+    defaultHandle: "gemini-sub",
+    tier: "basic",
+  },
+  {
+    runtime: "copilot-cli",
+    label: "GitHub Copilot subscription",
+    cliName: "GitHub Copilot CLI",
+    planHint: "Copilot Pro / Pro+ / Business, signed in with GitHub",
+    defaultHandle: "copilot-sub",
+    tier: "basic",
+  },
+  {
+    runtime: "cursor-cli",
+    label: "Cursor subscription",
+    cliName: "Cursor CLI",
+    planHint: "Cursor Pro / Ultra plan, signed in on your machine",
+    defaultHandle: "cursor-sub",
+    tier: "basic",
   },
 ];
+
+export function findSubscriptionRuntime(
+  runtime: string,
+): SubscriptionRuntimeOption | undefined {
+  return SUBSCRIPTION_RUNTIMES.find((option) => option.runtime === runtime);
+}
 
 // Minimal structural seat shape shared with ChatMemberRail's AiSeat, so this
 // module never imports a React component.
@@ -67,9 +103,7 @@ export function makeSubscriptionHandle(
   runtime: SubscriptionRuntime,
   takenHandles: string[],
 ): string {
-  const base =
-    SUBSCRIPTION_RUNTIMES.find((r) => r.runtime === runtime)?.defaultHandle ??
-    "sub-seat";
+  const base = findSubscriptionRuntime(runtime)?.defaultHandle ?? "sub-seat";
   if (!takenHandles.includes(base)) return base;
   let n = 2;
   while (takenHandles.includes(`${base}-${n}`)) n += 1;
@@ -80,7 +114,7 @@ export function newSubscriptionSeat(
   runtime: SubscriptionRuntime,
   takenHandles: string[],
 ): SubscriptionSeatShape {
-  const option = SUBSCRIPTION_RUNTIMES.find((r) => r.runtime === runtime);
+  const option = findSubscriptionRuntime(runtime);
   return {
     id: crypto.randomUUID(),
     slug: "subscription",
@@ -124,6 +158,37 @@ export function toBridgeMessages(
     turns.push({ role: "user", content: newUserText });
   }
   return turns.slice(-cap);
+}
+
+// ─── enqueue payload ─────────────────────────────────────────
+
+export interface BridgeImagePayload {
+  name?: string;
+  data_url: string;
+}
+
+// The POST body for /api/chat-bridge?action=enqueue. Every runtime accepts
+// image attachments (each CLI has its own verified mechanism); the server
+// validates and caps them.
+export function buildEnqueueBody(opts: {
+  seatHandle: string;
+  runtime: SubscriptionRuntime;
+  threadId?: string | null;
+  messages: BridgeTurn[];
+  toolMode: "read" | "build";
+  images?: BridgeImagePayload[];
+}): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    seat_handle: opts.seatHandle,
+    runtime: opts.runtime,
+    tool_mode: opts.toolMode,
+    messages: opts.messages,
+  };
+  if (opts.threadId) body.thread_id = opts.threadId;
+  if (opts.images && opts.images.length > 0) {
+    body.images = opts.images.slice(0, 3);
+  }
+  return body;
 }
 
 // ─── presence + job polling ──────────────────────────────────

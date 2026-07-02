@@ -1,8 +1,79 @@
 # Chat subscription seats (PRD)
 
-**Status:** shipped v1 (bridge lane), extends `docs/prd/chat.md`
+**Status:** shipped v2 (bridge lane with tools, images, five runtimes), extends `docs/prd/chat.md`
 **Surface:** Chat member rail + `/api/chat-bridge` + `@unclick/mcp-server seat-bridge`
-**One line:** A chat seat that answers on the user's own consumer plan (Claude Pro/Max, ChatGPT Plus/Pro) by relaying the turn to the official CLI signed in on the user's machine, never to a provider API.
+**One line:** A chat seat that answers on the user's own consumer plan (Claude Pro/Max, ChatGPT Plus/Pro, Gemini, GitHub Copilot, Cursor) by relaying the turn to the official CLI signed in on the user's machine, never to a provider API.
+
+## Runtimes (v2)
+
+| Runtime | Plan | CLI | Tier |
+| --- | --- | --- | --- |
+| `claude-code` | Claude Pro / Max | Claude Code CLI (`claude -p`) | full: UnClick tools + images |
+| `codex-cli` | ChatGPT Plus / Pro | Codex CLI (`codex exec`) | full: UnClick tools + images |
+| `gemini-cli` | Google account free tier / AI Pro / Ultra | Gemini CLI (`gemini -p`) | basic: images, no tools yet |
+| `copilot-cli` | Copilot Pro / Pro+ / Business | GitHub Copilot CLI (`copilot -p`) | basic: images, no tools yet |
+| `cursor-cli` | Cursor Pro / Ultra | Cursor CLI (`cursor-agent -p`) | basic: images, no tools yet |
+
+The registry lives in `packages/mcp-server/src/seat-bridge-runtimes.ts`; the
+website mirrors it (consistency-tested) and the DB constrains runtime by
+format only, so adding a runtime is an app change, not a migration.
+
+Every CLI invocation uses flag syntax verified against the vendor's current
+docs or source (2026-07): Claude Code print mode with `--append-system-prompt`,
+`--mcp-config` + `--strict-mcp-config`, and `--allowedTools` (server-level MCP
+rule plus a path-scoped `Read(<workdir>/**)` rule when images attach); Codex
+`exec -` with `--json`, `--output-last-message`, repeated `-i` images, and
+`-c mcp_servers.*` overrides; Gemini `-p` with stdin context, `--output-format
+json` (answer in `.response`), and `@path` image injection; Copilot `-p` with
+`-s --no-color --no-ask-user` and `--attachment` (stdin is ignored with `-p`,
+so the prompt rides argv); Cursor print mode with `--output-format json`
+(answer in `.result`) and a timeout+stdout-salvage guard for its known
+headless hangs.
+
+## Tools on subscription turns (v2)
+
+Full-tier turns attach the UnClick MCP server itself as the CLI's tool child:
+the bridge spawns the CLI, the CLI spawns `node dist/index.js` (this package)
+as a stdio MCP server, and the seat sees the same tool surface as any MCP
+client: memory ops plus the advertised connector tools.
+
+The chat's Read/Build toggle rides the job as `tool_mode` and is enforced in
+THREE layers:
+1. The child MCP server enforces it in-process: `UNCLICK_SEAT_TOOL_MODE` makes
+   the CallTool handler run every call through the same read/build classifier
+   as the api lane (`tool-mode-policy.ts`, single-sourced; `api/lib/chat-tools.ts`
+   imports it). Read mode allows only clearly-read endpoints plus the user's
+   own memory ops; Build mode adds non-destructive create/write/generate;
+   sends, deletes, payments, merges, deploys, and permission changes are
+   refused in both.
+2. Claude Code additionally scopes client-side permissions with
+   `--allowedTools` (and no filesystem/shell tools are ever allowlisted
+   beyond the image workdir).
+3. The system preamble states the active policy so the model does not
+   flail against refusals.
+
+Secret handling: the UnClick key reaches the tool child via a 0600 config
+file in the per-job temp dir (Claude) or codex's `env_vars` name-forwarding
+(Codex whitelists MCP child env; full inheritance does not happen). The key
+never appears in argv, so it cannot leak through the process list.
+
+## Images (v2)
+
+Up to 3 images (~900KB each) ride the job as base64, validated and capped at
+enqueue, written to the per-job temp dir by the worker, handed to each CLI
+through its own mechanism, and scrubbed from the job row the moment the job
+finishes. The temp dir is deleted after every run.
+
+## Multi-seat bridge (v2)
+
+One process serves any number of seats:
+
+```
+npx @unclick/mcp-server seat-bridge \
+  --seat claude-sub=claude-code --seat gpt-sub=codex-cli --seat gemini-sub=gemini-cli
+```
+
+The single-seat form (`--runtime ... --handle ...`) still works.
 
 ## The honest constraint this design is built around
 
@@ -101,23 +172,21 @@ Pieces:
   or pool subscription access, and shared-room members do not gain their own
   subscription seats through someone else's bridge.
 
-## v1 limitations (deliberate)
+## Remaining limitations (deliberate)
 
-- Text-only turns: image attachments do not ride to subscription seats.
-- No UnClick connector tool calls inside the subscription turn (the CLI is
-  told to just answer). A future iteration can hand the CLI the UnClick MCP
-  server so subscription seats get tools + memory natively.
 - Subscription seats answer independently; they do not join the api-lane
-  council synthesis. Mixed sends work: api seats council, subscription seats
-  reply solo in the same thread.
-- One bridge process per seat handle. Multiple seats need multiple processes
-  (or future: one process serving multiple handles).
+  council synthesis. The council fan-out runs inside one serverless request
+  with a 25s brief budget; a bridge round trip through a human's machine
+  cannot fit that envelope, so folding bridge replies into the synthesis
+  needs an async council design first.
+- Basic-tier runtimes (gemini/copilot/cursor) have no UnClick tools yet:
+  their per-run MCP wiring is config-file based rather than flag based, and
+  read/build enforcement there deserves its own verification pass.
+- No streaming: the reply lands when the CLI finishes. The claimed state is
+  visible in the UI while it runs.
 
 ## Follow-ups
 
-1. Council membership for subscription seats (fold bridge replies into the
-   synthesis evidence block).
-2. Connector/tool access by connecting the UnClick MCP server inside the CLI
-   run (gets `find_tools` / `call_tool` parity with api seats).
+1. Async council membership for subscription seats.
+2. MCP tool wiring for the basic-tier runtimes.
 3. Streaming: bridge posts partial output chunks; UI renders progressively.
-4. A Gemini CLI runtime if demand shows up (same relay shape).

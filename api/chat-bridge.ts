@@ -39,11 +39,16 @@ import { resolveAccountLane } from "./lib/account-lane.js";
 import { resolveThreadPersistenceLane } from "./lib/chat-room-access.js";
 import { fetchMemoryBlock } from "./lib/chat-memory.js";
 import { redactSensitive } from "./lib/orchestrator-context.js";
+import {
+  BRIDGE_RUNTIME_IDS,
+  findBridgeRuntime,
+  isBridgeRuntimeId,
+} from "../packages/mcp-server/src/seat-bridge-runtimes.js";
 
 // ─── constants ───────────────────────────────────────────────
 
-export const BRIDGE_RUNTIMES = ["claude-code", "codex-cli"] as const;
-export type BridgeRuntime = (typeof BRIDGE_RUNTIMES)[number];
+export type BridgeRuntime = string;
+export type BridgeToolMode = "read" | "build";
 
 // A pending job older than this is expired instead of answered, so a
 // bridge that comes online hours later does not replay a dead room.
@@ -58,6 +63,13 @@ const MAX_MESSAGE_CHARS = 8_000;
 const MAX_TRANSCRIPT_CHARS = 24_000;
 const HANDLE_RE = /^[a-z0-9][a-z0-9_-]{0,39}$/;
 
+// Image attachments: enough for screenshots and reference shots without
+// bloating the queue table or the request body (Vercel caps ~4.5MB).
+const MAX_IMAGES = 3;
+const MAX_IMAGE_B64_CHARS = 1_200_000; // ~900KB of image data each
+const MAX_TOTAL_IMAGE_B64_CHARS = 3_000_000;
+const IMAGE_DATA_URL_RE = /^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/=]+)$/;
+
 // ─── pure, testable helpers ──────────────────────────────────
 
 export interface BridgeTranscriptMessage {
@@ -66,18 +78,48 @@ export interface BridgeTranscriptMessage {
   author?: string;
 }
 
+export interface BridgeAttachment {
+  name: string;
+  media_type: string;
+  data: string; // base64, no data: prefix
+}
+
 export interface EnqueueRequest {
   seat_handle: string;
   runtime: BridgeRuntime;
+  tool_mode: BridgeToolMode;
   thread_id?: string;
   messages: BridgeTranscriptMessage[];
+  attachments: BridgeAttachment[];
 }
 
 export function isBridgeRuntime(value: unknown): value is BridgeRuntime {
-  return (
-    typeof value === "string" &&
-    (BRIDGE_RUNTIMES as readonly string[]).includes(value)
-  );
+  return isBridgeRuntimeId(value);
+}
+
+// Validate browser-supplied image data URLs into stored attachments.
+// Anything malformed or over the caps is DROPPED (the turn still runs as
+// text); the count that survived is reported back so the UI can be honest.
+export function validateBridgeImages(raw: unknown): BridgeAttachment[] {
+  if (!Array.isArray(raw)) return [];
+  const out: BridgeAttachment[] = [];
+  let totalChars = 0;
+  for (const item of raw.slice(0, MAX_IMAGES)) {
+    const img = (item ?? {}) as Record<string, unknown>;
+    const dataUrl = typeof img.data_url === "string" ? img.data_url : "";
+    const match = IMAGE_DATA_URL_RE.exec(dataUrl);
+    if (!match) continue;
+    const [, mediaType, data] = match;
+    if (data.length === 0 || data.length > MAX_IMAGE_B64_CHARS) continue;
+    if (totalChars + data.length > MAX_TOTAL_IMAGE_B64_CHARS) break;
+    totalChars += data.length;
+    const name =
+      typeof img.name === "string" && img.name.trim()
+        ? img.name.trim().replace(/[^\w.-]/g, "_").slice(0, 80)
+        : `image-${out.length + 1}.${mediaType.split("/")[1]}`;
+    out.push({ name, media_type: mediaType, data });
+  }
+  return out;
 }
 
 export function validateEnqueueRequest(
@@ -117,8 +159,10 @@ export function validateEnqueueRequest(
   }
   const out: EnqueueRequest = {
     seat_handle: handle,
-    runtime: b.runtime,
+    runtime: b.runtime as BridgeRuntime,
+    tool_mode: b.tool_mode === "build" ? "build" : "read",
     messages,
+    attachments: validateBridgeImages(b.images),
   };
   if (typeof b.thread_id === "string" && b.thread_id.trim()) {
     out.thread_id = b.thread_id.trim();
@@ -160,26 +204,50 @@ export function renderBridgePrompt(
   ].join("\n");
 }
 
-// The seat preamble mirrors the api lane's framing (see api/chat.ts) but
-// is tuned for a headless CLI turn: the CLI already has its own tools on
-// the user's machine, so the instruction is to answer, not to act.
+// The seat preamble mirrors the api lane's framing (see api/chat.ts) but is
+// tuned for a headless CLI turn. Full-tier runtimes get the UnClick MCP tool
+// child attached by the bridge worker, so the preamble teaches the direct
+// tool names and states the mode policy; the tool child enforces that same
+// policy server-side (tool-mode-policy.ts), so this text is guidance, not
+// the gate.
 export function composeBridgeSystem(opts: {
   runtime: BridgeRuntime;
   seatHandle: string;
   memoryBlock: string;
+  toolMode: BridgeToolMode;
 }): string {
-  const runtimeLabel =
-    opts.runtime === "claude-code"
-      ? "the Claude Code CLI on the operator's Claude subscription"
-      : "the Codex CLI on the operator's ChatGPT subscription";
+  const spec = findBridgeRuntime(opts.runtime);
+  const runtimeLabel = spec
+    ? `the ${spec.cliName} on the operator's own plan (${spec.label})`
+    : "an official vendor CLI on the operator's own plan";
+  const toolsEnabled = spec?.tier === "full";
+
   const parts = [
     `You are the AI seat "@${opts.seatHandle}" inside UnClick, the user's AI operating system. ` +
-      `This turn runs through ${runtimeLabel}, on the user's own machine and plan. ` +
-      "If asked whether you are connected to UnClick, the answer is yes: you are answering a turn from their UnClick chat room. " +
+      `This turn runs through ${runtimeLabel}, on the user's own machine. ` +
+      "If asked whether you are connected to UnClick, the answer is yes: you are answering a turn from their UnClick chat room, and the memory shown below is theirs. " +
       "Answer the chat turn directly and conversationally in markdown. " +
-      "Do not run commands, edit files, or take actions on the machine for this turn; it is a chat reply, not a coding task. " +
+      "Do not run shell commands or edit files on the machine for this turn; it is a chat reply, not a coding task. " +
       "Never fabricate tool results or capabilities.",
   ];
+
+  if (toolsEnabled) {
+    parts.push(
+      "You have UnClick tools available through the connected unclick MCP server. " +
+        "Use search_memory to recall what the user told you before, and save_fact to remember new durable facts. " +
+        "Connector tools are exposed under their own names (for example gmail_search, drive_search, dropbox_list_folder, higgsfield_generate_image); " +
+        "unclick_call also works with an endpoint_id when a tool is not listed. " +
+        (opts.toolMode === "build"
+          ? "Build mode is active for this turn: read/list/search/get/status endpoints and non-destructive create/write/generate endpoints are allowed. Sends, deletes, payments, merges, deploys, and permission changes are blocked by the tool layer and will be refused. "
+          : "Read-first mode is active for this turn: only read/list/search/get/status endpoints are allowed; anything that writes to a connected app will be refused by the tool layer. ") +
+        "If a tool returns an error or is refused, say so plainly instead of inventing a result.",
+    );
+  } else {
+    parts.push(
+      "No UnClick tools are attached to this turn; answer from the conversation and the memory below, and say so plainly if the user asks for an action that needs tools.",
+    );
+  }
+
   if (opts.memoryBlock) {
     parts.push(`The user's UnClick memory:\n\n${opts.memoryBlock}`);
   }
@@ -222,8 +290,10 @@ interface JobRow {
   seat_handle: string;
   runtime: string;
   status: string;
+  tool_mode: string;
   system: string | null;
   prompt: string;
+  attachments: BridgeAttachment[] | null;
   result_content: string | null;
   error: string | null;
   created_at: string;
@@ -402,6 +472,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       runtime: parsed.runtime,
       seatHandle: parsed.seat_handle,
       memoryBlock,
+      toolMode: parsed.tool_mode,
     });
     const prompt = renderBridgePrompt(parsed.messages);
 
@@ -415,8 +486,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         seat_handle: parsed.seat_handle,
         runtime: parsed.runtime,
         status: "pending",
+        tool_mode: parsed.tool_mode,
         system,
         prompt,
+        attachments: parsed.attachments,
       }),
     });
     if (!insert.ok) {
@@ -430,6 +503,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const now = Date.now();
     return res.status(200).json({
       job_id: job.id,
+      attachments_accepted: parsed.attachments.length,
       bridge: {
         registered: Boolean(seat),
         online: isBridgeOnline(seat?.last_seen_at, now),
@@ -489,6 +563,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           status: "error",
           error: "expired before a bridge claimed it",
           completed_at: nowIso(),
+          attachments: [],
         }),
       },
     ).catch(() => {});
@@ -497,7 +572,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pendingRes = await fetch(
       `${rest}/chat_bridge_jobs?${scope}&seat_handle=eq.${encodeURIComponent(handle)}` +
         `&status=eq.pending&order=created_at.asc` +
-        `&select=id,system,prompt,thread_id,runtime&limit=1`,
+        `&select=id,system,prompt,thread_id,runtime,tool_mode,attachments&limit=1`,
       { headers: sbHeaders(serviceKey) },
     );
     if (!pendingRes.ok) {
@@ -525,10 +600,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       job: {
         id: claimed[0].id,
-        system: claimed[0].system,
-        prompt: claimed[0].prompt,
+        system: candidate.system,
+        prompt: candidate.prompt,
         thread_id: claimed[0].thread_id,
         runtime: claimed[0].runtime,
+        tool_mode: candidate.tool_mode === "build" ? "build" : "read",
+        attachments: Array.isArray(candidate.attachments)
+          ? candidate.attachments
+          : [],
       },
     });
   }
@@ -568,14 +647,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       {
         method: "PATCH",
         headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+        // attachments scrub to [] either way: image payloads are turn
+        // material, not history, and the queue table stays lean.
         body: JSON.stringify(
           content
             ? {
                 status: "done",
                 result_content: content,
                 completed_at: nowIso(),
+                attachments: [],
               }
-            : { status: "error", error: errText, completed_at: nowIso() },
+            : {
+                status: "error",
+                error: errText,
+                completed_at: nowIso(),
+                attachments: [],
+              },
         ),
       },
     );
