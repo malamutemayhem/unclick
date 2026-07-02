@@ -44,6 +44,7 @@ import {
   publicMcpPairDeviceId,
 } from "./lib/public-mcp-pairing.js";
 import {
+  createMcpOAuthAccessToken,
   mcpOAuthWwwAuthenticate,
   verifyMcpOAuthToken,
 } from "./lib/mcp-oauth.js";
@@ -66,6 +67,7 @@ type JsonRpcId = string | number | null;
 
 const MCP_PROTOCOL_VERSION = "2025-03-26";
 const MCP_SERVER_INFO = { name: "@unclick/mcp-server", version: "0.3.0" };
+const PUBLIC_PAIRING_SECURITY_SCHEMES = [{ type: "noauth" }] as const;
 
 export const PUBLIC_PAIRING_TOOL = {
   name: "unclick_start_pairing",
@@ -82,6 +84,10 @@ export const PUBLIC_PAIRING_TOOL = {
           "Optional email address to pre-fill on the UnClick sign-in page.",
       },
     },
+  },
+  securitySchemes: PUBLIC_PAIRING_SECURITY_SCHEMES,
+  _meta: {
+    securitySchemes: PUBLIC_PAIRING_SECURITY_SCHEMES,
   },
 };
 
@@ -589,11 +595,28 @@ function extractSupabaseAccessToken(cookieHeader: string): string | null {
 export function applyMcpRequestEnv(
   apiKey: string,
   ctx: ApiKeyContext | null,
+  sessionToken: string | null,
 ): void {
   if (apiKey && ctx) {
     process.env.UNCLICK_API_KEY = apiKey;
   } else {
     delete process.env.UNCLICK_API_KEY;
+  }
+
+  // UNCLICK_MCP_SESSION_TOKEN is the cryptographically-verifiable MCP OAuth
+  // access token for token-bearing LOGIN paths (OAuth bearer, session cookie,
+  // public pair). It lets the MCP server's vault-bridge resolve+decrypt this
+  // account's enc_scheme='server' connector creds via GET /api/credentials
+  // WITHOUT a plaintext api key. It is NEVER set on the uc_/agt_ key path or
+  // the ?key= path (those keep using UNCLICK_API_KEY). Set it ONLY when a
+  // verifiable token is present; otherwise DELETE it so a warm serverless
+  // process can never bleed a prior request's token into a later request that
+  // did not authenticate via a login path. Mirror the UNCLICK_API_KEY set/clear
+  // discipline above exactly: both branches are exhaustive.
+  if (sessionToken) {
+    process.env.UNCLICK_MCP_SESSION_TOKEN = sessionToken;
+  } else {
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
   }
 
   if (ctx) {
@@ -654,7 +677,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── Auth ──────────────────────────────────────────────────────────────
+  // ── Auth ────────────────────────────────────────────
   // Auth paths, tried in order:
   //   1. Authorization: Bearer <unclick_api_key>   (agents)
   //   2. Authorization: Bearer <mcp_oauth_access_token>
@@ -686,6 +709,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : "");
 
   let ctx: ApiKeyContext | null;
+  // The MCP OAuth access token for the LOGIN paths (OAuth bearer, session
+  // cookie, public pair). Stays null on the uc_/agt_ key path and the ?key=
+  // path so those keep relying on UNCLICK_API_KEY alone. Set only after the
+  // request authenticates via a token-bearing login path below.
+  let sessionToken: string | null = null;
 
   if (apiKey) {
     ctx = await validateApiKey(apiKey);
@@ -707,10 +735,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } else if (bearerToken) {
     ctx = await validateMcpOAuthAccessToken(bearerToken);
+    // The bearer cryptographically verified as an MCP OAuth access token (that
+    // is the only way validateMcpOAuthAccessToken returns a ctx). Carry it as
+    // the session token so vault-bridge can decrypt this account's server-scheme
+    // creds. Never the bare lane_hash, never an unverified value.
+    if (ctx) sessionToken = bearerToken;
     if (!ctx) {
       const publicPairId = publicPairIdFromRequest(req);
       if (publicPairId) {
         ctx = await validatePublicMcpPair(publicPairId);
+        // Public-pair login: mint a short-lived MCP OAuth access token for the
+        // resolved user so the credential read path has a verifiable token.
+        if (ctx?.user_id) {
+          sessionToken = mintSessionToken(ctx.user_id);
+        }
       }
     }
     if (!ctx && sendPublicDiscoveryIfAllowed(req, res)) {
@@ -733,9 +771,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // then via the public MCP pairing id carried by mcp-session-id/cookie.
     // Unprotected protocol methods skip this so the MCP SDK can answer them.
     ctx = await validateSessionCookie(req);
+    // Session-cookie login: mint a short-lived MCP OAuth access token bound to
+    // the resolved user so vault-bridge can read this account's server-scheme
+    // creds without the plaintext api key (which the cookie path never sees).
+    if (ctx?.user_id) sessionToken = mintSessionToken(ctx.user_id);
     const publicPairId = publicPairIdFromRequest(req);
     if (!ctx && publicPairId) {
       ctx = await validatePublicMcpPair(publicPairId);
+      if (ctx?.user_id) sessionToken = mintSessionToken(ctx.user_id);
     }
     // Discovery-mode initialize: strict MCP clients (Grok) send initialize
     // before tools/list. Without a bearer token this is a bare public client
@@ -781,12 +824,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // access it - this is the AES-256-GCM encryption property we
   // explicitly want to preserve: a logged-in user cannot decrypt
   // another device's stored credentials without holding the api_key.
-  // ctx is null only on unauthenticated handshake calls. Clear stale tenancy
-  // env vars from prior invocations on the same warm serverless instance, and
-  // never leak an unvalidated Bearer token into the MCP server environment.
-  applyMcpRequestEnv(apiKey, ctx);
+  //
+  // The login paths (OAuth bearer, session cookie, public pair) instead carry
+  // a verifiable MCP OAuth access token in UNCLICK_MCP_SESSION_TOKEN. That token
+  // lets vault-bridge read THIS account's enc_scheme='server' rows (decryptable
+  // with the account secret + lane), never the apikey/PBKDF2 rows, so the
+  // raw-key zero-knowledge property is preserved on the api-key path.
+  //
+  // ctx is null only on unauthenticated handshake calls. applyMcpRequestEnv
+  // clears stale tenancy env vars (including UNCLICK_MCP_SESSION_TOKEN) from
+  // prior invocations on the same warm serverless instance, and never leaks an
+  // unvalidated Bearer token into the MCP server environment.
+  applyMcpRequestEnv(apiKey, ctx, sessionToken);
 
-  // ── MCP over Streamable HTTP (stateless per-request) ───────────────────────
+  // ── MCP over Streamable HTTP (stateless per-request) ───────────────────
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined, // stateless mode - no sessions in serverless
   });
@@ -821,5 +872,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } finally {
     // Clean up after the response is sent
     server?.close().catch(() => {});
+  }
+}
+
+// Mint a short-lived MCP OAuth access token for a resolved login user so the
+// credential read path (vault-bridge -> GET /api/credentials) can present a
+// cryptographically-verifiable token instead of the bare lane_hash. Returns
+// null if the signing secret is not configured (so the server-scheme read is
+// simply unavailable, never insecure). The token's sub is the verified user id;
+// nothing the caller supplied influences it.
+function mintSessionToken(userId: string): string | null {
+  try {
+    return createMcpOAuthAccessToken({ userId }, process.env).access_token;
+  } catch {
+    return null;
   }
 }

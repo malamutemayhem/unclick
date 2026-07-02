@@ -151,6 +151,7 @@ import {
   providerConfigKeyForPlatform,
   type ManagedConnectionRow,
 } from "./lib/managed-connections.js";
+import { laneForUserId, resolveLaneFromMcpOAuth } from "./lib/account-lane.js";
 import {
   attachBuildDeskIdempotencyKey,
   findBuildDeskRowByIdempotencyKey,
@@ -256,6 +257,20 @@ const SALT_BYTES = 32;
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+// Default OFF. Mirrors the same flag in /api/credentials and /api/oauth-init.
+// With it off, the login-connect (server-scheme) read path below is never taken
+// and the connected-apps list behaves byte-identically to the api-key-only
+// original.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+// Same fallback name convention as /api/credentials and /api/ai-provider-key.
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
 }
 
 function normalizeFishbowlText(input: string): string {
@@ -1257,6 +1272,34 @@ async function resolveSessionUser(
   }
 }
 
+/**
+ * Authorization for opening a single TestPass run by id.
+ *
+ * A run is viewable when EITHER:
+ *  - the caller owns it (run.actor_user_id === session user id), OR
+ *  - it belongs to a built-in/system pack (pack.owner_user_id === null).
+ *
+ * The second clause exists because scheduled cron runs (e.g. testpass-core,
+ * fired every 5 minutes) are stamped with TESTPASS_CRON_USER_ID, not the
+ * viewing admin's id. Those system packs are already world-readable
+ * (list_testpass_packs returns owner_user_id IS NULL packs to everyone), so a
+ * run that an admin was shown in the list must also open in detail.
+ *
+ * It deliberately does NOT widen access to another user's PRIVATE-pack runs:
+ * the run id is a guessable/shareable UUID, so dropping the owner check entirely
+ * would expose private runs by id enumeration. packOwnerUserId must be exactly
+ * null (a real system pack), never merely missing/undefined.
+ */
+export function canViewTestpassRun(args: {
+  runActorUserId: string | null | undefined;
+  sessionUserId: string;
+  packOwnerUserId: string | null | undefined;
+  packFound: boolean;
+}): boolean {
+  if (args.runActorUserId && args.runActorUserId === args.sessionUserId) return true;
+  return args.packFound && args.packOwnerUserId === null;
+}
+
 export type ChannelStatusAuthOutcome =
   | { kind: "authorized" }
   | { kind: "soft_unconfigured" }
@@ -1537,7 +1580,16 @@ async function resolveApiKeyHash(
   // look up that user's api_keys row server-side. Never use a client
   // supplied value for the tenant hash on this path.
   const user = await resolveSessionUser(req, supabaseUrl, serviceRoleKey);
-  if (!user) return null;
+  if (!user) {
+    // Keyless OAuth seat: the bearer is neither a uc_/agt_ key nor a Supabase
+    // session JWT, but a cryptographically-verifiable MCP OAuth access token
+    // (bare https://unclick.world/api/mcp + magic-link login). Resolve it to the
+    // SAME stable account lane the key/JWT paths use - verified server-side, no
+    // caller-supplied value reaches the lane. Flag-gated inside the resolver, so
+    // login-connect OFF is byte-identical to the api-key-only original. Returns
+    // null on any tampering/expiry/wrong-kind.
+    return resolveLaneFromMcpOAuth(token, process.env, supabaseUrl, serviceRoleKey);
+  }
 
   // Pick the SAME key every other surface does. A user can own more than
   // one api_keys row (regenerations, BYOD). Without an is_active filter and
@@ -2603,6 +2655,14 @@ function slugify(input: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
+}
+
+function postgrestOrSafeIlikePattern(input: string): string {
+  const clean = input
+    .replace(/[(),]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return `%${clean.replace(/[%_\\]/g, "\\$&")}%`;
 }
 
 // ─── Handler ───────────────────────────────────────────────────────────────
@@ -5533,8 +5593,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const { data: userCreds } = await supabase
           .from("user_credentials")
-          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at")
+          .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
           .eq("api_key_hash", tenant.apiKeyHash);
+
+        // Login-connect path (flag-gated): credentials saved while logged in are
+        // stored as enc_scheme='server' rows keyed by the stable account lane,
+        // NOT by api_key_hash, so the api_key_hash query above misses them when
+        // lane_hash differs from the active key_hash. Resolve the lane the same
+        // way /api/credentials does (laneForUserId) and read those rows by
+        // lane_hash + enc_scheme='server'. Presence/metadata only - nothing is
+        // decrypted here. Off (and behaviour-neutral) unless the flag is on and
+        // the server secret is configured.
+        let serverCreds: Array<Record<string, unknown>> = [];
+        if (loginConnectEnabled(process.env) && aiKeySecret(process.env)) {
+          const lane = await laneForUserId(supabaseUrl, supabaseKey, tenant.userId);
+          if (lane && lane !== tenant.apiKeyHash) {
+            const serverQ = await supabase
+              .from("user_credentials")
+              .select("id, platform_slug, label, is_valid, last_tested_at, created_at, updated_at, last_refresh_error, last_refresh_error_at")
+              .eq("lane_hash", lane)
+              .eq("enc_scheme", "server");
+            serverCreds = serverQ.error ? [] : (serverQ.data ?? []);
+          }
+        }
 
         const managedQ = await supabase
           .from("managed_app_connections")
@@ -5558,6 +5639,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           source: AdminCredentialSource;
           created_at: string | null;
           updated_at: string | null;
+          // Why the last OAuth refresh failed (short reason code, never a token).
+          // Lets the Apps page tell the user exactly what to reconnect.
+          last_refresh_error: string | null;
+          last_refresh_error_at: string | null;
           managed?: {
             provider: string;
             provider_config_key: string | null;
@@ -5620,6 +5705,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "platform_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
           });
         }
 
@@ -5632,6 +5719,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "user_credentials",
             created_at: (c.created_at as string | null) ?? null,
             updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
+          });
+        }
+
+        // Server-scheme (login-connect) rows merge on the same footing as the
+        // api-key rows above, so a logged-in user's server-saved apps surface in
+        // the Connected lens. Empty unless the flag/secret enabled the read.
+        for (const c of serverCreds) {
+          mergeCredential(c.platform_slug as string, {
+            id: c.id as string,
+            is_valid: c.is_valid !== false,
+            last_tested_at: (c.last_tested_at as string | null) ?? null,
+            label: (c.label as string | null) ?? null,
+            source: "user_credentials",
+            created_at: (c.created_at as string | null) ?? null,
+            updated_at: (c.updated_at as string | null) ?? null,
+            last_refresh_error: (c.last_refresh_error as string | null) ?? null,
+            last_refresh_error_at: (c.last_refresh_error_at as string | null) ?? null,
           });
         }
 
@@ -5644,6 +5750,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             source: "managed_app_connections",
             created_at: row.created_at ?? null,
             updated_at: row.updated_at ?? null,
+            last_refresh_error: null,
+            last_refresh_error_at: null,
             managed: {
               provider: row.provider ?? "nango",
               provider_config_key: row.provider_config_key ?? null,
@@ -7810,6 +7918,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .single();
         if (error) throw error;
 
+        let conversationLogReceiptId: string | null = null;
+        try {
+          const { data: conversationLogRow } = await supabase
+            .from("mc_conversation_log")
+            .insert({
+              api_key_hash: apiKeyHash,
+              session_id: sessionId,
+              role,
+              content: safeContent,
+              has_code: false,
+            })
+            .select("id")
+            .single();
+          conversationLogReceiptId = typeof conversationLogRow?.id === "string" ? conversationLogRow.id : null;
+        } catch {
+          // Best-effort continuity mirror; chat_messages remains the primary
+          // channel transport row and should not fail because of log debt.
+        }
+
         // Auto-capture (flag-gated, best-effort): mirror the MCP log_conversation
         // path so hosted web-chat turns also fill the code-dump and library
         // layers. Wrapped end-to-end so it can never break the turn ingest.
@@ -7841,6 +7968,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         return res.status(200).json({
           turn_id: data.id,
+          conversation_log_id: conversationLogReceiptId,
           session_id: data.session_id,
           role: data.role,
           created_at: data.created_at,
@@ -8744,12 +8872,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!user) return res.status(401).json({ error: "Authorization header required" });
         const runId = (req.query.run_id ?? req.body?.run_id ?? "") as string;
         if (!runId) return res.status(400).json({ error: "run_id required" });
+        // Resolve the run by id first (no actor filter), then authorize. A run
+        // is viewable if the caller owns it OR it belongs to a system pack
+        // (owner_user_id IS NULL) - e.g. the scheduled testpass-core cron runs,
+        // which are stamped with TESTPASS_CRON_USER_ID rather than the viewing
+        // admin's id. Without this, runs an admin was shown in the list 404 on
+        // open. See canViewTestpassRun for the (id-enumeration-safe) rule.
         const [runRes, itemsRes] = await Promise.all([
           supabase
             .from("testpass_runs")
             .select("*")
             .eq("id", runId)
-            .eq("actor_user_id", user.id)
             .maybeSingle(),
           supabase
             .from("testpass_items")
@@ -8759,6 +8892,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ]);
         if (runRes.error) throw runRes.error;
         if (!runRes.data) return res.status(404).json({ error: "Run not found" });
+        // Authorize the open. Own run -> allowed without a pack lookup; otherwise
+        // only a system-pack (world-readable) run may be opened by id.
+        let packFound = false;
+        let packOwnerUserId: string | null | undefined;
+        if (runRes.data.actor_user_id !== user.id && runRes.data.pack_id) {
+          const packRes = await supabase
+            .from("testpass_packs")
+            .select("owner_user_id")
+            .eq("id", runRes.data.pack_id)
+            .maybeSingle();
+          if (packRes.error) throw packRes.error;
+          if (packRes.data) {
+            packFound = true;
+            packOwnerUserId = packRes.data.owner_user_id as string | null;
+          }
+        }
+        if (!canViewTestpassRun({
+          runActorUserId: runRes.data.actor_user_id as string | null,
+          sessionUserId: user.id,
+          packOwnerUserId,
+          packFound,
+        })) {
+          return res.status(404).json({ error: "Run not found" });
+        }
         if (itemsRes.error) throw itemsRes.error;
         const items = (itemsRes.data ?? []) as Array<Record<string, unknown>>;
         const evidenceRefs = Array.from(new Set(
@@ -10350,7 +10507,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           Math.max(Number.isFinite(requestedMaxSummaries) ? Math.floor(requestedMaxSummaries) : compact ? 20 : 36, 1),
           500,
         );
-        const searchPattern = searchQuery ? `%${searchQuery.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = searchQuery ? postgrestOrSafeIlikePattern(searchQuery) : "";
         const searchUuid = searchQuery.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [
@@ -10601,7 +10758,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const requestedLimit = Number(body.limit ?? req.query.limit ?? 120);
         const limit = Math.min(Math.max(Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 120, 20), 200);
         const includeRaw = parseBooleanParam(body.include_raw ?? body.includeRaw ?? req.query.include_raw ?? req.query.includeRaw, false);
-        const searchPattern = query ? `%${query.replace(/[%_\\]/g, "\\$&")}%` : "";
+        const searchPattern = query ? postgrestOrSafeIlikePattern(query) : "";
         const searchUuid = query.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null;
         const turnSearchFilter = searchPattern
           ? [

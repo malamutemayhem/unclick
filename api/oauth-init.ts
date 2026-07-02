@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash, randomBytes } from "node:crypto";
 import { createOAuthStateToken } from "./oauth-state.js";
+import { resolveAccountLane } from "./lib/account-lane.js";
 
 const ALLOWED_PLATFORMS = new Set([
   "github", "vercel", "supabase", "xero", "reddit", "shopify",
@@ -58,6 +59,7 @@ const CLIENT_SECRET_ENV: Record<string, string> = {
 };
 
 const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
+const OAUTH_LANE_COOKIE = "unclick_oauth_lane";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
 const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
@@ -149,9 +151,37 @@ function isValidAccountKey(value: string): boolean {
   return value.startsWith("uc_") || value.startsWith("agt_");
 }
 
+// Default OFF. The session-authed init path (lane cookie instead of the pasted
+// api-key cookie) is only taken when this flag is on. With it off, init behaves
+// exactly as before and still requires a uc_/agt_ api_key.
+function loginConnectEnabled(env: NodeJS.ProcessEnv): boolean {
+  const v = String(env.UNCLICK_LOGIN_CONNECT_ENABLED ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+function aiKeySecret(env: NodeJS.ProcessEnv): string {
+  return (env.UNCLICK_AI_KEY_SECRET || env.UNCLICK_AI_KEY_SECRET_V2 || "").trim();
+}
+
 function serializeOAuthApiKeyCookie(apiKey: string): string {
   return [
     `${OAUTH_API_KEY_COOKIE}=${encodeURIComponent(apiKey)}`,
+    "Path=/api/oauth-callback",
+    `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ].join("; ");
+}
+
+// The lane is a stable, non-secret account hash (also stored on
+// api_keys.lane_hash). It is set only after a session/key is verified at init
+// time, kept HttpOnly so the browser cannot read it, and consumed once at the
+// callback to store a server-scheme row. It carries no JWT, api key, or
+// credential material.
+function serializeOAuthLaneCookie(lane: string): string {
+  return [
+    `${OAUTH_LANE_COOKIE}=${encodeURIComponent(lane)}`,
     "Path=/api/oauth-callback",
     `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
     "HttpOnly",
@@ -294,7 +324,7 @@ function hasStateSigningSecret(env: NodeJS.ProcessEnv): boolean {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed." });
@@ -308,9 +338,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!platform || !ALLOWED_PLATFORMS.has(platform)) {
     return res.status(400).json({ error: "Unsupported OAuth platform." });
   }
-  if (!api_key || !isValidAccountKey(api_key)) {
+
+  // Auth resolution. An explicit api_key (the original path) always wins and is
+  // unchanged. Only when no api_key is supplied AND the flag is on do we try to
+  // resolve a stable account lane from the Authorization header (Supabase
+  // session JWT or uc_/agt_ key) so the user never has to paste a key.
+  const haveApiKey = Boolean(api_key && isValidAccountKey(api_key));
+  const loginConnect = loginConnectEnabled(process.env);
+  const supabaseUrl = (process.env.SUPABASE_URL ?? "").trim();
+  const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  let sessionLane: string | null = null;
+  if (!haveApiKey && loginConnect && aiKeySecret(process.env) && supabaseUrl && serviceRoleKey) {
+    sessionLane = await resolveAccountLane(req.headers.authorization, supabaseUrl, serviceRoleKey);
+  }
+
+  if (!haveApiKey && !sessionLane) {
     return res.status(400).json({ error: "A private UnClick account key is required." });
   }
+
+  const authCookie = haveApiKey
+    ? serializeOAuthApiKeyCookie(api_key as string)
+    : serializeOAuthLaneCookie(sessionLane as string);
 
   const normalizedStore =
     platform === "shopify" && typeof store === "string"
@@ -367,7 +415,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       authorization.searchParams.set("resource", HIGGSFIELD_MCP_RESOURCE);
 
       res.setHeader("Set-Cookie", [
-        serializeOAuthApiKeyCookie(api_key),
+        authCookie,
         serializeHiggsfieldMcpOAuthCookie(base64UrlJson({
           state,
           client_id: clientId,
@@ -414,7 +462,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(normalizedStore ? { store: normalizedStore } : {}),
     });
 
-    const cookies = [serializeOAuthApiKeyCookie(api_key)];
+    const cookies = [authCookie];
     const pkce = PKCE_PLATFORMS.has(platform) ? createPkcePair() : null;
     if (pkce) cookies.push(serializePkceVerifierCookie(pkce.codeVerifier));
     const authorizationUrl = buildAuthorizationUrl({

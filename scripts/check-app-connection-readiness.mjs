@@ -37,6 +37,9 @@ const SOURCE_PATHS = {
   oauthState: "api/oauth-state.ts",
   mcpApi: "api/mcp.ts",
   credentialsApi: "api/credentials.ts",
+  backstagepassSettings: "api/backstagepass-settings.ts",
+  testpassRun: "api/testpass-run.ts",
+  uxpassRun: "api/uxpass-run.ts",
   connectPage: "src/pages/Connect.tsx",
   connectAppModal: "src/components/apps/ConnectAppModal.tsx",
   adminTools: "src/pages/admin/AdminTools.tsx",
@@ -63,6 +66,16 @@ const SOURCE_PATHS = {
   termsPage: "src/pages/Terms.tsx",
   prerenderRoutes: "scripts/prerender-routes.mjs",
 };
+
+// tool-wiring.ts was decomposed into a thin re-export index plus
+// additional-tools.ts (ADDITIONAL_TOOLS) and additional-handlers.ts (connector
+// imports + ADDITIONAL_HANDLERS). The tool-surface checks below scan the wiring
+// as plain text, so fold the split files back into a single toolWiring string.
+// A pre-split checkout simply has no extra files to append.
+const TOOL_WIRING_SPLIT_PATHS = [
+  "packages/mcp-server/src/additional-tools.ts",
+  "packages/mcp-server/src/additional-handlers.ts",
+];
 
 function normalize(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -106,6 +119,32 @@ function hasWord(text, word) {
 function includesSlugInSet(text, setName, slug) {
   const setMatch = text.match(new RegExp(`const\\s+${setName}\\b[^=]*=\\s*new\\s+Set\\s*\\(\\s*\\[([\\s\\S]*?)\\]\\s*\\)`, "m"));
   return Boolean(setMatch?.[1]?.includes(`"${slug}"`) || setMatch?.[1]?.includes(`'${slug}'`));
+}
+
+// Returns every PostgREST `select=` column list in a source. The api_keys
+// reads in these credential/auth files build the table query as a `?select=`
+// or `&select=` clause (sometimes across concatenated template strings), so
+// scanning the `select=` clauses directly is resilient to that splitting.
+function postgrestSelectLists(text) {
+  const lists = [];
+  const re = /[?&]select=([a-zA-Z0-9_,*]+)/g;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    lists.push(match[1]);
+  }
+  return lists;
+}
+
+// True when any select asks for a plaintext `api_key` column. public.api_keys
+// only stores `key_hash` (plus user_id/is_active/lane_hash); there is no
+// `api_key` column, so selecting one 400s the whole read and silently empties
+// the web Connections page. Token-exact so `api_key_hash`/`api_key_prefix` do
+// not trip it.
+function selectsPlaintextApiKey(text) {
+  if (text.includes("select=key_hash,api_key")) return true;
+  return postgrestSelectLists(text).some((list) =>
+    list.split(",").map((column) => column.trim()).includes("api_key")
+  );
 }
 
 function objectBlockForKey(text, key) {
@@ -262,6 +301,17 @@ export async function loadConnectionReadinessSources(cwd = process.cwd()) {
     })
   );
   const sources = Object.fromEntries(entries);
+
+  const wiringParts = [sources.toolWiring];
+  for (const splitPath of TOOL_WIRING_SPLIT_PATHS) {
+    try {
+      wiringParts.push(await readSourceFile(cwd, splitPath));
+    } catch {
+      // Pre-split checkout: the decomposed wiring files do not exist yet.
+    }
+  }
+  sources.toolWiring = wiringParts.join("\n");
+
   return {
     ...sources,
     appCatalogData: readJson(sources.appCatalog, { apps: [] }),
@@ -382,6 +432,57 @@ export function evaluateConnectionReadinessSources(
       && sources.credentialsApi.includes("managed_app_connections")
       && sources.credentialsApi.includes("fetchManagedConnectionCredentials"),
     "The credentials API can read stored OAuth/token rows and managed connection rows."
+  );
+
+  // L1 - api_keys has no plaintext api_key column. Every credential/auth read
+  // that queries api_keys must select only real columns (key_hash, user_id,
+  // is_active, lane_hash). A select naming the non-existent api_key column 400s
+  // the whole PostgREST request and silently empties the web Connections page.
+  // See docs/connectors/credential-key-learnings-runbook.md (L1).
+  const apiKeysSelectSources = [
+    sources.credentialsApi,
+    sources.backstagepassSettings,
+    sources.testpassRun,
+    sources.uxpassRun,
+    sources.mcpApi,
+  ];
+  addCheck(
+    globalChecks,
+    "api_keys_reads_never_select_plaintext_key",
+    apiKeysSelectSources.every((source) => !selectsPlaintextApiKey(source)),
+    "No api_keys query selects a plaintext api_key column; the table only stores key_hash, so selecting api_key 400s the read and empties the Connections page."
+  );
+
+  // L2/L7 - vault rows use the 100k / four-hex-column scheme. The credential
+  // read/decrypt surfaces must never import api/lib/crypto-helpers.ts (210k,
+  // dot-joined payload) because that helper cannot decrypt existing vault rows.
+  // chat-crypto.ts is the correct path. See the runbook (L2).
+  const vaultDecryptSources = [
+    { name: "vault-bridge.ts", text: sources.vaultBridge },
+    { name: "keychain-tool.ts", text: sources.keychainTool },
+    { name: "api/credentials.ts", text: sources.credentialsApi },
+  ];
+  addCheck(
+    globalChecks,
+    "vault_decrypt_surfaces_avoid_mismatched_crypto_helper",
+    vaultDecryptSources.every(({ text }) =>
+      !text.includes("crypto-helpers")
+      && !/from\s+["'][^"']*crypto-helpers/.test(text)
+    ),
+    "vault-bridge.ts, keychain-tool.ts, and api/credentials.ts never import crypto-helpers.ts (210k/dot-joined), which cannot decrypt the 100k/hex-column vault rows."
+  );
+
+  // L4 - an env secret can exist but be empty (length 0). The server-scheme
+  // secret read must trim and gate on a non-empty value, with the _V2 fallback,
+  // rather than treating mere presence as configured. See the runbook (L4).
+  addCheck(
+    globalChecks,
+    "server_secret_read_checks_non_empty_not_presence",
+    sources.credentialsApi.includes("UNCLICK_AI_KEY_SECRET")
+      && sources.credentialsApi.includes("UNCLICK_AI_KEY_SECRET_V2")
+      && /UNCLICK_AI_KEY_SECRET\b[^\n]*UNCLICK_AI_KEY_SECRET_V2[^\n]*\)\s*\.trim\(\)/.test(sources.credentialsApi)
+      && sources.credentialsApi.includes("loginConnect && serverSecret"),
+    "The server-scheme secret is trimmed and gated on a non-empty value (with the _V2 fallback), so a present-but-empty secret is not treated as configured."
   );
 
   const proofStampTools = [

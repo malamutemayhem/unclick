@@ -11,6 +11,7 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { getDisabledApps, filterDisabledTools, isToolDisabled, appForTool } from "./tool-gating.js";
 import { crewsStartRun } from "./crews-tool.js";
+import { unclickCredentialsBearer } from "./vault-bridge.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { xgatePreflight } from "./xgate-preflight.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
@@ -1582,7 +1583,17 @@ type RuntimeToolSchema = {
   name: string;
   description?: string;
   inputSchema?: unknown;
+  securitySchemes?: ToolSecurityScheme[];
+  _meta?: Record<string, unknown>;
 };
+
+type ToolSecurityScheme =
+  | { type: "oauth2"; scopes: string[] }
+  | { type: "noauth" };
+
+const UNCLICK_OAUTH_SECURITY_SCHEMES: ToolSecurityScheme[] = [
+  { type: "oauth2", scopes: ["unclick:mcp"] },
+];
 
 type RuntimeValidationError = {
   code: "validation_error";
@@ -1767,8 +1778,22 @@ export function advertiseToolSchema<T extends { inputSchema?: unknown }>(tool: T
   return { ...tool, inputSchema: copy };
 }
 
+function advertiseToolAuth(tool: RuntimeToolSchema): RuntimeToolSchema {
+  const securitySchemes = tool.securitySchemes ?? UNCLICK_OAUTH_SECURITY_SCHEMES;
+  return {
+    ...tool,
+    securitySchemes,
+    _meta: {
+      ...(tool._meta ?? {}),
+      securitySchemes,
+    },
+  };
+}
+
 /** The advertise-safe tool list actually sent in tools/list responses. */
-export const ADVERTISED_TOOLS_SAFE = ADVERTISED_TOOLS.map(advertiseToolSchema);
+export const ADVERTISED_TOOLS_SAFE = ADVERTISED_TOOLS.map(advertiseToolSchema).map(
+  advertiseToolAuth,
+);
 
 // Backwards-compatible memory tool names still dispatch directly, so they need
 // the same runtime guard as the newer visible names.
@@ -2017,7 +2042,10 @@ export function createServer(): Server {
 
       // ── Orchestrator context: mandatory read step after turn capture ──
       if (name === "read_orchestrator_context") {
-        const apiKey = process.env.UNCLICK_API_KEY;
+        // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
+        // (bare https://unclick.world/api/mcp + magic-link login) this is the
+        // verified MCP session token instead. Only truly disconnected -> null.
+        const apiKey = unclickCredentialsBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2078,7 +2106,10 @@ export function createServer(): Server {
 
       // ── Signals: catch up on unread signals at session start ─────
       if (name === "check_signals") {
-        const apiKey = process.env.UNCLICK_API_KEY;
+        // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
+        // (bare https://unclick.world/api/mcp + magic-link login) this is the
+        // verified MCP session token instead. Only truly disconnected -> null.
+        const apiKey = unclickCredentialsBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2144,7 +2175,10 @@ export function createServer(): Server {
       // backend stays the single source of truth for validation, anti-spoof,
       // and side effects (event posts, score updates).
       if (name === "ack_handoff") {
-        const apiKey = process.env.UNCLICK_API_KEY;
+        // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
+        // (bare https://unclick.world/api/mcp + magic-link login) this is the
+        // verified MCP session token instead. Only truly disconnected -> null.
+        const apiKey = unclickCredentialsBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2222,7 +2256,10 @@ export function createServer(): Server {
       };
 
       if (AUTOPILOT_TOOL_ACTIONS[name]) {
-        const apiKey = process.env.UNCLICK_API_KEY;
+        // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
+        // (bare https://unclick.world/api/mcp + magic-link login) this is the
+        // verified MCP session token instead. Only truly disconnected -> null.
+        const apiKey = unclickCredentialsBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2252,7 +2289,10 @@ export function createServer(): Server {
       }
 
       if (FISHBOWL_TOOL_ACTIONS[name]) {
-        const apiKey = process.env.UNCLICK_API_KEY;
+        // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
+        // (bare https://unclick.world/api/mcp + magic-link login) this is the
+        // verified MCP session token instead. Only truly disconnected -> null.
+        const apiKey = unclickCredentialsBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||

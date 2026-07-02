@@ -16,6 +16,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { parseToolIndex, readTools, readHandlers } from "./wiring-model.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.resolve(__dirname, "../src");
 const REPO = path.resolve(__dirname, "../../..");
@@ -24,37 +26,7 @@ const OUT_JSON = path.join(REPO, "docs/tool-index.generated.json");
 
 /** Parse tool-wiring.ts into [{ app, category, tools: [{ name, description }] }]. */
 export function buildToolIndex() {
-  const wiring = fs.readFileSync(path.join(SRC, "tool-wiring.ts"), "utf8");
-
-  // 1) slug -> category, from the import-region section headers.
-  const importRegion = wiring.slice(0, wiring.indexOf("export const ADDITIONAL_TOOLS"));
-  const slugCategory = {};
-  let category = "Other";
-  for (const ln of importRegion.split("\n")) {
-    const h = ln.match(/^\/\/\s*[─-]{3,}\s*(.+?)\s*[─-]{3,}\s*$/);
-    if (h) { category = h[1].trim(); continue; }
-    const im = ln.match(/from\s+"\.\/([a-z0-9-]+)-tool\.js"/);
-    if (im && !(im[1] in slugCategory)) slugCategory[im[1]] = category;
-  }
-
-  // 2) slug -> tools, from the ADDITIONAL_TOOLS blocks.
-  const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
-  const body = wiring.slice(wiring.indexOf("[", start) + 1, wiring.indexOf("\n];", start));
-  const headerRe = /\/\/\s*[─-]+\s*([a-z0-9-]+)-tool\.ts\s*[─-]*/g;
-  const headers = [...body.matchAll(headerRe)];
-  const index = [];
-  for (let i = 0; i < headers.length; i++) {
-    const slug = headers[i][1];
-    const from = headers[i].index + headers[i][0].length;
-    const to = i + 1 < headers.length ? headers[i + 1].index : body.length;
-    const chunk = body.slice(from, to);
-    const tools = [...chunk.matchAll(/name:\s*"([^"]+)",\s+description:\s*"((?:[^"\\]|\\.)*)"/g)]
-      .map((m) => ({ name: m[1], description: m[2].replace(/\\"/g, '"') }));
-    if (tools.length === 0) continue;
-    index.push({ app: slug, category: slugCategory[slug] ?? "Other", tools });
-  }
-  index.sort((a, b) => a.app.localeCompare(b.app));
-  return index;
+  return parseToolIndex(readTools(SRC), readHandlers(SRC));
 }
 
 function render(index) {

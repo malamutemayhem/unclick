@@ -97,12 +97,11 @@ describe("AdminSeatsApi", () => {
     });
   });
 
-  it("adds an AI provider through BackstagePass add", async () => {
-    localStorage.setItem("unclick_api_key", "uc_test_key");
+  it("adds an AI provider key (account-scoped, login-authed)", async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("action=list")) return jsonResponse({ data: [] });
-      if (url.includes("action=add")) return jsonResponse({ id: "new-1", added: true }, 201);
+      if (url.includes("/api/ai-provider-key")) return jsonResponse({ success: true });
       return jsonResponse({ error: "unexpected" }, 500);
     });
     vi.stubGlobal("fetch", fetchMock);
@@ -118,15 +117,54 @@ describe("AdminSeatsApi", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Add provider" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/backstagepass?action=add",
+      "/api/ai-provider-key",
       expect.objectContaining({ method: "POST" }),
     ));
-    const addCall = fetchMock.mock.calls.find(([input]) => String(input).includes("action=add"));
+    // The page also GETs /api/ai-provider-key to list keys, so match the POST add.
+    const calls = fetchMock.mock.calls as unknown as Array<[string, RequestInit]>;
+    const addCall = calls.find(
+      (call) => String(call[0]).includes("/api/ai-provider-key") && call[1]?.method === "POST",
+    );
+    expect(addCall?.[1]?.headers).toMatchObject({ Authorization: "Bearer session-token" });
     expect(JSON.parse(String(addCall?.[1]?.body))).toEqual({
       platform: "openai",
       label: null,
-      api_key: "uc_test_key",
-      values: { api_key: "sk-new" },
+      api_key: "sk-new",
     });
+  });
+
+  it("lists account-scoped AI keys and deletes one", async () => {
+    let deleted = false;
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/api/ai-provider-key")) {
+        if (init?.method === "DELETE") {
+          deleted = true;
+          return jsonResponse({ success: true });
+        }
+        return jsonResponse({
+          providers: deleted
+            ? []
+            : [{ id: "srv-1", platform_slug: "openrouter", label: null, is_valid: true, last_tested_at: null, last_used_at: null, created_at: "2026-06-29T00:00:00.000Z", updated_at: "2026-06-29T00:00:00.000Z" }],
+        });
+      }
+      if (url.includes("action=list")) return jsonResponse({ data: [] });
+      return jsonResponse({ error: "unexpected" }, 500);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderPage();
+
+    // The server-scheme key shows up even though BackstagePass returns nothing.
+    expect(await screen.findByText("OpenRouter")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete key" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/ai-provider-key?id=srv-1",
+      expect.objectContaining({ method: "DELETE" }),
+    ));
+    await waitFor(() => expect(screen.queryByText("OpenRouter")).not.toBeInTheDocument());
   });
 });

@@ -76,26 +76,46 @@ export function needsRefresh(
 }
 
 /**
- * Exchange the stored refresh_token for a fresh access_token.
- * Returns an updated credentials object (new access_token / expires_at, and the
- * rotated refresh_token when the provider issues one) or null on any failure.
- * Never throws.
+ * The precise outcome of a refresh attempt. `reason` is a short stable string
+ * code (never a token value or secret) describing why a refresh did not produce
+ * a fresh credential, so callers can surface it to the operator:
+ *   "no_refresh_token"          - the stored credential has no refresh_token
+ *   "no_config"                 - platform is not refresh-capable (no config)
+ *   "missing_client_env"        - the server's client id/secret env is not set
+ *   "provider_rejected:<status>" - the token endpoint returned a non-2xx status
+ *   "network_error"             - the fetch threw (provider unreachable, etc.)
+ * A 2xx response that omits an access_token is also reported as
+ * "provider_rejected:200" so an empty mint is never treated as success.
  */
-export async function refreshOAuthCredential(
+export interface RefreshResult {
+  ok:           boolean;
+  credentials?: Record<string, string>;
+  reason?:      string;
+}
+
+/**
+ * Exchange the stored refresh_token for a fresh access_token and report the
+ * PRECISE outcome. On success: { ok: true, credentials }. On any failure:
+ * { ok: false, reason } with one of the codes above. Never throws.
+ *
+ * This is the source of truth; refreshOAuthCredential delegates to it and keeps
+ * its historical `... | null` contract for existing callers.
+ */
+export async function refreshOAuthCredentialResult(
   platform:    string,
   credentials: Record<string, string>,
   env:         NodeJS.ProcessEnv = process.env
-): Promise<Record<string, string> | null> {
+): Promise<RefreshResult> {
   const config = OAUTH_REFRESH_CONFIGS[platform];
-  if (!config) return null;
+  if (!config) return { ok: false, reason: "no_config" };
 
   const refreshToken = (credentials.refresh_token ?? "").trim();
-  if (!refreshToken) return null;
+  if (!refreshToken) return { ok: false, reason: "no_refresh_token" };
 
   const clientId     = (env[config.clientIdEnv] ?? "").trim();
   const clientSecret = (env[config.clientSecretEnv] ?? "").trim();
-  if (!clientId) return null;
-  if (!clientSecret && !config.optionalClientSecret) return null;
+  if (!clientId) return { ok: false, reason: "missing_client_env" };
+  if (!clientSecret && !config.optionalClientSecret) return { ok: false, reason: "missing_client_env" };
 
   const body = new URLSearchParams({
     grant_type:    "refresh_token",
@@ -114,23 +134,25 @@ export async function refreshOAuthCredential(
     if (clientSecret) body.set("client_secret", clientSecret);
   }
 
-  let res: { ok: boolean; json: () => Promise<unknown> };
+  let res: { ok: boolean; status?: number; json: () => Promise<unknown> };
   try {
     res = await fetch(config.tokenUrl, { method: "POST", headers, body: body.toString() });
   } catch {
-    return null; // network failure -> fall back to stored token
+    return { ok: false, reason: "network_error" }; // fall back to stored token
   }
-  if (!res.ok) return null; // refresh rejected (e.g. revoked) -> fall back
+  // refresh rejected (e.g. revoked / invalid_grant) -> fall back
+  if (!res.ok) return { ok: false, reason: `provider_rejected:${res.status ?? 0}` };
 
   let data: Record<string, unknown>;
   try {
     data = (await res.json()) as Record<string, unknown>;
   } catch {
-    return null;
+    return { ok: false, reason: `provider_rejected:${res.status ?? 200}` };
   }
 
   const newAccess = typeof data.access_token === "string" ? data.access_token.trim() : "";
-  if (!newAccess) return null;
+  // A 2xx body with no usable access token is not a successful mint.
+  if (!newAccess) return { ok: false, reason: `provider_rejected:${res.status ?? 200}` };
 
   const expiresIn = Number(data.expires_in ?? 0);
   const expiresAt = Number.isFinite(expiresIn) && expiresIn > 0
@@ -156,5 +178,21 @@ export async function refreshOAuthCredential(
     updated.api_key = newAccess;
   }
 
-  return updated;
+  return { ok: true, credentials: updated };
+}
+
+/**
+ * Exchange the stored refresh_token for a fresh access_token.
+ * Returns an updated credentials object (new access_token / expires_at, and the
+ * rotated refresh_token when the provider issues one) or null on any failure.
+ * Never throws. Thin wrapper over refreshOAuthCredentialResult that discards the
+ * precise reason, preserving the original contract for existing callers.
+ */
+export async function refreshOAuthCredential(
+  platform:    string,
+  credentials: Record<string, string>,
+  env:         NodeJS.ProcessEnv = process.env
+): Promise<Record<string, string> | null> {
+  const result = await refreshOAuthCredentialResult(platform, credentials, env);
+  return result.ok ? (result.credentials ?? null) : null;
 }
