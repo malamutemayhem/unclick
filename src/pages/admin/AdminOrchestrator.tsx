@@ -845,7 +845,7 @@ function storyNarrativeForMoment(
   if (kind === "ask") {
     return [
       `You asked: ${subject}.`,
-      "The important part is the shape of the request: keep the page readable, keep the trail continuous, and make the next step obvious without turning the story into raw machinery.",
+      "The important part is the shape of the request: keep the page readable, keep the trail continuous, and make the next step obvious without turning the story into a wall of technical notes.",
     ].join(" ");
   }
 
@@ -884,7 +884,7 @@ function storyNarrativeForMoment(
   if (kind === "handoff") {
     return [
       `A handoff moved through the system: ${subject}.`,
-      "The story keeps the human version of that movement, while Timeline keeps the exact packet and source details for anyone checking the machinery.",
+      "The story keeps the human version of that movement, while Timeline keeps the exact packet and source details for anyone who wants to check them.",
       nearby.trim(),
     ].filter(Boolean).join(" ");
   }
@@ -967,7 +967,7 @@ function storyBeatNarrative(
     }
     return [
       ask ? `The thread was pulled back to the real question: ${ask}.` : "The thread was pulled back to the real question.",
-      "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the machinery.",
+      "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the same technical updates.",
       "The room stayed pointed at the next action rather than another round of describing the same problem. ✅",
     ].join(" ");
   }
@@ -986,7 +986,7 @@ function storyBeatNarrative(
     return [
       prMatches ? `The Orchestrator Story work moved forward around ${prMatches}.` : "The Orchestrator Story work moved forward.",
       "Story is becoming the friendly front door, with Timeline holding the raw receipts underneath for anyone who needs the exact trail.",
-      "The shape is clearer now: the operator should be able to read the day like a running account, with enough context to understand why each moment mattered, while the machine notes stay tucked away for proof. ✅",
+      "The shape is clearer now: the operator should be able to read the day like a running account, with enough context to understand why each moment mattered, while the source notes stay tucked away for proof. ✅",
     ].join(" ");
   }
 
@@ -1866,7 +1866,7 @@ function ContinuityFeedRow({
         </div>
       </div>
       {easyRead && (
-        <p className="sr-only">Exact saved note: {event.summary}</p>
+        <p className="sr-only">Full saved note: {event.summary}</p>
       )}
       <p className="text-sm leading-6 text-white/70">
         {highlightSearchText(visibleMainText, searchQuery)}
