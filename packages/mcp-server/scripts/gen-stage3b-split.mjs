@@ -58,7 +58,7 @@ function chunkBody(body, headerRe) {
   return { seg0, chunks };
 }
 
-// ─── Parse additional-tools.ts ───────────────────────────────────────────────
+// ─── Parse additional-tools.ts ───────────────────────────────────────
 const toolsSrc = read(TOOLS_FILE);
 const T_MARKER = "export const ADDITIONAL_TOOLS = [";
 const tIdx = toolsSrc.indexOf(T_MARKER);
@@ -69,9 +69,14 @@ if (tBodyEnd <= tBodyStart) fail("ADDITIONAL_TOOLS close not found");
 const toolsBody = toolsSrc.slice(tBodyStart, tBodyEnd);
 const toolsTail = toolsSrc.slice(tBodyEnd); // "] as const;" + trailing (verbatim)
 const { seg0: tSeg0, chunks: toolChunks } = chunkBody(toolsBody, /\n  \/\/ ─+ ([a-z0-9-]+)-tool\.ts ─+/g);
-const toolCount = (t) => (t.match(/\n\s*name:\s*"/g) || []).length;
+// count real tool definitions in BOTH block formats: multi-line ("name:" at line
+// start) and single-line ("{ name: ..., description: ..." on one line). The old
+// line-start-only counter classified 11 single-line connectors (dropbox, gmail,
+// google-drive, onedrive, coda, brevo, uptimerobot, bitbucket, cloudinary,
+// wordpress, ghost) as empty, dropping their tools from the runtime index.
+const toolCount = (t) => (t.match(/name:\s*"[^"]+",\s+description:/g) || []).length;
 
-// ─── Parse additional-handlers.ts ──────────────────────────────────────────────
+// ─── Parse additional-handlers.ts ──────────────────────────────────────
 const handlersSrc = read(HANDLERS_FILE);
 const H_MARKER = "export const ADDITIONAL_HANDLERS";
 const hIdx = handlersSrc.indexOf(H_MARKER);
@@ -110,7 +115,7 @@ const categoryOrder = [];
   }
 }
 
-// ─── Decide primary chunk per slug; build segment lists ────────────────────────
+// ─── Decide primary chunk per slug; build segment lists ────────────────────
 // A "primary" chunk (non-empty, first occurrence for its slug) becomes the slug's
 // wiring export and a {slug} segment. Empty chunks and any later duplicate of a
 // slug become verbatim {lit} segments so the original byte layout is preserved.
@@ -135,16 +140,7 @@ function buildSegments(seg0, chunks, countOf, kind) {
 const T = buildSegments(tSeg0, toolChunks, toolCount, "tool");
 const H = buildSegments(hSeg0, handlerChunks, entryCount, "handler");
 
-// ─── Synthesize the import region (feeds parseImportCategories only) ───────────
-let importRegionSynth = "";
-for (const cat of categoryOrder) {
-  const mods = Object.keys(moduleCategory).filter((m) => moduleCategory[m] === cat);
-  if (!mods.length) continue;
-  importRegionSynth += `// ─── ${cat} ───\n`;
-  for (const mod of mods) importRegionSynth += `import { ${(moduleIdents[mod] || ["_"]).join(", ")} } from "./${mod}-tool.js";\n`;
-}
-
-// ─── Write wiring files ────────────────────────────────────────────────────────
+// ─── Write wiring files ─────────────────────────────────────────────
 if (fs.existsSync(WIRING_DIR)) fs.rmSync(WIRING_DIR, { recursive: true });
 fs.mkdirSync(WIRING_DIR, { recursive: true });
 
@@ -187,23 +183,30 @@ for (const slug of allSlugs) {
   fs.writeFileSync(path.join(WIRING_DIR, `${slug}.ts`), parts.join("\n"));
 }
 
-// ─── Manifest (drives scanner reconstruction + index order) ────────────────────
+// ─── Manifest (drives scanner reconstruction) ────────────────────────────
+// Minimal manifest: only the verbatim literals (leading scaffolding and any
+// empty/stray headers, recorded by their position in the segment walk) plus the
+// exact marker/tail text. Chunk ORDER is derived by wiring-model.mjs from the
+// import order of the generated index files, and slug -> category comes from
+// each wiring file's "// category:" header, so neither is duplicated here.
+const compactSegs = (segs) => {
+  const lits = {};
+  segs.forEach((s, i) => { if (s.lit !== undefined) lits[i] = s.lit; });
+  return lits;
+};
 fs.writeFileSync(
   path.join(WIRING_DIR, "_manifest.json"),
   JSON.stringify({
     toolMarker: T_MARKER,
-    toolSegments: T.segs,
+    toolLits: compactSegs(T.segs),
     toolsTail,
-    toolOrder: T.order,
     handlerMarkerLine: hMarkerLine,
-    handlerSegments: H.segs,
+    handlerLits: compactSegs(H.segs),
     handlersTail: mapTail,
-    handlerOrder: H.order,
-    importRegionSynth,
   }, null, 2) + "\n"
 );
 
-// ─── Self-verify: reconstruct and compare to original bodies ───────────────────
+// ─── Self-verify: reconstruct and compare to original bodies ─────────────────
 function extractTools(slug) {
   const src = read(path.join(WIRING_DIR, `${slug}.ts`));
   const marker = `export const ${camel(slug)}Tools = [`;
@@ -221,7 +224,7 @@ const reconMapBody = H.segs.map((s) => (s.lit !== undefined ? s.lit : extractHan
 if (reconToolsBody !== toolsBody) fail("RECONSTRUCTION MISMATCH: tools body");
 if (reconMapBody !== mapBody) fail("RECONSTRUCTION MISMATCH: handlers map body");
 
-// ─── Write thin index files ─────────────────────────────────────────────────────
+// ─── Write thin index files ───────────────────────────────────────────
 const toolsIndex = `// additional-tools.ts
 // AUTO-GENERATED index. Do not edit by hand. Each connector's tool schemas live
 // in src/wiring/<slug>.ts; this assembles them into ADDITIONAL_TOOLS in the
@@ -229,8 +232,21 @@ const toolsIndex = `// additional-tools.ts
 
 ${T.order.map((s) => `import { ${camel(s)}Tools } from "./wiring/${s}.js";`).join("\n")}
 
-export const ADDITIONAL_TOOLS = [
-${T.order.map((s) => `  ...${camel(s)}Tools,`).join("\n")}
+// A single, permissive element type so assembling ADDITIONAL_TOOLS by spreading
+// the per-app \`as const\` arrays does not infer a 600-way union (TS2590). Runtime
+// is unchanged; consumers read name / inputSchema.properties / required.
+export type AdditionalTool = {
+  name: string;
+  description?: string;
+  inputSchema: {
+    properties?: Record<string, unknown>;
+    required?: readonly string[];
+    [key: string]: unknown;
+  };
+};
+
+export const ADDITIONAL_TOOLS: readonly AdditionalTool[] = [
+${T.order.map((s) => `  ...(${camel(s)}Tools as readonly AdditionalTool[]),`).join("\n")}
 ];
 `;
 const handlersIndex = `// additional-handlers.ts
