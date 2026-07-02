@@ -1072,7 +1072,7 @@
   }
 
   // histMode: undefined/"new" = fresh nav, "back", "fwd", "reload".
-  var LOAD_TIMEOUT_MS = 30000;
+  var LOAD_TIMEOUT_MS = 15000;
   function go(rawUrl, histMode) {
     if (!invoke) { setStatus("This page only works inside the UnClick Browser app."); return; }
     var url = normalizeUrl(rawUrl);
@@ -1093,16 +1093,15 @@
     t.viaLive = 0;
     if (t.zenWait) { clearTimeout(t.zenWait); t.zenWait = null; }
     addr.value = url;
-    setStatus("Loading " + url + " ...");
+    t.diag = { quick: "pending", live: liveOk ? "pending" : "off" };
+    setStatus(diagLine(t));
     showProgress(true);
     updateNav();
     // Belt and suspenders: the loaders have their own timeouts, but if anything
     // slips through, never leave the user staring at "Loading" forever.
     var watchdog = setTimeout(function () {
-      if (t.loadSeq !== token || !t.pending) return;
-      t.pending = false;
-      showProgress(false);
-      if (t.id === activeId) setStatus("That page took too long to load. Press Ctrl+R to try again.");
+      if (t.loadSeq !== token) return;
+      surfaceLoadFailure(t);
     }, LOAD_TIMEOUT_MS);
     // Race both engines. The quick fetch usually paints first (snappy), the
     // live webview loads the REAL page in parallel and upgrades the read with
@@ -1116,9 +1115,16 @@
       invoke("live_navigate", { url: url }).then(function () {
         live.ready = true;
         applyWantedBounds();
-      }).catch(function () {
+        if (t.loadSeq !== token) return;
+        if (t.diag.live === "pending") { t.diag.live = "started"; updateDiag(t); }
+        setTimeout(function () { if (t.loadSeq === token) markLiveSilent(t); }, 8000);
+      }).catch(function (err) {
         liveOk = false;
-        if (t.loadSeq === token) t.viaLive = 0;
+        if (t.loadSeq !== token) return;
+        t.viaLive = 0;
+        t.diag.live = "failed: " + String(err).slice(0, 80);
+        updateDiag(t);
+        if (t.diag.quick.indexOf("failed") === 0) surfaceLoadFailure(t);
       });
     }
     goFetch(t, url, token, watchdog);
@@ -1127,6 +1133,7 @@
   function goFetch(t, url, token, watchdog) {
     invoke("fetch_url", { url: url }).then(function (page) {
       if (t.loadSeq !== token || !t.pending) return;   // live already painted, or stale
+      t.diag.quick = "ok";
       clearTimeout(watchdog);
       t.pending = false;
       t.html = (page && page.html) || "";
@@ -1146,13 +1153,17 @@
       saveSession();
     }).catch(function (err) {
       if (t.loadSeq !== token || !t.pending) return;
-      // The live engine may still deliver this page; only surface the failure
-      // when nothing else is coming (the watchdog covers total silence).
-      if (t.viaLive) return;
-      clearTimeout(watchdog);
-      t.pending = false;
-      showProgress(false);
-      if (t.id === activeId) setStatus("Could not load that page. " + (err && err.toString ? err.toString() : ""));
+      t.diag.quick = "failed: " + String(err && err.toString ? err.toString() : err).slice(0, 120);
+      updateDiag(t);
+      // The live engine may still deliver this page - but only wait a short,
+      // visible grace for it, never silently forever.
+      var liveComing = t.viaLive && t.diag.live !== "silent" && t.diag.live.indexOf("failed") !== 0 && t.diag.live !== "off";
+      if (!liveComing) { clearTimeout(watchdog); surfaceLoadFailure(t); return; }
+      setTimeout(function () {
+        if (t.loadSeq !== token) return;
+        clearTimeout(watchdog);
+        surfaceLoadFailure(t);
+      }, 4000);
     });
   }
 
@@ -1172,6 +1183,7 @@
     if (!t || t.loadSeq !== live.token) return;
     var first = !!t.pending;
     t.pending = false;
+    if (t.diag) t.diag.live = "ok";
     t.html = p.html;
     t.final = p.url || t.url;
     var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
@@ -1223,14 +1235,51 @@
     });
   }
 
-  // The version badge: every screenshot should say what build it shows.
+  // The version badge: every screenshot should say what build it shows. Also
+  // the hook for the per-version live-engine kill switch: if the live view
+  // proved silent on this machine for this version, do not wait on it again.
+  var appVersion = "";
   (function () {
     var verEl = document.getElementById("ver");
-    if (!verEl) return;
     if (tauri && tauri.app && typeof tauri.app.getVersion === "function") {
-      tauri.app.getVersion().then(function (v) { verEl.textContent = "v" + v; }).catch(function () { verEl.textContent = ""; });
+      tauri.app.getVersion().then(function (v) {
+        appVersion = v;
+        if (verEl) verEl.textContent = "v" + v;
+        if (prefs.liveDead === v) liveOk = false;
+      }).catch(function () {});
     }
   })();
+
+  // While a load is pending, say exactly what each engine is doing so a
+  // screenshot of a stuck page names the culprit outright.
+  function diagLine(t) {
+    var d = t.diag || {};
+    return "Loading " + t.url + " ...  quick: " + (d.quick || "-") + "  |  live: " + (d.live || "-");
+  }
+  function updateDiag(t) {
+    if (t.pending && t.id === activeId) setStatus(diagLine(t));
+  }
+  var liveSilentStrikes = 0;
+  function markLiveSilent(t) {
+    if (t.diag && t.diag.live === "started") {
+      t.diag.live = "silent";
+      updateDiag(t);
+      liveSilentStrikes++;
+      if (liveSilentStrikes >= 2) {
+        liveOk = false;
+        prefs.liveDead = appVersion || "unknown";
+        writeStore("ucb-prefs", prefs);
+      }
+      // Nothing more is coming from live; surface a quick-engine failure now.
+      if (t.diag.quick && t.diag.quick.indexOf("failed") === 0) surfaceLoadFailure(t);
+    }
+  }
+  function surfaceLoadFailure(t) {
+    if (!t.pending) return;
+    t.pending = false;
+    showProgress(false);
+    if (t.id === activeId) setStatus("Could not load that page.  quick: " + ((t.diag && t.diag.quick) || "-") + "  |  live: " + ((t.diag && t.diag.live) || "-") + "  -  press Ctrl+R to retry.");
+  }
   function stopLoading() {
     var t = activeTab();
     if (!t || !t.pending) return false;
