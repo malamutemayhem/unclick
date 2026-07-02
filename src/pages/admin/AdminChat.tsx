@@ -454,6 +454,9 @@ export default function AdminChatPage() {
     setActiveHumanMemberId(null);
     setInput("");
     setStalledNotice(false);
+    // A stream from the previous thread may still settle after the switch;
+    // it must not evaluate a stall notice against this thread's canvas.
+    awaitingReplyRef.current = false;
     syncCursorRef.current = null;
     try {
       const r = await fetch(
@@ -484,6 +487,7 @@ export default function AdminChatPage() {
     setCouncilByMsg({});
     setHumanByMsg({});
     setStalledNotice(false);
+    awaitingReplyRef.current = false;
     syncCursorRef.current = null;
     setWorkingSeatIds([]);
     setCouncilRunSeats([]);
@@ -549,6 +553,7 @@ export default function AdminChatPage() {
         setCouncilByMsg({});
         setHumanByMsg({});
         setStalledNotice(false);
+        awaitingReplyRef.current = false;
         syncCursorRef.current = null;
         setWorkingSeatIds([]);
         setCouncilRunSeats([]);
@@ -579,6 +584,7 @@ export default function AdminChatPage() {
         setCouncilByMsg({});
         setHumanByMsg({});
         setStalledNotice(false);
+        awaitingReplyRef.current = false;
         syncCursorRef.current = null;
         setWorkingSeatIds([]);
         setCouncilRunSeats([]);
@@ -975,7 +981,9 @@ export default function AdminChatPage() {
     // Persist the human turn (this auto-titles the thread server-side). We
     // persist `combined` (typed text + inlined file text); images are NOT
     // saved to thread history in v1, so reopening a thread shows the text only.
-    // The client_msg_id makes a retried request idempotent server-side.
+    // The client_msg_id makes a retried request idempotent server-side. The
+    // sender identity is derived server-side from the verified session, so
+    // it is deliberately not sent here.
     if (threadId) {
       try {
         await fetch("/api/chat-threads?action=append", {
@@ -984,7 +992,6 @@ export default function AdminChatPage() {
           body: JSON.stringify({
             thread_id: threadId,
             content: combined,
-            sender_id: selfSenderId,
             client_msg_id: crypto.randomUUID(),
           }),
         });
