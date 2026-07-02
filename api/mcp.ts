@@ -367,6 +367,36 @@ function getSupabaseEnv(): { url: string; key: string } | null {
 }
 
 /**
+ * Decide the tenancy a matched api_key resolves to. Every key follows the
+ * account-lane convention (lane_hash when set, else its own key_hash). Worker
+ * keys (tier "worker", agt_*) additionally inherit from the account's primary
+ * (non-worker) key: their billing tier is never the "worker" placeholder, and
+ * a legacy worker row minted without a lane_hash borrows the primary's lane so
+ * it still shares the account's memory and connections. If the account has no
+ * primary key (edge case), the worker stays on its own hash, isolated. Pure so
+ * the security-critical choice can be unit tested.
+ */
+export function resolveWorkerTenancy(
+  matched: { key_hash_self: string; lane_hash: string | null; tier: string | null },
+  primary: { key_hash: string; lane_hash: string | null; tier: string | null } | null,
+): { tenancyHash: string; tenancyTier: string } {
+  if (matched.tier === "worker") {
+    return {
+      tenancyHash:
+        matched.lane_hash ??
+        primary?.lane_hash ??
+        primary?.key_hash ??
+        matched.key_hash_self,
+      tenancyTier: primary?.tier ?? "free",
+    };
+  }
+  return {
+    tenancyHash: matched.lane_hash ?? matched.key_hash_self,
+    tenancyTier: matched.tier ?? "free",
+  };
+}
+
+/**
  * Look up an inbound api_key in the api_keys table. Returns the tenancy
  * context if the key is active, or null otherwise. The Supabase service-role
  * client is created on demand so the validator no-ops gracefully when env is
@@ -389,6 +419,36 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
 
   if (error || !data || data.is_active === false) return null;
 
+  // Worker keys (tier="worker", agt_*) are headless agent credentials minted
+  // under a user account via /api/worker-keys. Minting stamps them with the
+  // account's lane_hash so the standard lane convention below already shares
+  // the account's memory and platform connections. The extra lookup here only
+  // resolves the account's real billing tier ("worker" is a placeholder, not a
+  // tier) and covers legacy worker rows minted before lane stamping.
+  let tenancyHash = (data.lane_hash as string | null) ?? apiKeyHash;
+  let tenancyTier = data.tier ?? "free";
+  if (data.tier === "worker" && data.user_id) {
+    const { data: primary } = await supabase
+      .from("api_keys")
+      .select("key_hash, tier, lane_hash")
+      .eq("user_id", data.user_id)
+      .neq("tier", "worker")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const resolved = resolveWorkerTenancy(
+      {
+        key_hash_self: apiKeyHash,
+        lane_hash: (data.lane_hash as string | null) ?? null,
+        tier: data.tier,
+      },
+      primary ?? null,
+    );
+    tenancyHash = resolved.tenancyHash;
+    tenancyTier = resolved.tenancyTier;
+  }
+
   let accountEmail: string | null = null;
   if (data.user_id) {
     try {
@@ -410,8 +470,8 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     .then(() => {});
 
   return {
-    api_key_hash: (data.lane_hash as string | null) ?? apiKeyHash,
-    tier: effectiveMemoryTier(data.tier ?? "free", accountEmail),
+    api_key_hash: tenancyHash,
+    tier: effectiveMemoryTier(tenancyTier, accountEmail),
     user_id: data.user_id ?? null,
     account_email: accountEmail,
     memory_quota_exempt: memoryQuotaExempt,
