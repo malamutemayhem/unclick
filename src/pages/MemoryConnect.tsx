@@ -1,12 +1,10 @@
 /**
- * Connect Claude Code - one-click setup page
+ * Connect your AI - one-page setup for every client
  *
- * UX goal: the user copies one command, pastes it in their terminal, and
- * Claude Code is permanently wired into their UnClick Memory. Zero MCP /
- * transport / config jargon visible.
- *
- * The command leans on Claude Code's built-in `claude mcp add` helper, which
- * writes the entry to .mcp.json automatically.
+ * UX goal: the user picks the AI app they use (ChatGPT, Claude, Claude Code,
+ * Cursor, Windsurf), follows two or three plain-English steps, and UnClick is
+ * permanently wired in. No-terminal clients lead; jargon stays out of the
+ * headings. The headless / CI worker path keeps its own section at the bottom.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -20,8 +18,6 @@ import {
   Plug,
   Copy,
   Check,
-  ChevronDown,
-  ChevronUp,
   Loader2,
   Sparkles,
   Terminal,
@@ -63,51 +59,102 @@ function formatRelative(iso: string | null | undefined): string {
   return `${days} days ago`;
 }
 
-interface ClientCommand {
+type ClientId = "chatgpt" | "claude" | "claude-code" | "cursor" | "windsurf";
+
+interface ClientGuide {
+  id: ClientId;
   name: string;
-  description: string;
-  command: (apiKey: string) => string;
+  badge: string;
+  steps: string[];
+  copyLabel: string;
+  // What the copy button puts on the clipboard. Clients whose value embeds the
+  // key set containsKey so the button can require one and warn about it.
+  copyValue: (key: string) => string;
+  displayValue: (maskedKey: string) => string;
+  containsKey: boolean;
+  afterNote?: string;
 }
 
-const OTHER_CLIENTS: ClientCommand[] = [
+// No-terminal clients lead. The URL-only clients connect with the clean
+// address plus a sign-in, so nothing secret ends up pasted anywhere.
+const CLIENT_GUIDES: ClientGuide[] = [
   {
-    name: "Cursor",
-    description: "Add to Cursor's MCP settings",
-    command: (k) =>
-      `cursor mcp add unclick https://unclick.world/api/mcp --header "Authorization: Bearer ${k}"`,
-  },
-  {
-    name: "Windsurf",
-    description: "Add to Windsurf's MCP settings",
-    command: (k) =>
-      `windsurf mcp add unclick https://unclick.world/api/mcp --header "Authorization: Bearer ${k}"`,
-  },
-  {
-    name: "Claude Desktop",
-    description: "Edit ~/Library/Application Support/Claude/claude_desktop_config.json",
-    command: (k) =>
-      JSON.stringify(
-        {
-          mcpServers: {
-            unclick: {
-              url: "https://unclick.world/api/mcp",
-              headers: { Authorization: `Bearer ${k}` },
-            },
-          },
-        },
-        null,
-        2,
-      ),
-  },
-  {
+    id: "chatgpt",
     name: "ChatGPT",
-    description:
-      "ChatGPT desktop app, Settings, Tools and Integrations. Add an MCP server with the URL and Authorization header below, then restart ChatGPT.",
-    command: (k) =>
-      [
-        "URL: https://unclick.world/api/mcp",
-        `Authorization: Bearer ${k}`,
-      ].join("\n"),
+    badge: "No terminal",
+    steps: [
+      "Open ChatGPT Settings, then Apps & Connectors.",
+      "Choose New App, and name it UnClick.",
+      "Paste the address below into Server URL.",
+      "Pick OAuth as the authentication and hit Create.",
+      "Sign in with your UnClick login when asked. Done.",
+    ],
+    copyLabel: "Copy address",
+    copyValue: () => MCP_URL,
+    displayValue: () => MCP_URL,
+    containsKey: false,
+    afterNote:
+      "If your version has no sign-in option, use the worker address at the bottom of this page instead.",
+  },
+  {
+    id: "claude",
+    name: "Claude",
+    badge: "No terminal",
+    steps: [
+      "Open Settings, then Connectors (same place on claude.ai and Claude Desktop).",
+      "Click Add custom connector, and name it UnClick.",
+      "Paste the address below.",
+      "Sign in with your UnClick login when asked. Done.",
+    ],
+    copyLabel: "Copy address",
+    copyValue: () => MCP_URL,
+    displayValue: () => MCP_URL,
+    containsKey: false,
+  },
+  {
+    id: "claude-code",
+    name: "Claude Code",
+    badge: "One command",
+    steps: [
+      "Copy the command below.",
+      "Paste it into your terminal and press Enter. Done.",
+    ],
+    copyLabel: "Copy command",
+    copyValue: (k) =>
+      `claude mcp add --transport http unclick ${MCP_URL} --header "Authorization: Bearer ${k}"`,
+    displayValue: (masked) =>
+      `claude mcp add --transport http unclick ${MCP_URL} --header "Authorization: Bearer ${masked}"`,
+    containsKey: true,
+  },
+  {
+    id: "cursor",
+    name: "Cursor",
+    badge: "One command",
+    steps: [
+      "Copy the command below.",
+      "Paste it into your terminal and press Enter. Done.",
+    ],
+    copyLabel: "Copy command",
+    copyValue: (k) =>
+      `cursor mcp add unclick ${MCP_URL} --header "Authorization: Bearer ${k}"`,
+    displayValue: (masked) =>
+      `cursor mcp add unclick ${MCP_URL} --header "Authorization: Bearer ${masked}"`,
+    containsKey: true,
+  },
+  {
+    id: "windsurf",
+    name: "Windsurf",
+    badge: "One command",
+    steps: [
+      "Copy the command below.",
+      "Paste it into your terminal and press Enter. Done.",
+    ],
+    copyLabel: "Copy command",
+    copyValue: (k) =>
+      `windsurf mcp add unclick ${MCP_URL} --header "Authorization: Bearer ${k}"`,
+    displayValue: (masked) =>
+      `windsurf mcp add unclick ${MCP_URL} --header "Authorization: Bearer ${masked}"`,
+    containsKey: true,
   },
 ];
 
@@ -115,9 +162,8 @@ export default function MemoryConnectPage() {
   useCanonical("/memory/connect");
 
   const [apiKey, setApiKey] = useState<string>("");
-  const [mainCopied, setMainCopied] = useState(false);
-  const [otherCopied, setOtherCopied] = useState<string | null>(null);
-  const [showOthers, setShowOthers] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientId>("chatgpt");
+  const [clientCopied, setClientCopied] = useState(false);
 
   const [checking, setChecking] = useState(false);
   const [check, setCheck] = useState<CheckResult | null>(null);
@@ -134,15 +180,19 @@ export default function MemoryConnectPage() {
     }
   }, []);
 
-  const fullCommand = useMemo(() => {
-    const key = apiKey || "YOUR_API_KEY";
-    return `claude mcp add --transport http unclick ${MCP_URL} --header "Authorization: Bearer ${key}"`;
-  }, [apiKey]);
+  const guide = useMemo(
+    () => CLIENT_GUIDES.find((c) => c.id === selectedClient) ?? CLIENT_GUIDES[0],
+    [selectedClient],
+  );
 
-  const displayCommand = useMemo(() => {
-    const key = apiKey ? maskKey(apiKey) : "YOUR_API_KEY";
-    return `claude mcp add --transport http unclick ${MCP_URL} --header "Authorization: Bearer ${key}"`;
-  }, [apiKey]);
+  const guideCopyValue = useMemo(
+    () => guide.copyValue(apiKey || "YOUR_API_KEY"),
+    [guide, apiKey],
+  );
+  const guideDisplayValue = useMemo(
+    () => guide.displayValue(apiKey ? maskKey(apiKey) : "YOUR_API_KEY"),
+    [guide, apiKey],
+  );
 
   // Headless / CI / cloud-worker path: a static key carried in the connection
   // itself (in the URL). Unlike the interactive login, it needs no human to
@@ -166,17 +216,10 @@ export default function MemoryConnectPage() {
     }
   };
 
-  const handleMainCopy = () => {
-    copy(fullCommand, () => {
-      setMainCopied(true);
-      setTimeout(() => setMainCopied(false), 3000);
-    });
-  };
-
-  const handleOtherCopy = (name: string, command: string) => {
-    copy(command, () => {
-      setOtherCopied(name);
-      setTimeout(() => setOtherCopied((current) => (current === name ? null : current)), 3000);
+  const handleGuideCopy = () => {
+    copy(guideCopyValue, () => {
+      setClientCopied(true);
+      setTimeout(() => setClientCopied(false), 3000);
     });
   };
 
@@ -221,7 +264,7 @@ export default function MemoryConnectPage() {
   const checkLine = useMemo(() => {
     if (!check) return null;
     if (!check.connected) {
-      return "Not connected yet. Run the command above and start a Claude Code session.";
+      return "Not connected yet. Follow the steps above, then start a session in your AI app.";
     }
     const parts: string[] = [];
     parts.push(`${check.fact_count} ${check.fact_count === 1 ? "fact" : "facts"} stored`);
@@ -242,45 +285,60 @@ export default function MemoryConnectPage() {
         <FadeIn>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
             <Sparkles className="h-3 w-3" />
-            One command. You're done.
+            Pick your app. Two minutes. Done.
           </div>
           <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             <Plug className="h-8 w-8 text-primary" />
-            Connect Claude Code
+            Connect your AI
           </h1>
           <p className="mt-3 max-w-xl text-sm text-body">
-            When connected, Claude Code automatically loads your business context, standing rules, and
-            project memory at the start of every session.
+            Works with ChatGPT, Claude, Claude Code, Cursor, and Windsurf. Once connected, your AI
+            loads your memory, context, and standing rules at the start of every session.
           </p>
         </FadeIn>
 
-        {/* Steps */}
+        {/* Client picker */}
         <FadeIn delay={0.05}>
-          <ol className="mt-10 grid gap-3 sm:grid-cols-2">
-            <li className="rounded-xl border border-border/40 bg-card/20 p-5">
-              <div className="font-mono text-xs text-primary">Step 1</div>
-              <p className="mt-2 text-sm text-heading">Connect UnClick with one terminal command</p>
-            </li>
-            <li className="rounded-xl border border-border/40 bg-card/20 p-5">
-              <div className="font-mono text-xs text-primary">Step 2</div>
-              <p className="mt-2 text-sm text-heading">
-                Paste one line into CLAUDE.md so it loads automatically every session
-              </p>
-            </li>
-          </ol>
+          <div className="mt-8 flex flex-wrap gap-2" role="tablist" aria-label="Choose your AI app">
+            {CLIENT_GUIDES.map((client) => {
+              const selected = client.id === selectedClient;
+              return (
+                <button
+                  key={client.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => {
+                    setSelectedClient(client.id);
+                    setClientCopied(false);
+                  }}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    selected
+                      ? "border-primary bg-primary/15 text-heading"
+                      : "border-border/40 bg-card/20 text-body hover:border-primary/40 hover:text-heading"
+                  }`}
+                >
+                  {client.name}
+                </button>
+              );
+            })}
+          </div>
         </FadeIn>
 
-        {/* Command box */}
+        {/* Per-client steps */}
         <FadeIn delay={0.1}>
-          <section className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6">
+          <section className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-primary">
                 <Terminal className="h-3.5 w-3.5" />
-                Step 1 / Connect UnClick
+                Connect {guide.name}
               </div>
+              <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                {guide.badge}
+              </span>
             </div>
 
-            {!apiKey && (
+            {guide.containsKey && !apiKey && (
               <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-200">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>
@@ -293,99 +351,126 @@ export default function MemoryConnectPage() {
               </div>
             )}
 
-            <div className="mt-4 overflow-x-auto rounded-lg border border-border/40 bg-background/80 p-4">
-              <code className="block whitespace-pre font-mono text-xs text-heading sm:text-sm">
-                {displayCommand}
-              </code>
-            </div>
-
-            <Button
-              onClick={handleMainCopy}
-              disabled={!apiKey}
-              className="mt-4 w-full bg-primary text-black font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
-              size="lg"
-            >
-              {mainCopied ? (
-                <>
-                  <Check className="mr-2 h-4 w-4" /> Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="mr-2 h-4 w-4" /> Copy command
-                </>
-              )}
-            </Button>
-
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              The copied command contains your full key. The display above hides the middle for
-              shoulder-surfing protection.
-            </p>
-          </section>
-        </FadeIn>
-
-        {/* Step 2: CLAUDE.md default memory instruction */}
-        <FadeIn delay={0.12}>
-          <section className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-6">
-            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
-              Step 2 / Make it automatic
-            </div>
-            <h2 className="mt-2 text-base font-semibold text-heading">
-              Load your memory at the start of every session
-            </h2>
-            <p className="mt-2 text-sm text-body">
-              Add this line to your CLAUDE.md file so UnClick loads your memory before anything
-              else happens.
-            </p>
+            <ol className="mt-4 space-y-2">
+              {guide.steps.map((step, i) => (
+                <li key={step} className="flex items-start gap-3 text-sm text-body">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 font-mono text-[11px] font-semibold text-primary">
+                    {i + 1}
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
 
             <div className="mt-4 overflow-x-auto rounded-lg border border-border/40 bg-background/80 p-4">
               <code className="block whitespace-pre-wrap font-mono text-xs text-heading sm:text-sm">
-                {CLAUDE_MD_SNIPPET}
+                {guideDisplayValue}
               </code>
             </div>
 
             <Button
-              onClick={handleClaudeMdCopy}
-              className="mt-4 w-full bg-primary text-black font-semibold transition-opacity hover:opacity-90 sm:w-auto"
+              onClick={handleGuideCopy}
+              disabled={guide.containsKey && !apiKey}
+              className="mt-4 w-full bg-primary text-black font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
               size="lg"
             >
-              {claudeMdCopied ? (
+              {clientCopied ? (
                 <>
                   <Check className="mr-2 h-4 w-4" /> Copied
                 </>
               ) : (
                 <>
-                  <Copy className="mr-2 h-4 w-4" /> Copy line
+                  <Copy className="mr-2 h-4 w-4" /> {guide.copyLabel}
                 </>
               )}
             </Button>
 
-            <div className="mt-5 space-y-2 rounded-md border border-border/30 bg-card/30 p-4 text-xs">
-              <p className="font-semibold text-heading">Where to paste it</p>
-              <ul className="space-y-1 text-body">
-                <li>
-                  <span className="text-heading">Global (all projects):</span>{" "}
-                  <code className="rounded bg-background/80 px-1.5 py-0.5 font-mono text-[11px]">~/.claude/CLAUDE.md</code>
-                </li>
-                <li>
-                  <span className="text-heading">This project only:</span>{" "}
-                  <code className="rounded bg-background/80 px-1.5 py-0.5 font-mono text-[11px]">CLAUDE.md</code>{" "}
-                  in your project root
-                </li>
-              </ul>
-            </div>
+            {guide.containsKey ? (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                The copied command contains your full key. The display above hides the middle for
+                shoulder-surfing protection.
+              </p>
+            ) : (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Nothing secret in this address. You prove it is you by signing in, so there is no
+                key to look after.
+              </p>
+            )}
 
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-200">
-              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-semibold">Heads up:</span> pick one memory tool and stick with it.
-                Running UnClick alongside other memory systems tends to
-                duplicate facts, scramble context, and slow your AI down. UnClick works best as your
-                only memory.
-              </span>
-            </div>
+            {guide.afterNote && (
+              <div className="mt-4 flex items-start gap-2 rounded-md border border-border/40 bg-card/30 p-3 text-xs text-body">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>{guide.afterNote}</span>
+              </div>
+            )}
           </section>
         </FadeIn>
+
+        {/* Automatic memory line, only where a CLAUDE.md exists */}
+        {selectedClient === "claude-code" && (
+          <FadeIn delay={0.12}>
+            <section className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-6">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Make it automatic
+              </div>
+              <h2 className="mt-2 text-base font-semibold text-heading">
+                Load your memory at the start of every session
+              </h2>
+              <p className="mt-2 text-sm text-body">
+                Add this line to your CLAUDE.md file so UnClick loads your memory before anything
+                else happens.
+              </p>
+
+              <div className="mt-4 overflow-x-auto rounded-lg border border-border/40 bg-background/80 p-4">
+                <code className="block whitespace-pre-wrap font-mono text-xs text-heading sm:text-sm">
+                  {CLAUDE_MD_SNIPPET}
+                </code>
+              </div>
+
+              <Button
+                onClick={handleClaudeMdCopy}
+                className="mt-4 w-full bg-primary text-black font-semibold transition-opacity hover:opacity-90 sm:w-auto"
+                size="lg"
+              >
+                {claudeMdCopied ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" /> Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-2 h-4 w-4" /> Copy line
+                  </>
+                )}
+              </Button>
+
+              <div className="mt-5 space-y-2 rounded-md border border-border/30 bg-card/30 p-4 text-xs">
+                <p className="font-semibold text-heading">Where to paste it</p>
+                <ul className="space-y-1 text-body">
+                  <li>
+                    <span className="text-heading">Global (all projects):</span>{" "}
+                    <code className="rounded bg-background/80 px-1.5 py-0.5 font-mono text-[11px]">~/.claude/CLAUDE.md</code>
+                  </li>
+                  <li>
+                    <span className="text-heading">This project only:</span>{" "}
+                    <code className="rounded bg-background/80 px-1.5 py-0.5 font-mono text-[11px]">CLAUDE.md</code>{" "}
+                    in your project root
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-200">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  <span className="font-semibold">Heads up:</span> pick one memory tool and stick with it.
+                  Running UnClick alongside other memory systems (Mem0, Zep, mem-based agents) tends to
+                  duplicate facts, scramble context, and slow your AI down. UnClick works best as your
+                  only memory.
+                </span>
+              </div>
+            </section>
+          </FadeIn>
+        )}
 
         {/* Check connection */}
         <FadeIn delay={0.15}>
@@ -394,7 +479,7 @@ export default function MemoryConnectPage() {
               <div>
                 <h2 className="text-base font-semibold text-heading">Already connected?</h2>
                 <p className="mt-1 text-xs text-body">
-                  Verify Claude Code is reaching your memory.
+                  Verify your AI is reaching your memory.
                 </p>
               </div>
               <Button
@@ -435,73 +520,6 @@ export default function MemoryConnectPage() {
                   }`}
                 />
                 <span>{checkLine}</span>
-              </div>
-            )}
-          </section>
-        </FadeIn>
-
-        {/* Other clients */}
-        <FadeIn delay={0.2}>
-          <section className="mt-6 rounded-2xl border border-border/40 bg-card/20">
-            <button
-              type="button"
-              onClick={() => setShowOthers((v) => !v)}
-              className="flex w-full items-center justify-between gap-3 rounded-2xl px-6 py-5 text-left transition-colors hover:bg-card/40"
-            >
-              <div>
-                <h2 className="text-base font-semibold text-heading">Using a different AI client?</h2>
-                <p className="mt-1 text-xs text-body">
-                  Cursor, Windsurf, Claude Desktop. Same one-paste idea.
-                </p>
-              </div>
-              {showOthers ? (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-
-            {showOthers && (
-              <div className="space-y-4 border-t border-border/40 px-6 py-5">
-                {OTHER_CLIENTS.map((client) => {
-                  const cmd = client.command(apiKey || "YOUR_API_KEY");
-                  const displayCmd = client.command(apiKey ? maskKey(apiKey) : "YOUR_API_KEY");
-                  const isCopied = otherCopied === client.name;
-                  return (
-                    <div key={client.name}>
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <h3 className="text-sm font-semibold text-heading">{client.name}</h3>
-                          <p className="text-[11px] text-muted-foreground">{client.description}</p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOtherCopy(client.name, cmd)}
-                          disabled={!apiKey}
-                          className="shrink-0"
-                        >
-                          {isCopied ? (
-                            <>
-                              <Check className="mr-1.5 h-3 w-3" />
-                              Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="mr-1.5 h-3 w-3" />
-                              Copy
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div className="mt-2 overflow-x-auto rounded-md border border-border/40 bg-background/80 p-3">
-                        <pre className="whitespace-pre-wrap font-mono text-[11px] text-heading">
-                          {displayCmd}
-                        </pre>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             )}
           </section>
@@ -550,9 +568,11 @@ export default function MemoryConnectPage() {
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
                 <span className="font-semibold">Heads up:</span> this URL contains your key, so treat it
-                like a password. Rotating your key retires this URL, so generate a fresh one after a
-                rotation. For unattended workers, a dedicated worker key you can revoke on its own is
-                coming soon.
+                like a password. For unattended workers, mint a dedicated worker key at{" "}
+                <Link to="/admin/you" className="underline">
+                  Admin, then You, then Worker Keys
+                </Link>{" "}
+                so you can revoke it on its own and your main key never rides along.
               </span>
             </div>
           </section>
