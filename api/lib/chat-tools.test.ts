@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   isBuildModeEndpointId,
+  isHighRiskEndpointId,
   isReadOnlyEndpointId,
   normalizeConnectorCall,
   internalMcpCall,
   buildChatTools,
   type ChatMemory,
 } from "./chat-tools";
+import { createConfirmToken } from "./chat-confirm";
 
 // A fake memory backend that records calls, so the memory tools can be tested
 // without a real Supabase backend.
@@ -468,6 +470,24 @@ describe("connector tools (require a validated connector key)", () => {
     expect(body.params.arguments).toEqual({ query: "read my email", category: undefined });
   });
 
+  it("call_tool returns a helpful error when normalization cannot unwrap unclick_call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({ endpoint_id: "unclick_call", params: {} });
+
+    expect(out).toContain("could not resolve");
+    expect(out).toContain("Pass the connector endpoint_id directly");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("tool_info falls back to integration search when the built-in catalog has no slug", async () => {
     const fetchMock = vi
       .fn()
@@ -506,5 +526,262 @@ describe("connector tools (require a validated connector key)", () => {
     expect(out).toContain("higgsfield_generate_image");
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(JSON.parse(fetchMock.mock.calls[1][1].body).params.name).toBe("unclick_search");
+  });
+});
+
+describe("normalizeConnectorCall - extended patterns", () => {
+  it("recognises 'tool' as an endpoint key (common from non-OpenAI models)", () => {
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        tool: "gmail_search",
+        query: "meeting notes",
+      }),
+    ).toEqual({
+      endpointId: "gmail_search",
+      params: { query: "meeting notes" },
+    });
+  });
+
+  it("recognises 'action' as an endpoint key", () => {
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        action: "higgsfield_generate_image",
+        prompt: "cyberpunk tiger",
+      }),
+    ).toEqual({
+      endpointId: "higgsfield_generate_image",
+      params: { prompt: "cyberpunk tiger" },
+    });
+  });
+
+  it("rescues an endpoint from param values when no key matches", () => {
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        do_this: "dropbox_list_folder",
+        path: "/",
+      }),
+    ).toEqual({
+      endpointId: "dropbox_list_folder",
+      params: { do_this: "dropbox_list_folder", path: "/" },
+    });
+  });
+
+  it("does not rescue a bare single-segment string (ambiguous)", () => {
+    const result = normalizeConnectorCall("unclick_call", {
+      do_this: "search",
+      path: "/",
+    });
+    expect(result.endpointId).toBe("unclick_call");
+  });
+});
+
+describe("isHighRiskEndpointId", () => {
+  it("detects high-risk verbs", () => {
+    expect(isHighRiskEndpointId("gmail_send")).toBe(true);
+    expect(isHighRiskEndpointId("dropbox_delete")).toBe(true);
+    expect(isHighRiskEndpointId("github_merge_pull_request")).toBe(true);
+    expect(isHighRiskEndpointId("stripe_charge")).toBe(true);
+    expect(isHighRiskEndpointId("vercel_deploy")).toBe(true);
+  });
+
+  it("does not flag read or build verbs as high-risk", () => {
+    expect(isHighRiskEndpointId("gmail_search")).toBe(false);
+    expect(isHighRiskEndpointId("higgsfield_generate_image")).toBe(false);
+    expect(isHighRiskEndpointId("github_create_branch")).toBe(false);
+  });
+});
+
+describe("confirm mode", () => {
+  const CONFIRM_SECRET = "test-hmac-secret-for-chat-confirm";
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("provides a confirm_action tool only in confirm mode", () => {
+    const readTools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "read",
+    });
+    expect(readTools.confirm_action).toBeUndefined();
+
+    const buildTools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "build",
+    });
+    expect(buildTools.confirm_action).toBeUndefined();
+
+    const confirmTools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+    expect(confirmTools.confirm_action).toBeDefined();
+  });
+
+  it("call_tool allows read endpoints in confirm mode (same as build)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "inbox: 3 unread" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({ endpoint_id: "gmail_search", params: { query: "today" } });
+
+    expect(out).toBe("inbox: 3 unread");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("call_tool allows build endpoints in confirm mode (same as build)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "image queued" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({
+      endpoint_id: "higgsfield_generate_image",
+      params: { prompt: "tiger" },
+    });
+
+    expect(out).toBe("image queued");
+  });
+
+  it("call_tool returns a confirmation prompt with token for high-risk endpoints", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({
+      endpoint_id: "gmail_send",
+      params: { to: "a@b.com", body: "hi" },
+    });
+
+    const parsed = JSON.parse(out);
+    expect(parsed.confirmation_required).toBe(true);
+    expect(parsed.endpoint_id).toBe("gmail_send");
+    expect(parsed.params).toEqual({ to: "a@b.com", body: "hi" });
+    expect(parsed.token).toBeTruthy();
+    expect(parsed.message).toContain("approval");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("confirm_action executes when given a valid token", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      mcpJsonResponse({ result: { content: [{ type: "text", text: "email sent" }] } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+
+    const endpointId = "gmail_send";
+    const params = { to: "a@b.com", body: "hi" };
+    const token = createConfirmToken(CONFIRM_SECRET, endpointId, params);
+
+    const confirm = tools.confirm_action as { execute: (args: unknown) => Promise<string> };
+    const out = await confirm.execute({ token, endpoint_id: endpointId, params });
+
+    expect(out).toBe("email sent");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.params.arguments).toEqual({ endpoint_id: "gmail_send", params: { to: "a@b.com", body: "hi" } });
+  });
+
+  it("confirm_action rejects an invalid token", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+
+    const confirm = tools.confirm_action as { execute: (args: unknown) => Promise<string> };
+    const out = await confirm.execute({
+      token: "999999.fakesignature",
+      endpoint_id: "gmail_send",
+      params: { to: "a@b.com", body: "hi" },
+    });
+
+    expect(out).toContain("invalid or expired");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("confirm_action rejects when params differ from the signed payload", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+      confirmSecret: CONFIRM_SECRET,
+    });
+
+    const token = createConfirmToken(CONFIRM_SECRET, "gmail_send", { to: "a@b.com", body: "hi" });
+    const confirm = tools.confirm_action as { execute: (args: unknown) => Promise<string> };
+    const out = await confirm.execute({
+      token,
+      endpoint_id: "gmail_send",
+      params: { to: "attacker@evil.com", body: "different" },
+    });
+
+    expect(out).toContain("invalid or expired");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("confirm mode without confirmSecret degrades to build behavior", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tools = buildChatTools({
+      origin: "https://example.test",
+      connectorKey: "uc_abc",
+      memory: fakeMemory(),
+      toolMode: "confirm",
+    });
+
+    expect(tools.confirm_action).toBeUndefined();
+
+    const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+    const out = await callTool.execute({ endpoint_id: "gmail_send", params: {} });
+    expect(out).toContain("blocked in Build mode");
   });
 });

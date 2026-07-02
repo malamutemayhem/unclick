@@ -32,6 +32,7 @@
 
 import { tool, type Tool } from "ai";
 import { z } from "zod";
+import { createConfirmToken, validateConfirmToken } from "./chat-confirm.js";
 
 // Cap on the tool result text we hand back to the model, so a large connector
 // payload (or a big memory dump) cannot blow the context window.
@@ -40,7 +41,7 @@ const MAX_RESULT_CHARS = 6000;
 // Per-call ceiling for the internal /api/mcp round trip.
 const MCP_CALL_TIMEOUT_MS = 20_000;
 
-export type ChatToolMode = "read" | "build";
+export type ChatToolMode = "read" | "build" | "confirm";
 
 interface McpContent {
   type?: string;
@@ -303,6 +304,12 @@ export function isBuildModeEndpointId(endpointId: string): boolean {
   return tokens.includes("to") && tokens.some((token) => BUILD_MEDIA_TOKENS.has(token));
 }
 
+export function isHighRiskEndpointId(endpointId: string): boolean {
+  if (typeof endpointId !== "string" || !endpointId.trim()) return false;
+  const tokens = endpointTokens(endpointId);
+  return tokens.some((token) => HIGH_RISK_VERBS.has(token));
+}
+
 const REFUSAL =
   "Write/send actions on connected apps are not enabled yet (read-first mode). I can only call read or list endpoints right now.";
 
@@ -339,32 +346,47 @@ function isMetaCallEndpoint(endpointId: string): boolean {
 }
 
 function pickEndpointId(record: Record<string, unknown>): string | null {
-  for (const key of ["endpoint_id", "endpointId", "endpoint", "tool_name", "toolName", "name"]) {
+  for (const key of [
+    "endpoint_id", "endpointId", "endpoint",
+    "tool_name", "toolName", "tool",
+    "action", "command", "name",
+  ]) {
     const value = stringValue(record[key]);
     if (value && !isMetaCallEndpoint(value)) return value;
   }
   return null;
 }
 
+function rescueEndpointFromValues(record: Record<string, unknown>): string | null {
+  for (const value of Object.values(record)) {
+    if (typeof value !== "string") continue;
+    const clean = value.trim();
+    if (!clean || isMetaCallEndpoint(clean)) continue;
+    if (/^[a-z][a-z0-9]*([._-][a-z0-9]+)+$/i.test(clean)) return clean;
+  }
+  return null;
+}
+
+const CALL_WRAPPER_KEYS = new Set([
+  "endpoint_id",
+  "endpointId",
+  "endpoint",
+  "tool_name",
+  "toolName",
+  "tool",
+  "action",
+  "command",
+  "name",
+  "params",
+  "parameters",
+  "arguments",
+  "args",
+]);
+
 function stripCallWrapperKeys(record: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(record)) {
-    if (
-      [
-        "endpoint_id",
-        "endpointId",
-        "endpoint",
-        "tool_name",
-        "toolName",
-        "name",
-        "params",
-        "parameters",
-        "arguments",
-        "args",
-      ].includes(key)
-    ) {
-      continue;
-    }
+    if (CALL_WRAPPER_KEYS.has(key)) continue;
     out[key] = value;
   }
   return out;
@@ -415,6 +437,16 @@ export function normalizeConnectorCall(
     resolvedParams = nestedParams(source);
   }
 
+  if (isMetaCallEndpoint(resolvedEndpointId)) {
+    const rescued =
+      rescueEndpointFromValues(resolvedParams) ??
+      (args ? rescueEndpointFromValues(args) : null);
+    if (rescued) {
+      resolvedEndpointId = rescued;
+      resolvedParams = stripCallWrapperKeys(resolvedParams);
+    }
+  }
+
   resolvedEndpointId = qualifyBareEndpoint(resolvedEndpointId, resolvedParams);
   return { endpointId: resolvedEndpointId, params: resolvedParams };
 }
@@ -445,8 +477,13 @@ export interface BuildChatToolsOpts {
   // Direct, lane-scoped memory access for the logged-in account.
   memory: ChatMemory;
   // Read is the default for compatibility. Build mode is explicit and lets API
-  // seats run non-destructive write/generate connector endpoints.
+  // seats run non-destructive write/generate connector endpoints. Confirm mode
+  // extends build with a confirmation gate for high-risk actions.
   toolMode?: ChatToolMode;
+  // HMAC secret for the confirm-before-execute gate. Required when toolMode is
+  // "confirm". A missing secret in confirm mode silently degrades to build
+  // behavior (high-risk actions stay blocked).
+  confirmSecret?: string;
 }
 
 /**
@@ -459,9 +496,11 @@ export function buildChatTools({
   connectorKey,
   memory,
   toolMode = "read",
+  confirmSecret,
 }: BuildChatToolsOpts): Record<string, Tool> {
-  const isBuildMode = toolMode === "build";
-  return {
+  const isBuildMode = toolMode === "build" || toolMode === "confirm";
+  const isConfirmMode = toolMode === "confirm" && Boolean(confirmSecret);
+  const tools: Record<string, Tool> = {
     search_memory: tool({
       description:
         "Search the user's own UnClick memory (their stored facts, preferences, decisions, and prior session context). Use this before answering anything that might depend on what the user told you before.",
@@ -541,21 +580,40 @@ export function buildChatTools({
 
     call_tool: tool({
       description:
-        isBuildMode
-          ? "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Build mode is active: READ/list/search/get/status endpoints are allowed, and non-destructive create/write/generate endpoints are allowed. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are refused."
-          : "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list/search/get/status endpoints are allowed right now (e.g. 'gmail.read', 'gmail_search', 'google-drive.list', 'dropbox_list_folder'). Write, send, generate, or mutate endpoints are refused.",
+        isConfirmMode
+          ? "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Confirm mode is active: read/list/search and non-destructive create/write/generate actions run immediately. High-risk actions (send, delete, pay, merge, deploy, permission changes) require confirmation - call_tool will return a confirmation prompt with a token; pass the token to confirm_action to execute."
+          : isBuildMode
+            ? "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Build mode is active: READ/list/search/get/status endpoints are allowed, and non-destructive create/write/generate endpoints are allowed. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are refused."
+            : "Run a UnClick connector endpoint by its endpoint_id (from tool_info). Read-first mode: only READ/list/search/get/status endpoints are allowed right now (e.g. 'gmail.read', 'gmail_search', 'google-drive.list', 'dropbox_list_folder'). Write, send, generate, or mutate endpoints are refused.",
       inputSchema: z.object({
         endpoint_id: z.string().describe("The endpoint to call, e.g. 'gmail.read'"),
         params: z.record(z.unknown()).optional().describe("Parameters for the endpoint"),
       }),
       execute: async ({ endpoint_id, params }) => {
         const normalized = normalizeConnectorCall(endpoint_id, params);
-        // Permission guarantee is unconditional: refused endpoint classes are
-        // denied whether or not a connector key is present.
+        if (isMetaCallEndpoint(normalized.endpointId)) {
+          return "tool error: could not resolve the actual endpoint from the call. Pass the connector endpoint_id directly (e.g. 'gmail_search', 'higgsfield_generate_image') instead of 'unclick_call'.";
+        }
         const allowed = isBuildMode
           ? isBuildModeEndpointId(normalized.endpointId)
           : isReadOnlyEndpointId(normalized.endpointId);
-        if (!allowed) return isBuildMode ? BUILD_REFUSAL : REFUSAL;
+        if (!allowed) {
+          if (isConfirmMode && isHighRiskEndpointId(normalized.endpointId)) {
+            const token = createConfirmToken(
+              confirmSecret!,
+              normalized.endpointId,
+              normalized.params,
+            );
+            return JSON.stringify({
+              confirmation_required: true,
+              endpoint_id: normalized.endpointId,
+              params: normalized.params,
+              token,
+              message: `This action (${normalized.endpointId}) needs your approval before it runs. To proceed, call confirm_action with the token shown here.`,
+            });
+          }
+          return isBuildMode ? BUILD_REFUSAL : REFUSAL;
+        }
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
           return await internalMcpCall(origin, connectorKey, "unclick_call", {
@@ -568,4 +626,40 @@ export function buildChatTools({
       },
     }),
   };
+
+  if (isConfirmMode) {
+    tools.confirm_action = tool({
+      description:
+        "Execute a previously confirmed high-risk connector action. Only use this after call_tool returned a confirmation prompt with a token. Pass the exact token, endpoint_id, and params from that prompt.",
+      inputSchema: z.object({
+        token: z.string().describe("The confirmation token from the call_tool response"),
+        endpoint_id: z.string().describe("The endpoint_id from the confirmation prompt"),
+        params: z.record(z.unknown()).optional().describe("The exact params from the confirmation prompt"),
+      }),
+      execute: async ({ token, endpoint_id, params }) => {
+        if (!confirmSecret) return "tool error: confirmation not available";
+        const resolvedParams = params ?? {};
+        const valid = validateConfirmToken(
+          confirmSecret,
+          token,
+          endpoint_id,
+          resolvedParams,
+        );
+        if (!valid) {
+          return "tool error: confirmation token is invalid or expired. Ask the user to re-confirm and call call_tool again to get a fresh token.";
+        }
+        if (!connectorKey) return NO_CONNECTOR_KEY;
+        try {
+          return await internalMcpCall(origin, connectorKey, "unclick_call", {
+            endpoint_id,
+            params: resolvedParams,
+          });
+        } catch {
+          return "tool error: confirm_action failed";
+        }
+      },
+    });
+  }
+
+  return tools;
 }

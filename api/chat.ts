@@ -63,9 +63,11 @@ function buildUnclickSeatPreamble(toolMode: ChatToolMode): string {
     "Endpoint IDs may be dotted or snake-case; examples include gmail_search, gmail.search, drive_search, onedrive_list, dropbox_list_folder, and higgsfield_generate_image. ";
 
   const policy =
-    toolMode === "build"
-      ? "Build mode is active for this turn. You may use call_tool for read/list/search/get/status endpoints and for non-destructive create/write/generate endpoints when the user's request clearly asks for it. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are still blocked until the approval layer exists. "
-      : "Read-first mode is active for this turn. Do not attempt to send, create, update, delete, generate, or mutate anything in a connected app; call_tool will refuse those actions. ";
+    toolMode === "confirm"
+      ? "Confirm mode is active for this turn. You may use call_tool for read/list/search and non-destructive create/write/generate endpoints. For high-risk actions (send, delete, pay, merge, deploy, permission changes), call_tool will return a confirmation prompt with a token - show the user what you want to do and why, then use confirm_action with their approval. Never call confirm_action without showing the user the details first. "
+      : toolMode === "build"
+        ? "Build mode is active for this turn. You may use call_tool for read/list/search/get/status endpoints and for non-destructive create/write/generate endpoints when the user's request clearly asks for it. Sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions are still blocked until the approval layer exists. "
+        : "Read-first mode is active for this turn. Do not attempt to send, create, update, delete, generate, or mutate anything in a connected app; call_tool will refuse those actions. ";
 
   return (
     base +
@@ -233,7 +235,8 @@ export function validateChatRequest(
   const out: ChatRequest = { slug, model, messages: b.messages as UIMessage[] };
   if (typeof b.system === "string") out.system = b.system;
   if (typeof b.thread_id === "string") out.thread_id = b.thread_id;
-  if (b.tool_mode === "build") out.tool_mode = "build";
+  if (b.tool_mode === "confirm") out.tool_mode = "confirm";
+  else if (b.tool_mode === "build") out.tool_mode = "build";
   else out.tool_mode = "read";
   if (Array.isArray(b.council_seats)) {
     out.council_seats = b.council_seats
@@ -726,6 +729,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     connectorKey: origin ? connectorKey : null,
     memory: buildChatMemory(supabaseUrl, serviceKey, apiKeyHash),
     toolMode: parsed.tool_mode ?? "read",
+    confirmSecret:
+      parsed.tool_mode === "confirm"
+        ? process.env.UNCLICK_CONFIRM_SECRET || process.env.UNCLICK_AI_KEY_SECRET
+        : undefined,
   });
 
   const result = streamText({
