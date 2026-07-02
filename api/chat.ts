@@ -157,6 +157,26 @@ export interface CouncilBrief {
   status: "answered" | "skipped" | "failed";
   text?: string;
   error?: string;
+  // Wall-clock time the brief call took, for the persisted run receipt.
+  ms?: number;
+}
+
+// Compact, storage-safe run receipt persisted in the assistant message's
+// metadata. Brief text is already redacted by cleanBriefText; it is capped
+// again here so a receipt can never bloat the row.
+export function buildCouncilReceipt(
+  briefs: CouncilBrief[],
+): Array<Record<string, unknown>> {
+  return briefs.map((brief) => ({
+    label: brief.label,
+    handle: brief.handle,
+    slug: brief.slug,
+    model: brief.model,
+    status: brief.status,
+    ms: brief.ms ?? null,
+    error: brief.error ?? null,
+    brief: brief.text ? brief.text.slice(0, 400) : null,
+  }));
 }
 
 function seatLabel(seat: CouncilSeat): string {
@@ -393,6 +413,7 @@ async function buildCouncilBriefs(opts: {
         model: seat.model,
       };
 
+      const startedAt = Date.now();
       try {
         const providerKey = await providerKeyFor(seat.slug);
         const decision = decideChatProviderCall({
@@ -405,6 +426,7 @@ async function buildCouncilBriefs(opts: {
             ...base,
             status: "skipped" as const,
             error: `${providerDisplayName(seat.slug)} key is not connected`,
+            ms: Date.now() - startedAt,
           };
         }
 
@@ -439,6 +461,7 @@ async function buildCouncilBriefs(opts: {
           ...base,
           status: "answered" as const,
           text: cleanBriefText(result.text),
+          ms: Date.now() - startedAt,
         };
       } catch (err) {
         const message =
@@ -447,6 +470,7 @@ async function buildCouncilBriefs(opts: {
           ...base,
           status: "failed" as const,
           error: message.slice(0, 180),
+          ms: Date.now() - startedAt,
         };
       }
     }),
@@ -515,10 +539,15 @@ async function persistAssistantTurn(opts: {
   content: string;
   tokensIn: number | null;
   tokensOut: number | null;
+  councilReceipt?: Array<Record<string, unknown>>;
 }): Promise<void> {
   try {
     const safeContent = redactSensitive(opts.content);
     if (!safeContent.trim()) return;
+    const metadata =
+      opts.councilReceipt && opts.councilReceipt.length > 1
+        ? { council: opts.councilReceipt }
+        : {};
     const saved = await fetch(`${opts.supabaseUrl}/rest/v1/chat_thread_messages`, {
       method: "POST",
       headers: {
@@ -538,9 +567,26 @@ async function persistAssistantTurn(opts: {
         status: "complete",
         tokens_in: opts.tokensIn,
         tokens_out: opts.tokensOut,
+        metadata,
       }),
     });
     if (!saved.ok) return;
+    // Touch the thread so list ordering and other members' unread indicators
+    // react to assistant replies the same way they react to human turns.
+    await fetch(
+      `${opts.supabaseUrl}/rest/v1/chat_threads?id=eq.${encodeURIComponent(opts.threadId)}` +
+        `&api_key_hash=eq.${encodeURIComponent(opts.apiKeyHash)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: opts.serviceKey,
+          Authorization: `Bearer ${opts.serviceKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({ updated_at: new Date().toISOString() }),
+      },
+    ).catch(() => {});
     await fetch(`${opts.supabaseUrl}/rest/v1/mc_conversation_log`, {
       method: "POST",
       headers: {
@@ -761,6 +807,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         content: text,
         tokensIn: u?.inputTokens ?? u?.promptTokens ?? null,
         tokensOut: u?.outputTokens ?? u?.completionTokens ?? null,
+        councilReceipt: buildCouncilReceipt(councilBriefs),
       });
     },
   });

@@ -1,5 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import {
+  buildCouncilReceipt,
   buildCouncilTraceBlock,
   extractApiKey,
   extractConnectorKeyHeader,
@@ -172,6 +173,44 @@ describe("validateChatRequest", () => {
     expect(trace).toContain("GPT (@GPT)");
     expect(trace).toContain("one short line per contributing seat");
     expect(trace.toLowerCase()).not.toContain("chain of thought");
+  });
+
+  it("builds a compact council run receipt for persistence", () => {
+    const receipt = buildCouncilReceipt([
+      {
+        label: "Claude",
+        handle: "Claude",
+        slug: "anthropic",
+        model: "claude-haiku",
+        status: "answered",
+        text: "x".repeat(1400),
+        ms: 1234,
+      },
+      {
+        label: "GPT",
+        handle: "GPT",
+        slug: "openrouter",
+        model: "openai/gpt-4o-mini",
+        status: "skipped",
+        error: "OpenRouter key is not connected",
+      },
+    ]);
+
+    expect(receipt).toHaveLength(2);
+    expect(receipt[0]).toMatchObject({
+      slug: "anthropic",
+      status: "answered",
+      ms: 1234,
+      error: null,
+    });
+    // Brief text is capped so a receipt can never bloat the message row.
+    expect((receipt[0].brief as string).length).toBe(400);
+    expect(receipt[1]).toMatchObject({
+      status: "skipped",
+      ms: null,
+      brief: null,
+      error: "OpenRouter key is not connected",
+    });
   });
 });
 

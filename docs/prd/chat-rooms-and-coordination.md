@@ -331,8 +331,12 @@ do not one-off plumb Dropbox.
 - [LATER] Local models (Ollama, LM Studio, vLLM) via the runner-preferred path with a
   browser-direct fallback and honest CORS/PNA setup copy; explicit detect, nothing
   auto-connects.
-- [LATER] Presence and typing from the real run lifecycle; last-read pointer for unread
-  counts.
+- [DONE] Last-read pointer for unread counts: `mark_read` stamps
+  `chat_room_members.last_read_at`, `list` returns `my_last_read_at`, and the sessions
+  rail shows an unread dot for shared rooms (see
+  `docs/prd/chat-industry-adoption-review.md`).
+- [LATER] Presence and typing from the real run lifecycle (planned on the Broadcast
+  ephemeral lane, never rows).
 - [BACKLOG, v2 in Chat PRD] Global Cmd+K palette beyond thread search, thread branch/fork,
   edit-user-turn-and-resubmit, thinking/trace toggle, suggestion chips, per-turn cost
   receipt card, auto-advancing model failover (explicitly rejected for transparency).
@@ -351,7 +355,12 @@ do not one-off plumb Dropbox.
 - [NEXT] PR 4: Responder management (call-in / bench toggle, `responder_policy`, routing
   selector v1 fed by scoreboard signals, with the smart-routing extension point).
 - [NEXT] PR 5: Crews coordination for 2+ active AIs + multi-human realtime (per-room
-  subscription, roster, presence, unread counts).
+  subscription, roster, presence, unread counts). Partially delivered: live room delivery
+  ships v1 as an incremental since-cursor poll (5s, visibility-aware), unread counts ship
+  via the last-read pointer, sends are idempotent via `client_msg_id`, and council runs
+  persist per-seat receipts. Remaining: Broadcast-from-database fan-out, presence, typing,
+  Crews engine wiring. See `docs/prd/chat-industry-adoption-review.md` for the sequenced
+  plan.
 - [LATER] PR 6: Seats Scoreboard panel (read-only, from existing signals).
 - [NEXT] Stage 2 track: tool-calling + "+" composer + UnClick-native tools (Section 12),
   runs in parallel with rooms once the foundation is in.

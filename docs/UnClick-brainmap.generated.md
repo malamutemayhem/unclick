@@ -96,7 +96,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
-| src/pages/admin/AdminChat.tsx | b33b09a8cad7 | 46220 |
+| src/pages/admin/AdminChat.tsx | 9bb9bd643508 | 53123 |
 | src/pages/admin/AdminCircle.tsx | 005cabb745d2 | 28861 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |

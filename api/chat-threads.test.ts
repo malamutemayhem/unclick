@@ -116,7 +116,11 @@ interface RouteConfig {
     thread_id: string;
     member_lane_hash: string;
     role: "owner" | "admin" | "member";
+    last_read_at?: string | null;
   }>;
+  // append: force the chat_thread_messages insert to fail with this status
+  // (409 simulates the client_msg_id unique-index conflict)
+  messageInsertStatus?: number;
   // members: active membership rows and optional profile data keyed by lane
   roomMembers?: Array<{
     id: string;
@@ -269,6 +273,7 @@ function stubFetch(cfg: RouteConfig) {
             member_lane_hash: m.member_lane_hash,
             role: m.role,
             status: "active",
+            last_read_at: m.last_read_at ?? null,
           })),
         );
       }
@@ -382,6 +387,12 @@ function stubFetch(cfg: RouteConfig) {
       // membership insert / upsert
       if (url.includes("/chat_room_members") && method === "POST") {
         return jsonRes(null, true, 201);
+      }
+      // message insert (append); status override simulates the
+      // client_msg_id unique-index conflict
+      if (url.includes("/chat_thread_messages") && method === "POST") {
+        const status = cfg.messageInsertStatus ?? 201;
+        return jsonRes(null, status < 400, status);
       }
       // messages read
       if (url.includes("/chat_thread_messages?") && method === "GET") {
@@ -998,6 +1009,224 @@ describe("chat-threads shared rooms", () => {
         (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
       ),
     ).toBeUndefined();
+  });
+
+  // ── messages: incremental sync cursor ───────────────────────────────────
+  it("messages passes a valid after cursor through as a created_at filter", async () => {
+    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "GET",
+        query: {
+          action: "messages",
+          thread_id: "thread-1",
+          after: "2026-07-01T00:00:05Z",
+        },
+        headers: auth,
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+    const messagesUrl = fetchMock.mock.calls
+      .map((c) => String(c[0]))
+      .find((u) => u.includes("/chat_thread_messages?"));
+    expect(messagesUrl).toBeTruthy();
+    expect(messagesUrl).toContain(
+      `created_at=gt.${encodeURIComponent("2026-07-01T00:00:05.000Z")}`,
+    );
+  });
+
+  it("messages ignores an unparsable after cursor", async () => {
+    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "GET",
+        query: { action: "messages", thread_id: "thread-1", after: "garbage" },
+        headers: auth,
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+    const messagesUrl = fetchMock.mock.calls
+      .map((c) => String(c[0]))
+      .find((u) => u.includes("/chat_thread_messages?"));
+    expect(messagesUrl).toBeTruthy();
+    expect(messagesUrl).not.toContain("created_at=gt.");
+  });
+
+  // ── mark_read: the caller's read cursor ─────────────────────────────────
+  it("mark_read stamps the caller's own membership row", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_owner",
+      callerMembership: { role: "member" },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "mark_read" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ success: true });
+    const patch = cfg.calls.find(
+      (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+    );
+    expect(patch).toBeTruthy();
+    expect(patch!.url).toContain(`member_lane_hash=eq.${CALLER_LANE}`);
+    expect(patch!.body).toHaveProperty("last_read_at");
+  });
+
+  it("mark_read rejects a non-member", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: "lane_someone_else",
+      callerMembership: null,
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "mark_read" },
+        headers: auth,
+        body: { thread_id: "thread-1" },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(403);
+    expect(
+      cfg.calls.find(
+        (c) => c.method === "PATCH" && c.url.includes("/chat_room_members"),
+      ),
+    ).toBeUndefined();
+  });
+
+  // ── append: send idempotency ─────────────────────────────────────────────
+  it("append carries the client_msg_id into the insert", async () => {
+    const cfg: RouteConfig = { calls: [], threadOwner: CALLER_LANE };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: {
+          thread_id: "thread-1",
+          content: "hello",
+          client_msg_id: "client-uuid-1",
+        },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const insert = cfg.calls.find(
+      (c) => c.url.includes("/chat_thread_messages") && c.method === "POST",
+    );
+    expect(insert).toBeTruthy();
+    expect(insert!.body).toMatchObject({ client_msg_id: "client-uuid-1" });
+  });
+
+  it("append reports a retried client_msg_id as already saved (deduped)", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      messageInsertStatus: 409,
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: {
+          thread_id: "thread-1",
+          content: "hello",
+          client_msg_id: "client-uuid-1",
+        },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ success: true, deduped: true });
+  });
+
+  it("append without a client_msg_id still surfaces a 409 as a failure", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      messageInsertStatus: 409,
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: { thread_id: "thread-1", content: "hello" },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(409);
+    expect(res.body).toMatchObject({ error: "Failed to save message." });
+  });
+
+  // ── list: read cursor surfaced for unread indicators ────────────────────
+  it("list returns the caller's my_last_read_at for a shared room", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      ownedThreads: [{ id: ROOM_OWNED_ID, kind: "council" }],
+      memberThreadIds: [],
+      batchedMembers: [
+        {
+          thread_id: ROOM_OWNED_ID,
+          member_lane_hash: CALLER_LANE,
+          role: "owner",
+          last_read_at: "2026-07-01T00:00:07Z",
+        },
+        {
+          thread_id: ROOM_OWNED_ID,
+          member_lane_hash: "lane_other",
+          role: "member",
+        },
+      ],
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      { method: "GET", query: { action: "list" }, headers: auth } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const threads = (res.body as { threads: Array<Record<string, unknown>> })
+      .threads;
+    const room = threads.find((t) => t.id === ROOM_OWNED_ID);
+    expect(room).toMatchObject({
+      shared: true,
+      my_last_read_at: "2026-07-01T00:00:07Z",
+    });
   });
 
   it("leave returns 404 not_a_member when the caller has no membership row", async () => {
