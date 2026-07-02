@@ -1563,7 +1563,7 @@ export default function AdminChatPage() {
                   onSend();
                 }
               }}
-              rows={2}
+              rows={4}
               placeholder={
                 apiKey
                   ? calledInSeats.length > 1
@@ -1584,7 +1584,7 @@ export default function AdminChatPage() {
                   : "Set your UnClick key to chat"
               }
               disabled={!apiKey || (!hasAiTarget && !canMessageRoomWithoutBot)}
-              className="flex-1 resize-none rounded-md border border-border/50 bg-card/40 px-3 py-2 text-[13px] text-body outline-none placeholder:text-muted-foreground/40 focus:border-primary/50"
+              className="max-h-64 min-h-[96px] flex-1 resize-y rounded-md border border-border/50 bg-card/40 px-3 py-2 text-[13px] leading-relaxed text-body outline-none placeholder:text-muted-foreground/40 focus:border-primary/50"
             />
             {busy ? (
               <button
