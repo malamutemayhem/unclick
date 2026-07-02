@@ -29,7 +29,7 @@ export function readWiring(srcDir) {
   return fs.readFileSync(path.join(srcDir, "tool-wiring.ts"), "utf8");
 }
 
-// ─── Stage 3b reconstruction ─────────────────────────────────────────────────
+// ─── Stage 3b reconstruction ─────────────────────────────────────────
 // Rebuild the ADDITIONAL_TOOLS body and the ADDITIONAL_HANDLERS map (plus a
 // category-tagged import region) from src/wiring/<slug>.ts, in the original
 // order recorded in wiring/_manifest.json. The reconstructed text is for the
@@ -57,19 +57,44 @@ function reconstructFromWiring(srcDir) {
     return src.slice(open, src.lastIndexOf("};"));
   };
 
-  // Walk the segment manifest, which records the exact original byte layout:
-  // {lit} segments carry verbatim scaffolding / empty / duplicate headers;
-  // {slug} segments are pulled from the per-app wiring module. The result is the
-  // original ADDITIONAL_TOOLS body / ADDITIONAL_HANDLERS map byte-for-byte.
-  const toolsBody = manifest.toolSegments
-    .map((s) => (s.lit !== undefined ? s.lit : extractTools(s.slug)))
-    .join("");
-  const mapBody = manifest.handlerSegments
-    .map((s) => (s.lit !== undefined ? s.lit : extractHandlers(s.slug)))
-    .join("");
+  // Walk the compact segment manifest: chunks come from the per-app wiring
+  // modules in recorded order; the rare verbatim literals (leading scaffolding,
+  // empty/stray headers) are re-inserted at their recorded walk positions. The
+  // result is the original ADDITIONAL_TOOLS body / ADDITIONAL_HANDLERS map
+  // byte-for-byte.
+  const walk = (order, lits, extract) => {
+    const total = order.length + Object.keys(lits).length;
+    let out = "";
+    let next = 0;
+    for (let i = 0; i < total; i++) {
+      if (lits[i] !== undefined) out += lits[i];
+      else out += extract(order[next++]);
+    }
+    return out;
+  };
+  // Chunk order is the import order of the generated index files (the
+  // generator emits both from the same order list, so they cannot drift).
+  const orderFrom = (file, kind) => {
+    const text = fs.readFileSync(path.join(srcDir, file), "utf8");
+    return [...text.matchAll(new RegExp(`import \\{ \\w+${kind} \\} from \"\\./wiring/([a-z0-9-]+)\\.js\";`, "g"))].map((x) => x[1]);
+  };
+  const toolsBody = walk(orderFrom("additional-tools.ts", "Tools"), manifest.toolLits, extractTools);
+  const mapBody = walk(orderFrom("additional-handlers.ts", "Handlers"), manifest.handlerLits, extractHandlers);
+
+  // Synthesize a category-tagged import region so parseImportCategories keeps
+  // producing the same slug -> category map the monolith's imports produced.
+  // Each wiring file records its category in a "// category:" header.
+  let importsText = "";
+  for (const f of fs.readdirSync(wdir).filter((x) => x.endsWith(".ts")).sort()) {
+    const slug = f.replace(/\.ts$/, "");
+    const cat = (wfile(slug).match(/^\/\/ category: (.+)$/m) || [])[1];
+    if (!cat) continue;
+    importsText += `// ─── ${cat} ───\n`;
+    importsText += `import { _ } from "./${slug}-tool.js";\n`;
+  }
 
   const toolsText = `${manifest.toolMarker}${toolsBody}${manifest.toolsTail}`;
-  const handlersText = `${manifest.importRegionSynth}\n${manifest.handlerMarkerLine}${mapBody}${manifest.handlersTail}`;
+  const handlersText = `${importsText}\n${manifest.handlerMarkerLine}${mapBody}${manifest.handlersTail}`;
 
   return { toolsText, handlersText };
 }
@@ -98,7 +123,7 @@ export function readTools(srcDir) {
   return fs.existsSync(split) ? fs.readFileSync(split, "utf8") : readWiring(srcDir);
 }
 
-// ─── Section slicing ───────────────────────────────────────────────────────
+// ─── Section slicing ───────────────────────────────────────────
 export function section(wiring, marker, openTok) {
   const start = wiring.indexOf(marker);
   if (start < 0) throw new Error(`marker not found: ${marker}`);
@@ -107,7 +132,7 @@ export function section(wiring, marker, openTok) {
   return wiring.slice(open, close);
 }
 
-// ─── Import-region category map ──────────────────────────────────────────────
+// ─── Import-region category map ──────────────────────────────────────
 export function parseImportCategories(wiring) {
   const cut = ["export const ADDITIONAL_TOOLS", "export const ADDITIONAL_HANDLERS"]
     .map((m) => wiring.indexOf(m))
@@ -125,7 +150,7 @@ export function parseImportCategories(wiring) {
   return slugCategory;
 }
 
-// ─── Tool index ──────────────────────────────────────────────────────────────
+// ─── Tool index ────────────────────────────────────────────────────
 export function parseToolIndex(toolsText, importsText) {
   const slugCategory = parseImportCategories(importsText ?? toolsText);
 
@@ -149,7 +174,7 @@ export function parseToolIndex(toolsText, importsText) {
   return index;
 }
 
-// ─── Per-connector standalone extraction ─────────────────────────────────────
+// ─── Per-connector standalone extraction ─────────────────────────────────
 export function toolDefsFor(toolsBody, slug) {
   const re = new RegExp(`//\\s*[─-]+\\s*${slug}-tool\\.ts\\s*[─-]*`, "g");
   const m = re.exec(toolsBody);
@@ -177,7 +202,7 @@ export function handlersFor(handlersBody, slug) {
   return entries.length ? entries : null;
 }
 
-// ─── Audit blocks ──────────────────────────────────────────────────────────
+// ─── Audit blocks ────────────────────────────────────────────────
 export function loadWiringBlocks(wiring) {
   const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
   const end = wiring.indexOf("export const ADDITIONAL_HANDLERS");
