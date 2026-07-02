@@ -15,7 +15,7 @@ function getApiKey(args: Record<string, unknown>): string {
 async function willyGet(apiKey: string, path: string, params?: Record<string, string>): Promise<unknown> {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   const res = await fetch(`${WILLY_BASE}/${apiKey}${path}${qs}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (res.status === 401 || res.status === 403) throw new Error("Invalid WillyWeather API key.");
   if (res.status === 404) throw new Error("Location not found.");

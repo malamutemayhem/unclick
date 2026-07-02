@@ -8,7 +8,7 @@ const OFF_BASE = "https://world.openfoodfacts.org";
 
 async function offFetch<T>(url: string): Promise<T> {
   const res = await fetch(url, {
-    headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.io)" },
+    headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.world)" },
   });
   if (!res.ok) {
     throw new Error(`Open Food Facts API HTTP ${res.status}: ${url}`);

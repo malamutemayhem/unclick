@@ -38,7 +38,7 @@ interface CategoryResponse {
 
 async function mealFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${MEALDB_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`TheMealDB HTTP ${res.status}`);
   return res.json() as Promise<T>;

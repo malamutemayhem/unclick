@@ -42,7 +42,7 @@ async function untappdFetch<T>(
   }
 
   const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
 
   const body = (await res.json()) as Record<string, unknown>;

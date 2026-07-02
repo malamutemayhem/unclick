@@ -217,7 +217,7 @@ const InstallSection = () => {
           </span>
         </FadeIn>
         <FadeIn delay={0.05}>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-heading sm:text-4xl md:text-5xl">
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-heading [text-wrap:balance] sm:text-4xl md:text-5xl">
             Add UnClick to your AI assistant
           </h2>
         </FadeIn>

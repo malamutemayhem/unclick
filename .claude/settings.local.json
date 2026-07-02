@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__playwright__browser_console_messages",
-      "Bash(ls -la /schemacheck.mts)",
-      "Bash(rm -f /schemacheck.mts)"
-    ]
-  }
-}

@@ -120,7 +120,21 @@ describe("catalog counts come from SITE_STATS, never hand-typed", () => {
   );
 
   it("static surfaces carry no counts from retired generations", () => {
-    for (const file of ["index.html", "public/llms.txt", "scripts/prerender-routes.mjs"]) {
+    // Root README.md is intentionally absent: it is ring-fenced to the
+    // visibility lane (PRs #1423/#1439 per docs/visibility-playbook.md).
+    for (const file of [
+      "index.html",
+      "public/llms.txt",
+      "public/og-image.svg",
+      "public/.well-known/agent-card.json",
+      "scripts/prerender-routes.mjs",
+      "scripts/generate-og-image.cjs",
+      "CLAUDE.md",
+      "AGENTS.md",
+      "packages/mcp-server/package.json",
+      "packages/mcp-server/server.json",
+      "packages/mcp-server/README.md",
+    ]) {
       const src = read(file);
       expect(src, `${file} still claims 178+`).not.toContain("178+");
       expect(src, `${file} still claims 450+`).not.toContain("450+");

@@ -68,7 +68,7 @@ const statsY = 420;
 ctx.font = '600 22px "Courier New", ui-monospace, monospace';
 
 ctx.fillStyle = '#6366f1';
-ctx.fillText('450+ endpoints', 80, statsY);
+ctx.fillText('1500+ actions', 80, statsY);
 
 ctx.fillStyle = 'rgba(255,255,255,0.18)';
 ctx.fillText('|', 270, statsY);

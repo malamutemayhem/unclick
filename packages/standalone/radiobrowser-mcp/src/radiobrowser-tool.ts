@@ -10,7 +10,7 @@ async function radioFetch(path: string, params?: URLSearchParams): Promise<unkno
   const url = params ? `${RADIO_BASE}${path}?${params}` : `${RADIO_BASE}${path}`;
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       "Accept": "application/json",
     },
   });

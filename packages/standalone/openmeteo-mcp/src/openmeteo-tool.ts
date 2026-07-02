@@ -49,7 +49,7 @@ async function resolveLocation(
 
   const res = await fetch(
     `${GEO_BASE}/search?name=${encodeURIComponent(city)}&count=1&format=json`,
-    { headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" } }
+    { headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" } }
   );
   if (!res.ok) throw new Error(`Geocoding API HTTP ${res.status}`);
 
@@ -67,7 +67,7 @@ async function resolveLocation(
 async function weatherFetch(params: URLSearchParams): Promise<unknown> {
   const url = `${WEATHER_BASE}/forecast?${params}`;
   const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");

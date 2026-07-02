@@ -180,14 +180,14 @@ const FAQ = () => {
               Still have questions?{" "}
               <a
                 href="mailto:hello@unclick.world"
-                className="text-primary underline-offset-4 hover:underline"
+                className="px-1 py-3 -mx-1 text-primary underline-offset-4 hover:underline"
               >
                 Get in touch
               </a>{" "}
               or{" "}
               <Link
                 to="/docs"
-                className="text-primary underline-offset-4 hover:underline"
+                className="px-1 py-3 -mx-1 text-primary underline-offset-4 hover:underline"
               >
                 read the docs
               </Link>
