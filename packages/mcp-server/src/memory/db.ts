@@ -44,6 +44,58 @@ interface ByodConfig {
   service_role_key: string;
 }
 
+/**
+ * Shadow-lane guard for the standalone package.
+ *
+ * When both UNCLICK_API_KEY and SUPABASE_URL are set, an explicit SUPABASE_URL
+ * used to win unconditionally. That silently forks memory: this seat writes to
+ * single-tenant (unprefixed) tables in whatever project the URL points at,
+ * while every other seat on the account writes to the account's registered
+ * lane (managed mc_* tables or the registered BYOD project). Readers of the
+ * registered lane (Orchestrator context, load_memory on other seats, the
+ * admin UI) then see this seat as silent even though it is saving sessions.
+ *
+ * Decision rule: the account's registered lane wins. An explicit URL is only
+ * honored when the account has no registered BYOD config, and then with a
+ * loud stderr warning (or a hard error when
+ * UNCLICK_MEMORY_REQUIRE_REGISTERED_LANE=1).
+ */
+export type StandaloneLaneDecision =
+  | { use: "registered"; url_mismatch: boolean }
+  | { use: "explicit"; warning: string | null };
+
+export function decideStandaloneLane(input: {
+  hasApiKey: boolean;
+  supabaseUrl: string;
+  registered: ByodConfig | null;
+}): StandaloneLaneDecision {
+  if (!input.hasApiKey) {
+    // Pure BYOD user with no UnClick account key: explicit URL is the only
+    // lane there is. No conflict, no warning.
+    return { use: "explicit", warning: null };
+  }
+  if (input.registered) {
+    return {
+      use: "registered",
+      url_mismatch: normalizeSupabaseUrl(input.registered.supabase_url) !== normalizeSupabaseUrl(input.supabaseUrl),
+    };
+  }
+  return {
+    use: "explicit",
+    warning:
+      "UnClick memory shadow-lane warning: UNCLICK_API_KEY and SUPABASE_URL are both set, " +
+      "but this account has no registered BYOD database. Memory writes will go to " +
+      "single-tenant tables in the SUPABASE_URL project, which the rest of this account " +
+      "(Orchestrator context, other seats, the admin UI) does not read. To fix: remove " +
+      "SUPABASE_URL so this seat uses the account's managed lane, or register the database " +
+      "via the memory wizard. Set UNCLICK_MEMORY_REQUIRE_REGISTERED_LANE=1 to make this an error.",
+  };
+}
+
+function normalizeSupabaseUrl(url: string): string {
+  return url.trim().replace(/\/+$/, "").toLowerCase();
+}
+
 export interface BackendCacheMetrics {
   hits: number;
   misses: number;
@@ -145,7 +197,13 @@ export function getBackendCacheMetrics(): BackendCacheMetrics {
 function instanceKey(): string {
   const hash = process.env.UNCLICK_API_KEY_HASH;
   if (hash) return `mc:${hash}`;
-  if (process.env.SUPABASE_URL) return `byod-explicit:${process.env.SUPABASE_URL}`;
+  if (process.env.SUPABASE_URL) {
+    // The api key participates in lane resolution (a registered lane wins
+    // over the explicit URL), so it must participate in the cache key too,
+    // or two seats with the same URL but different keys share a backend.
+    const keyPart = process.env.UNCLICK_API_KEY ? `:${process.env.UNCLICK_API_KEY}` : "";
+    return `byod-explicit:${process.env.SUPABASE_URL}${keyPart}`;
+  }
   if (process.env.UNCLICK_API_KEY) return `byod-remote:${process.env.UNCLICK_API_KEY}`;
   return "local";
 }
@@ -212,6 +270,34 @@ async function buildBackend(): Promise<MemoryBackend> {
       throw new Error(
         "SUPABASE_URL is set but SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) is missing."
       );
+    }
+    // Shadow-lane guard: when an account key is also present, the account's
+    // registered lane wins over the explicit URL. See decideStandaloneLane.
+    const registered = apiKey ? await fetchByodConfig(apiKey) : null;
+    const decision = decideStandaloneLane({
+      hasApiKey: Boolean(apiKey),
+      supabaseUrl: url,
+      registered,
+    });
+    if (decision.use === "registered" && registered) {
+      if (decision.url_mismatch) {
+        console.error(
+          "UnClick memory: SUPABASE_URL differs from this account's registered BYOD " +
+            "database. Using the registered database so all seats share one lane."
+        );
+      }
+      const { SupabaseBackend } = await import("./supabase.js");
+      return new SupabaseBackend({
+        url: registered.supabase_url,
+        serviceRoleKey: registered.service_role_key,
+        tenancy: { mode: "byod" },
+      });
+    }
+    if (decision.use === "explicit" && decision.warning) {
+      if (process.env.UNCLICK_MEMORY_REQUIRE_REGISTERED_LANE === "1") {
+        throw new Error(decision.warning);
+      }
+      console.error(decision.warning);
     }
     const { SupabaseBackend } = await import("./supabase.js");
     return new SupabaseBackend({

@@ -36,6 +36,12 @@ import {
 } from "./lib/fishbowl-todo-actionability.js";
 import { planOpenStaleTodoRelease } from "./lib/fishbowl-todo-open-stale-release.js";
 import {
+  HYDRATION_SIGNAL_ACTION,
+  HYDRATION_SIGNAL_DEDUP_WINDOW_MS,
+  planQueueHydrationSignals,
+  type HydrationTodoRow,
+} from "./lib/queue-hydration.js";
+import {
   FISHBOWL_TODO_RELEASE_PROTECTED_IDS,
   fishbowlTodoReleaseProtectedReason,
 } from "./lib/fishbowl-todo-release-protection.js";
@@ -93,6 +99,7 @@ export const CHECKIN_DORMANT_SUPPRESS_MS = WAKEPASS_DORMANT_AGENT_SUPPRESS_MS;
 export const CHECKIN_ACK_LEASE_SECONDS = 600;
 const STALE_DISPATCH_RECLAIM_LIMIT = 50;
 const WORKER_SELF_HEALING_TODO_SWEEP_LIMIT = 50;
+const QUEUE_HYDRATION_SWEEP_LIMIT = 500;
 export const WORKER_SELF_HEALING_REASSIGN_ATTEMPT_LIMIT = 3;
 export const WAKEPASS_REROUTE_LEASE_SECONDS = 600;
 
@@ -1412,6 +1419,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let workerSelfHealingOpenStaleReleased = 0;
   let digestSignalsEmitted = 0;
   let staleStatusesCleared = 0;
+  let hydrationSignalsEmitted = 0;
+  let hydrationSignalsDeduped = 0;
 
   // ── 1. Dead-man's-switch sweep ──────────────────────────────────────────
   const { data: overdueProfiles, error: profileErr } = await supabase
@@ -1925,6 +1934,70 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // ── 4b. Queue hydration failure sweep ───────────────────────────────────
+  // The pinned v9 check (0 active jobs while unclaimed open backlog exists)
+  // used to live only inside seat heartbeats, so when no seats run - the
+  // exact failure this detects - nobody raised the flag. The cron now runs
+  // the same pure check per tenant, deduped to one signal per 12h.
+  const { data: hydrationTodoRows, error: hydrationTodoErr } = await supabase
+    .from("mc_fishbowl_todos")
+    .select("api_key_hash, status, assigned_to_agent_id")
+    .in("status", ["open", "in_progress"])
+    .limit(QUEUE_HYDRATION_SWEEP_LIMIT);
+
+  if (hydrationTodoErr) {
+    console.error(
+      "[fishbowl-watcher] queue hydration todo fetch error:",
+      hydrationTodoErr.message,
+    );
+    return res.status(500).json({ error: hydrationTodoErr.message });
+  }
+
+  const hydrationTodos = (hydrationTodoRows ?? []) as HydrationTodoRow[];
+  const hydrationTenants = new Set(hydrationTodos.map((t) => t.api_key_hash));
+  const hydrationProfilesByTenant = new Map<string, ProfileRow[]>();
+  for (const tenant of hydrationTenants) {
+    let profiles = profileCache.get(tenant);
+    if (!profiles) {
+      profiles = await listProfilesForTenant(supabase, tenant);
+      profileCache.set(tenant, profiles);
+    }
+    hydrationProfilesByTenant.set(tenant, profiles);
+  }
+
+  const hydrationPlans = planQueueHydrationSignals({
+    todos: hydrationTodos,
+    profilesByTenant: hydrationProfilesByTenant,
+    nowMs,
+  });
+
+  for (const plan of hydrationPlans) {
+    const dedupCutoff = new Date(nowMs - HYDRATION_SIGNAL_DEDUP_WINDOW_MS).toISOString();
+    const { data: recentHydration } = await supabase
+      .from("mc_signals")
+      .select("id")
+      .eq("api_key_hash", plan.api_key_hash)
+      .eq("tool", "fishbowl")
+      .eq("action", HYDRATION_SIGNAL_ACTION)
+      .gt("created_at", dedupCutoff)
+      .limit(1);
+
+    if ((recentHydration ?? []).length > 0) {
+      hydrationSignalsDeduped++;
+      continue;
+    }
+
+    const { error: hydrationErr } = await supabase.from("mc_signals").insert(plan.insert);
+    if (hydrationErr) {
+      console.error(
+        "[fishbowl-watcher] queue hydration signal insert error:",
+        hydrationErr.message,
+      );
+    } else {
+      hydrationSignalsEmitted++;
+    }
+  }
+
   // ── 5. Stale Now Playing cleanup ─────────────────────────────────────────
   const staleStatusCutoff = new Date(nowMs - STATUS_STALE_WINDOW_MS).toISOString();
   const { data: staleStatusProfiles, error: staleStatusErr } = await supabase
@@ -1979,6 +2052,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     worker_self_healing_open_stale_released: workerSelfHealingOpenStaleReleased,
     digest_signals_emitted: digestSignalsEmitted,
     stale_statuses_cleared: staleStatusesCleared,
+    hydration_signals_emitted: hydrationSignalsEmitted,
+    hydration_signals_deduped: hydrationSignalsDeduped,
     overdue_candidates: candidates.length,
     worker_self_healing_candidates: workerSelfHealingTodosById.size,
     worker_self_healing_stale_owner_candidates: (staleTodoOwnerRows ?? []).length,

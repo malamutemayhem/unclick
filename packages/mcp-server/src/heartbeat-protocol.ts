@@ -22,8 +22,8 @@ export type HeartbeatProtocol = {
   watch_state_key: string;
 };
 
-export const HEARTBEAT_PROTOCOL_DATE = "2026-06-02";
-export const HEARTBEAT_PROTOCOL_REVISION = 16;
+export const HEARTBEAT_PROTOCOL_DATE = "2026-07-02";
+export const HEARTBEAT_PROTOCOL_REVISION = 17;
 
 export function formatHeartbeatProtocolVersion(revision: number): string {
   return `${HEARTBEAT_PROTOCOL_DATE}.v${revision}`;
@@ -52,6 +52,7 @@ const HEARTBEAT_PROTOCOL: HeartbeatProtocol = {
     "If every UnClick write path, tool, and context path is missing, reply with a concise BLOCKER that names the missing capability and the next packaging fix.",
     "The action heartbeat may perform one safe Fleet Action Runner step with proof when scope is clear and protected surfaces are absent. NudgeOnly may request a receipt or escalation only. IgniteOnly may request a worker wake only. PushOnly may emit a worker push envelope only. The builder tether or trusted executor lane does the actual build, patch, test, route, or proof refresh. Protected surfaces still require a BLOCKER or human decision.",
     "When MEMORY_CONSOLIDATION_ENABLED is enabled, prefer unclick_call with endpoint_id='memory.consolidate' and params { source: 'heartbeat', run_decay: true } for scheduled memory maintenance instead of calling load_memory just to keep a seat warm.",
+    "Before ending every scheduled run, arm the dead-man's-switch: call set_my_status with a one-line status and next_checkin_at set to the next scheduled wake plus a small grace margin (for a 10-minute cadence pass '15m'; for the daily digest pass '25h'). The watcher can only flag a vanished seat when a check-in promise exists, so a run that ends without arming it goes quiet with no alarm. If the seat is retiring deliberately, pass an empty next_checkin_at to clear the timer instead.",
   ],
   alert_format: {
     heading: "UnClick alert",

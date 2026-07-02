@@ -222,6 +222,20 @@ function shouldEmitScheduledSignal(source: string | undefined): boolean {
   return source === "scheduled";
 }
 
+/**
+ * Delta-zero rule for the scheduled smoke cron (every 5 minutes): a clean
+ * completion carries no information the user needs to act on, and at cron
+ * cadence the info signals bury real action_needed items (observed 579 clean
+ * "scheduled_run_complete" signals per 48h drowning 4 real failures).
+ * Failures, attention verdicts, and stuck runs still signal.
+ */
+export function shouldSuppressCleanScheduledRunSignal(
+  status: string,
+  summary: { fail: number; other: number; pending: number },
+): boolean {
+  return status === "complete" && summary.fail === 0 && summary.other === 0 && summary.pending === 0;
+}
+
 function emitScheduledRunSignal(params: {
   apiKeyHash: string | null;
   runId: string;
@@ -233,6 +247,7 @@ function emitScheduledRunSignal(params: {
   summary: Awaited<ReturnType<typeof computeVerdictSummary>>;
 }) {
   if (!params.apiKeyHash) return;
+  if (shouldSuppressCleanScheduledRunSignal(params.status, params.summary)) return;
   void emitSignal({
     apiKeyHash: params.apiKeyHash,
     tool: "testpass",
