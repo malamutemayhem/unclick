@@ -3,9 +3,12 @@ import {
   SUBSCRIPTION_RUNTIMES,
   bridgeCommand,
   buildEnqueueBody,
+  detectBridgeOs,
+  fullBridgeCommand,
   isSubscriptionSeat,
   makeSubscriptionHandle,
   newSubscriptionSeat,
+  openTerminalHint,
   pollBridgeJob,
   toBridgeMessages,
 } from "./subscriptionSeats";
@@ -97,6 +100,70 @@ describe("bridgeCommand", () => {
     expect(bridgeCommand("claude-code", "claude-sub")).toBe(
       "npx @unclick/mcp-server seat-bridge --runtime claude-code --handle claude-sub",
     );
+  });
+});
+
+describe("detectBridgeOs", () => {
+  it("maps user agents to the wizard OS, defaulting to linux", () => {
+    expect(
+      detectBridgeOs("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"),
+    ).toBe("windows");
+    expect(
+      detectBridgeOs("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"),
+    ).toBe("mac");
+    expect(detectBridgeOs("Mozilla/5.0 (X11; Linux x86_64)")).toBe("linux");
+    expect(detectBridgeOs("")).toBe("linux");
+  });
+});
+
+describe("fullBridgeCommand", () => {
+  it("prefixes the key inline per shell: PowerShell env on windows, env var on mac/linux", () => {
+    expect(
+      fullBridgeCommand({
+        runtime: "claude-code",
+        handle: "claude-sub",
+        apiKey: "uk_test123",
+        os: "windows",
+      }),
+    ).toBe(
+      '$env:UNCLICK_API_KEY="uk_test123"; npx @unclick/mcp-server seat-bridge --runtime claude-code --handle claude-sub',
+    );
+    expect(
+      fullBridgeCommand({
+        runtime: "codex-cli",
+        handle: "gpt-sub",
+        apiKey: "uk_test123",
+        os: "mac",
+      }),
+    ).toBe(
+      'UNCLICK_API_KEY="uk_test123" npx @unclick/mcp-server seat-bridge --runtime codex-cli --handle gpt-sub',
+    );
+  });
+
+  it("falls back to an obvious placeholder when no key is stored", () => {
+    const line = fullBridgeCommand({
+      runtime: "claude-code",
+      handle: "claude-sub",
+      apiKey: null,
+      os: "linux",
+    });
+    expect(line).toContain("PASTE-YOUR-UNCLICK-KEY-HERE");
+    expect(
+      fullBridgeCommand({
+        runtime: "claude-code",
+        handle: "claude-sub",
+        apiKey: "   ",
+        os: "linux",
+      }),
+    ).toContain("PASTE-YOUR-UNCLICK-KEY-HERE");
+  });
+});
+
+describe("openTerminalHint", () => {
+  it("gives a per-OS plain-English hint", () => {
+    expect(openTerminalHint("windows")).toContain("powershell");
+    expect(openTerminalHint("mac")).toContain("Cmd + Space");
+    expect(openTerminalHint("linux")).toContain("terminal");
   });
 });
 
