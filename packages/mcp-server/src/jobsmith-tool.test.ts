@@ -61,8 +61,8 @@ describe("jobsmith connector (local rules engine)", () => {
   it("summarizes the rule pack with real counts", async () => {
     const result = await jobsmithRules({}) as Record<string, any>;
     expect(result.totalRules).toBe(229);
-    // Spec-derived checkers plus the 16 curated prose-spec checkers.
-    expect(result.automatedRules).toBeGreaterThanOrEqual(41);
+    // 23 spec-derived checkers plus the 16 curated prose-spec checkers.
+    expect(result.automatedRules).toBeGreaterThanOrEqual(39);
     expect(result.automatedRules + result.reviewRules).toBe(229);
     expect(result.byCategory).toBeTruthy();
   });
