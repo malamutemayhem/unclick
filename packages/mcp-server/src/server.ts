@@ -24,6 +24,7 @@ import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
 import { WORKSPACE_VISIBLE_TOOLS, handleWorkspaceTool } from "./workspace-tool.js";
+import { parseSeatToolMode, decideSeatToolCall } from "./tool-mode-policy.js";
 import { createHash } from "node:crypto";
 
 // Build provenance stamp, set by the release tooling. Do not edit by hand.
@@ -1984,6 +1985,27 @@ export function createServer(): Server {
         }],
         isError: true,
       };
+    }
+
+    // Subscription seat gate: when this process is the tool child of a
+    // seat-bridge turn (UNCLICK_SEAT_TOOL_MODE set by the worker), enforce
+    // the chat tool-mode policy server-side. This holds for every CLI
+    // runtime, including ones with no client-side tool allowlists, and uses
+    // the SAME classifier as the api lane's call_tool gate. Unset env means
+    // a normal MCP session and nothing changes.
+    const seatToolMode = parseSeatToolMode(process.env.UNCLICK_SEAT_TOOL_MODE);
+    if (seatToolMode) {
+      const seatDecision = decideSeatToolCall(
+        seatToolMode,
+        name,
+        typeof args.endpoint_id === "string" ? args.endpoint_id : undefined,
+      );
+      if (!seatDecision.allowed) {
+        return {
+          content: [{ type: "text", text: seatDecision.refusal ?? "Blocked by seat tool mode." }],
+          isError: true,
+        };
+      }
     }
 
     const validationError = validateToolArgumentsForRuntime(name, args);

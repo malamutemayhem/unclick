@@ -15,7 +15,7 @@
 // room messages without invoking any AI provider.
 // ============================================================
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
@@ -35,6 +35,14 @@ import {
   fetchConnectedMembers,
   type HumanMember,
 } from "@/components/admin/chatMembers";
+import {
+  SUBSCRIPTION_RUNTIMES,
+  bridgeCommand,
+  fetchBridgeSeats,
+  isSubscriptionSeat,
+  type BridgeSeatPresence,
+  type SubscriptionRuntime,
+} from "@/components/admin/subscriptionSeats";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -44,6 +52,11 @@ export interface AiSeat {
   label: string;
   handle: string;
   active: boolean;
+  // The model traffic channel. Absent (stored seats predate the field)
+  // means "api". Subscription seats answer through a local bridge worker
+  // driving the official CLI signed in on the user's machine.
+  lane?: "api" | "subscription";
+  runtime?: string;
 }
 
 // A small avatar for a human member: their picture if we have one, else
@@ -72,12 +85,49 @@ function MemberAvatar({ member }: { member: HumanMember }) {
 // The seat picker, scoped to the providers you have actually connected a key
 // for. connectedSlugs comes from /api/ai-provider-key, so a "✓" here means a
 // real connection, not just the current selection.
+// The subscription seat picker: no API key needed, the seat answers through
+// the official CLI (Claude Code / Codex) signed in on the user's machine.
+function AddSubscriptionSeatSection({
+  onAdd,
+}: {
+  onAdd: (runtime: SubscriptionRuntime) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+        Subscription seats
+      </p>
+      {SUBSCRIPTION_RUNTIMES.map((option) => (
+        <button
+          key={option.runtime}
+          type="button"
+          onClick={() => onAdd(option.runtime)}
+          className="flex flex-col items-start gap-0.5 rounded-md border border-border/50 bg-card/40 px-3 py-1.5 text-left transition-colors hover:border-primary/50"
+        >
+          <span className="text-sm text-body">{option.label}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {option.planHint}, via the {option.cliName}
+          </span>
+        </button>
+      ))}
+      <p className="px-0.5 text-[10px] leading-relaxed text-muted-foreground">
+        No API key: turns run on your own plan through a small bridge you
+        start on your machine. Images are supported everywhere; UnClick
+        tools (memory + connectors, Build-mode gated) ride on Claude and
+        ChatGPT seats.
+      </p>
+    </div>
+  );
+}
+
 function AddSeatForm({
   connectedSlugs,
   onAdd,
+  onAddSubscription,
 }: {
   connectedSlugs: string[];
   onAdd: (slug: string, model: string) => void;
+  onAddSubscription: (runtime: SubscriptionRuntime) => void;
 }) {
   const connectedProviders = CHAT_PROVIDERS.filter((p) =>
     connectedSlugs.includes(p.slug),
@@ -119,15 +169,18 @@ function AddSeatForm({
 
   if (connectedProviders.length === 0) {
     return (
-      <div className="w-[min(18rem,90vw)] p-3 text-sm">
-        <p className="text-body">No AI provider keys connected yet.</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Add a provider key in{" "}
-          <a href="/admin/agents/api" className="text-primary hover:underline">
-            API keys
-          </a>{" "}
-          and it shows up here.
-        </p>
+      <div className="flex w-[min(18rem,90vw)] flex-col gap-3 p-3">
+        <div className="text-sm">
+          <p className="text-body">No AI provider keys connected yet.</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Add a provider key in{" "}
+            <a href="/admin/agents/api" className="text-primary hover:underline">
+              API keys
+            </a>{" "}
+            and it shows up here.
+          </p>
+        </div>
+        <AddSubscriptionSeatSection onAdd={onAddSubscription} />
       </div>
     );
   }
@@ -186,6 +239,9 @@ function AddSeatForm({
       >
         + Connect another provider
       </a>
+      <div className="border-t border-border/40 pt-2">
+        <AddSubscriptionSeatSection onAdd={onAddSubscription} />
+      </div>
     </div>
   );
 }
@@ -277,6 +333,7 @@ export function ChatMemberRail({
   onSelectSeat,
   onSelectHumanMember,
   onAddSeat,
+  onAddSubscriptionSeat,
   onRemoveSeat,
   onToggleSeatActive,
   onAddHumanMember,
@@ -292,6 +349,7 @@ export function ChatMemberRail({
   onSelectSeat: (seat: AiSeat) => void;
   onSelectHumanMember: (member: HumanMember) => void;
   onAddSeat: (slug: string, model: string) => void;
+  onAddSubscriptionSeat: (runtime: SubscriptionRuntime) => void;
   onRemoveSeat: (id: string) => void;
   onToggleSeatActive: (id: string) => void;
   onAddHumanMember: (member: HumanMember) => void;
@@ -300,6 +358,33 @@ export function ChatMemberRail({
   const [addOpen, setAddOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [connectedSlugs, setConnectedSlugs] = useState<string[]>([]);
+  const [bridgePresence, setBridgePresence] = useState<
+    Record<string, BridgeSeatPresence>
+  >({});
+
+  // Presence for subscription seats: is the local bridge worker heartbeating?
+  // Polled while any subscription seat is in the room.
+  const hasSubscriptionSeats = seats.some(isSubscriptionSeat);
+  useEffect(() => {
+    if (!accessToken || !hasSubscriptionSeats) {
+      setBridgePresence({});
+      return;
+    }
+    let cancelled = false;
+    const refresh = async () => {
+      const rows = await fetchBridgeSeats(accessToken);
+      if (cancelled || !rows) return;
+      const byHandle: Record<string, BridgeSeatPresence> = {};
+      for (const row of rows) byHandle[row.handle] = row;
+      setBridgePresence(byHandle);
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [accessToken, hasSubscriptionSeats]);
 
   // Which AI providers this account has connected a key for. Drives the seat
   // picker so it only offers usable providers. Refetches when the picker opens.
@@ -404,9 +489,13 @@ export function ChatMemberRail({
         {seats.map((s) => {
           const isSelected = activeSeatId === s.id;
           const isWorking = Boolean(workingSeatIds?.includes(s.id));
+          const isSubscription = isSubscriptionSeat(s);
+          const bridgeOnline = isSubscription
+            ? Boolean(bridgePresence[s.handle]?.online)
+            : null;
           return (
+            <Fragment key={s.id}>
             <div
-              key={s.id}
               role="button"
               tabIndex={0}
               onClick={() => onSelectSeat(s)}
@@ -464,6 +553,16 @@ export function ChatMemberRail({
                         ? "- called in"
                         : "- standby"}
                   </span>
+                  {isSubscription && (
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        bridgeOnline ? "text-emerald-300" : "text-amber-300",
+                      )}
+                    >
+                      {bridgeOnline ? "· bridge online" : "· bridge offline"}
+                    </span>
+                  )}
                   {isWorking && (
                     <span
                       className="ml-0.5 flex shrink-0 items-end gap-0.5"
@@ -515,6 +614,19 @@ export function ChatMemberRail({
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
+            {isSubscription && bridgeOnline === false && (
+              <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2 py-1.5">
+                <p className="text-[10px] leading-relaxed text-amber-200/80">
+                  Start the bridge on the machine where the {""}
+                  {s.runtime === "codex-cli" ? "Codex CLI" : "Claude Code CLI"}{" "}
+                  is signed in (UNCLICK_API_KEY set):
+                </p>
+                <code className="mt-1 block break-all font-mono text-[9px] leading-relaxed text-amber-100/90">
+                  {bridgeCommand(s.runtime ?? "claude-code", s.handle)}
+                </code>
+              </div>
+            )}
+            </Fragment>
           );
         })}
       </div>
@@ -535,6 +647,10 @@ export function ChatMemberRail({
               connectedSlugs={connectedSlugs}
               onAdd={(slug, model) => {
                 onAddSeat(slug, model);
+                setAddOpen(false);
+              }}
+              onAddSubscription={(runtime) => {
+                onAddSubscriptionSeat(runtime);
                 setAddOpen(false);
               }}
             />
