@@ -16,7 +16,7 @@
 // ============================================================
 
 import { Fragment, useEffect, useState } from "react";
-import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
+import { Plus, X, Bot, UserPlus, Power, Check, Copy } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
 import {
@@ -110,12 +110,48 @@ function AddSubscriptionSeatSection({
           </span>
         </button>
       ))}
-      <p className="px-0.5 text-[10px] leading-relaxed text-muted-foreground">
-        No API key: turns run on your own plan through a small bridge you
-        start on your machine. Images are supported everywhere; UnClick
-        tools (memory + connectors, Build-mode gated) ride on Claude and
-        ChatGPT seats.
+      <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
+        No API key needed. These answer from your own plan, from your PC.
       </p>
+    </div>
+  );
+}
+
+// Shown under an offline subscription seat: one plain sentence and the
+// start command with a one-tap copy. The seat answers from the user's own
+// computer, so all they need is "paste this in a terminal there".
+function BridgeStartHint({ command }: { command: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore - the command stays selectable */
+    }
+  }
+
+  return (
+    <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2.5 py-2">
+      <p className="text-[11px] leading-relaxed text-amber-200/90">
+        To wake this seat, paste this in a terminal on your PC:
+      </p>
+      <div className="mt-1.5 flex items-start gap-1.5">
+        <code className="min-w-0 flex-1 break-all font-mono text-[11px] leading-relaxed text-amber-100">
+          {command}
+        </code>
+        <button
+          type="button"
+          onClick={copy}
+          aria-label="Copy start command"
+          title="Copy"
+          className="shrink-0 rounded border border-amber-300/30 p-1 text-amber-200 transition-colors hover:bg-amber-300/10"
+        >
+          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      </div>
     </div>
   );
 }
@@ -560,7 +596,7 @@ export function ChatMemberRail({
                         bridgeOnline ? "text-emerald-300" : "text-amber-300",
                       )}
                     >
-                      {bridgeOnline ? "· bridge online" : "· bridge offline"}
+                      {bridgeOnline ? "· connected" : "· needs your PC"}
                     </span>
                   )}
                   {isWorking && (
@@ -615,16 +651,9 @@ export function ChatMemberRail({
               </button>
             </div>
             {isSubscription && bridgeOnline === false && (
-              <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2 py-1.5">
-                <p className="text-[10px] leading-relaxed text-amber-200/80">
-                  Start the bridge on the machine where the {""}
-                  {s.runtime === "codex-cli" ? "Codex CLI" : "Claude Code CLI"}{" "}
-                  is signed in (UNCLICK_API_KEY set):
-                </p>
-                <code className="mt-1 block break-all font-mono text-[9px] leading-relaxed text-amber-100/90">
-                  {bridgeCommand(s.runtime ?? "claude-code", s.handle)}
-                </code>
-              </div>
+              <BridgeStartHint
+                command={bridgeCommand(s.runtime ?? "claude-code", s.handle)}
+              />
             )}
             </Fragment>
           );
