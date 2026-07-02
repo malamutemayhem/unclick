@@ -281,20 +281,43 @@ function JourneyField() {
     // cheaper than mutating stroked SVG paths (which invalidate and
     // re-rasterize their layer every frame). DPR is capped; hairline
     // strings do not need 3x pixels.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    //
+    // All geometry lives in the documentElement's client box, NOT
+    // window.inner*: fixed-position layout (the bubble, this canvas)
+    // resolves against the viewport minus any classic scrollbar, while
+    // window.innerWidth includes the scrollbar. Mixing the two spaces
+    // drew every string a scrollbar-width short of the bubble.
+    const docEl = document.documentElement;
+    let vw = docEl.clientWidth;
+    let vh = docEl.clientHeight;
+    // Same 640px line Tailwind's sm: uses, so the JS bubble size can
+    // never disagree with the CSS bubble size at the breakpoint.
+    const smQuery = window.matchMedia("(min-width: 640px)");
     const sizeCanvas = () => {
-      canvas.width = Math.round(window.innerWidth * dpr);
-      canvas.height = Math.round(window.innerHeight * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.lineCap = "round";
+      vw = docEl.clientWidth;
+      vh = docEl.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      const w = Math.round(vw * dpr);
+      const h = Math.round(vh * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.lineCap = "round";
+      }
     };
     sizeCanvas();
     window.addEventListener("resize", sizeCanvas);
+    // A scrollbar appearing or disappearing resizes the viewport
+    // without firing a window resize; only the root element sees it.
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(sizeCanvas) : null;
+    ro?.observe(docEl);
+    const installEl = document.getElementById("install");
 
     let raf = 0;
     const start = performance.now();
-    let cx = window.innerWidth / 2;
-    let cy = window.innerHeight * 0.38;
+    let cx = vw / 2;
+    let cy = vh * 0.38;
     let cs = 1;
     let sp = 0;
     let lastNow = performance.now();
@@ -333,12 +356,18 @@ function JourneyField() {
       document.documentElement.classList.add("hp-perf-lite");
     };
 
+    // Weak hardware goes straight to lite instead of shipping a second
+    // of jank first so the detector can notice. The lite look is the
+    // designed fallback, not a degraded accident.
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    if ((navigator.hardwareConcurrency || 8) <= 4 || (nav.deviceMemory ?? 8) <= 4) {
+      enableLite();
+    }
+
     const tick = (now: number) => {
       if (!running) return;
       frame += 1;
       const t = (now - start) / 1000;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
       const rect = field.getBoundingClientRect();
       const total = rect.height - vh * 0.55;
       const p = Math.min(1, Math.max(0, -rect.top / Math.max(total, 1)));
@@ -352,12 +381,33 @@ function JourneyField() {
         return;
       }
 
-      const sm = vw < 640;
+      const sm = !smQuery.matches;
       const base = sm ? 290 : 400;
 
-      // Smooth the progress itself, then ease positions on top:
-      // double damping means the bubble glides, never jerks.
-      sp += (p - sp) * (sm ? 0.03 : 0.022);
+      // Frame time first: every ease below is time-based, so a 30fps
+      // laptop and a 144Hz monitor settle at the same visible speed
+      // instead of the per-frame factors compounding differently.
+      const frameMs = now - lastNow;
+      const dt = Math.min(0.05, frameMs / 1000);
+      lastNow = now;
+      // Sustained slow frames while the scene is actually in motion
+      // flip lite mode once (sticky). Resume spikes and idle half-rate
+      // frames do not count toward jank.
+      if (!lite && !restful) {
+        if (frameMs > 24 && frameMs < 250) janky = Math.min(90, janky + 1);
+        else janky = Math.max(0, janky - 2);
+        if (janky >= 45) enableLite();
+      }
+      // Fraction of the remaining distance covered this frame, for a
+      // settle time constant of tau seconds.
+      const ease = (tau: number) => 1 - Math.exp(-dt / tau);
+
+      // Smooth the progress itself, then ease positions on top: double
+      // damping means the bubble glides, never jerks. The launch
+      // constants stacked up to over a second of lag, which read as
+      // the bubble being late rather than relaxed; these settle in
+      // roughly half the time.
+      sp += (p - sp) * ease(sm ? 0.26 : 0.32);
 
       const xPct = interp(
         sp,
@@ -384,15 +434,15 @@ function JourneyField() {
       const driftX = Math.sin(t * 0.24) * vw * 0.006;
       const driftY = Math.sin(t * 0.17 + 1.3) * vh * 0.008;
 
-      const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX * (1 - heroBlend) + driftX * heroBlend;
+      const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX;
       const targetY = heroBlend * heroCy + (1 - heroBlend) * yPct * vh + driftY;
 
-      const ease = sm ? 0.055 : 0.045;
-      cx += (targetX - cx) * ease;
-      cy += (targetY - cy) * ease;
-      cs += (scale - cs) * (ease + 0.007);
+      const posEase = ease(sm ? 0.16 : 0.2);
+      cx += (targetX - cx) * posEase;
+      cy += (targetY - cy) * posEase;
+      cs += (scale - cs) * ease(sm ? 0.14 : 0.17);
 
-      const installRect = document.getElementById("install")?.getBoundingClientRect();
+      const installRect = installEl?.getBoundingClientRect();
       const installFade = installRect ? interp(installRect.top, [vh * 0.62, vh * 0.95], [0, 1]) : 1;
       const visible = cs > 0.015 && sp < 0.985;
       bubble.style.opacity = visible ? String(installFade) : "0";
@@ -430,19 +480,19 @@ function JourneyField() {
       // Two-handed web-slinging: as the bubble travels, a fresh rope
       // shoots out to the next stage while the old one releases and
       // reels home. Both ease and fade; nothing ever cuts.
-      const frameMs = now - lastNow;
-      const dt = Math.min(0.05, frameMs / 1000);
-      lastNow = now;
-      // Sustained slow frames while the scene is actually in motion
-      // flip lite mode once (sticky). Resume spikes and idle half-rate
-      // frames do not count toward jank.
-      if (!lite && !restful) {
-        if (frameMs > 24 && frameMs < 250) janky = Math.min(90, janky + 1);
-        else janky = Math.max(0, janky - 2);
-        if (janky >= 45) enableLite();
-      }
-      const mouthX = cx;
-      const mouthY = cy + (base * cs) / 2 - 8;
+      //
+      // Each rope ties to the point on the rim nearest its target. A
+      // fixed bottom mouth used to send ropes aimed at a stage above
+      // the bubble straight across the glass face.
+      const rimR = Math.max(0, (base * cs) / 2 - 4);
+      const rimX = (aimX: number, aimY: number) => {
+        const d = Math.hypot(aimX - cx, aimY - cy) || 1;
+        return cx + ((aimX - cx) / d) * rimR;
+      };
+      const rimY = (aimX: number, aimY: number) => {
+        const d = Math.hypot(aimX - cx, aimY - cy) || 1;
+        return cy + ((aimY - cy) / d) * rimR;
+      };
       const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]) * installFade;
 
       let bestI = -1;
@@ -469,13 +519,16 @@ function JourneyField() {
           holding.sx = holding.ex;
           holding.sy = holding.ey;
         }
-        // A free hand shoots the new web.
+        // A free hand shoots the new web from the rim facing it.
         const free = ropes.find((rope) => rope !== holding) ?? ropes[0];
+        const tr = stageRefs.current[bestI]?.getBoundingClientRect();
+        const tx = tr ? tr.left + tr.width / 2 : cx;
+        const ty = tr ? tr.top + tr.height / 2 : cy + rimR;
         free.idx = bestI;
         free.phase = "out";
         free.prog = 0;
-        free.sx = mouthX;
-        free.sy = mouthY;
+        free.sx = rimX(tx, ty);
+        free.sy = rimY(tx, ty);
         activeStage = bestI;
       }
 
@@ -486,8 +539,14 @@ function JourneyField() {
         if (rope.phase === "idle") return;
         const el = rope.idx >= 0 ? stageRefs.current[rope.idx] : null;
         const r = el?.getBoundingClientRect();
-        const axp = r ? r.left + r.width / 2 : mouthX;
-        const ayp = r ? r.top + r.height / 2 : mouthY;
+        const axp = r ? r.left + r.width / 2 : cx;
+        const ayp = r ? r.top + r.height / 2 : cy + rimR;
+        // A reeling rope retracts toward the rim facing where it let
+        // go; a live one ties to the rim facing its stage.
+        const aimX = rope.phase === "reel" ? rope.sx : axp;
+        const aimY = rope.phase === "reel" ? rope.sy : ayp;
+        const tieX = rimX(aimX, aimY);
+        const tieY = rimY(aimX, aimY);
         let alpha = 0.6 * windowAlpha;
 
         if (rope.phase === "out") {
@@ -503,8 +562,8 @@ function JourneyField() {
         } else if (rope.phase === "reel") {
           rope.prog = Math.min(1, rope.prog + dt / 0.45);
           const k = easeInCubic(rope.prog);
-          rope.ex = rope.sx + (mouthX - rope.sx) * k;
-          rope.ey = rope.sy + (mouthY - rope.sy) * k;
+          rope.ex = rope.sx + (tieX - rope.sx) * k;
+          rope.ey = rope.sy + (tieY - rope.sy) * k;
           alpha *= 1 - rope.prog;
           if (rope.prog >= 1) {
             rope.phase = "idle";
@@ -513,12 +572,12 @@ function JourneyField() {
           }
         }
 
-        const midX = (mouthX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
-        const midY = (mouthY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - mouthX) * 0.25);
+        const midX = (tieX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
+        const midY = (tieY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - tieX) * 0.25);
         ctx.strokeStyle = `hsl(183 52% 64% / ${Math.max(0, alpha)})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(mouthX, mouthY);
+        ctx.moveTo(tieX, tieY);
         ctx.quadraticCurveTo(midX, midY, rope.ex, rope.ey);
         ctx.stroke();
       });
@@ -556,6 +615,7 @@ function JourneyField() {
     return () => {
       stopLoop();
       io.disconnect();
+      ro?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", sizeCanvas);
     };
