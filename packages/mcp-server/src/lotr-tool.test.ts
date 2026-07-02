@@ -16,6 +16,14 @@ describe("lotr connector (L2)", () => {
     expect(r.error).toMatch(/timed out/i);
   });
 
+  it("returns the standard not-connected card on HTTP 401", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401, headers: { get: () => null }, text: async () => "" })));
+    const r = await lotrQuotes({}) as Record<string, unknown>;
+    expect(r.not_connected).toBe(true);
+    expect(r.connector).toBe("lotr");
+    expect(Array.isArray(r.how_to_connect)).toBe(true);
+  });
+
   it("returns books with unclick_meta", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true, status: 200,

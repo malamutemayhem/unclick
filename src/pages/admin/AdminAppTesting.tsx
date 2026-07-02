@@ -9,7 +9,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound, ChevronDown, ChevronUp, ExternalLink, Loader2 } from "lucide-react";
 import { APP_CATALOG, APP_COUNT } from "@/lib/appCatalog";
 import {
   getAppTestResult,
@@ -18,6 +18,13 @@ import {
   APP_TEST_STATUS_ORDER,
   type AppTestStatus,
 } from "@/lib/appTestResults";
+import {
+  manualWorkFor,
+  MANUAL_WORK_META,
+  NEEDS_HUMAN_KINDS,
+  type ManualWork,
+  type ManualWorkKind,
+} from "@/lib/appManualWork";
 import { appMatchesSearch } from "@/lib/appSearch";
 import { useSession } from "@/lib/auth";
 
@@ -60,7 +67,52 @@ function whenLabel(testedAt?: string | null): string {
   return testedAt.slice(0, 10);
 }
 
-const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.4fr)_minmax(0,1.4fr)_82px_96px]";
+const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.3fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_82px_96px]";
+
+// The "Manual work" cell: what a human still has to do before this app works.
+// Auto-derived per app (see src/lib/appManualWork.ts). Once the app tests green
+// the step is satisfied, so the cell dims and says so instead of nagging.
+function ManualWorkCell({ work, status }: { work: ManualWork; status: AppTestStatus }) {
+  if (work.kind === "none") {
+    if (work.optionalKey) {
+      return <span className="text-[11px] text-white/40" title={work.detail}>Key optional</span>;
+    }
+    if (work.internal) {
+      return <span className="text-[11px] text-white/40" title={work.detail}>Internal</span>;
+    }
+    return <span className="text-white/25">-</span>;
+  }
+  const meta = MANUAL_WORK_META[work.kind];
+  const satisfied = status === "pass";
+  const external = work.url && !work.url.startsWith("/");
+  return (
+    <div className={satisfied ? "opacity-50" : undefined}>
+      <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium ${meta.tone}`}>
+        {work.label}
+      </span>
+      <p className="mt-0.5 line-clamp-2 text-[10px] leading-4 text-white/40" title={work.detail}>
+        {satisfied ? "Done: working here already." : work.detail}
+        {!satisfied && work.url && (
+          external ? (
+            <a
+              href={work.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 inline-flex items-center gap-0.5 text-[#9be4e6] hover:underline"
+            >
+              Open
+              <ExternalLink className="h-2.5 w-2.5" />
+            </a>
+          ) : (
+            <Link to={work.url} className="ml-1 text-[#9be4e6] hover:underline">
+              Connect
+            </Link>
+          )
+        )}
+      </p>
+    </div>
+  );
+}
 
 // The interactive "Human checked" checkbox. Optimistic: the parent flips the
 // value immediately and persists in the background; this cell just renders the
@@ -120,6 +172,7 @@ function ExpandableCell({ text, className }: { text: string; className?: string 
 export default function AdminAppTesting() {
   const { session } = useSession();
   const [status, setStatus] = useState<AppTestStatus | "all">("all");
+  const [work, setWork] = useState<ManualWorkKind | "all" | "needs">("all");
   const [query, setQuery] = useState("");
 
   // Human-checked state. `overrides` holds only slugs with an explicit stored
@@ -188,7 +241,12 @@ export default function AdminAppTesting() {
   );
 
   const rows = useMemo(
-    () => APP_CATALOG.map((app) => ({ app, result: getAppTestResult(app.slug) })),
+    () =>
+      APP_CATALOG.map((app) => ({
+        app,
+        result: getAppTestResult(app.slug),
+        work: manualWorkFor(app),
+      })),
     [],
   );
 
@@ -198,15 +256,32 @@ export default function AdminAppTesting() {
     return c;
   }, [rows]);
 
+  // Outstanding manual work: the human step is still needed AND the app is not
+  // already passing (a pass means the step is satisfied on this deployment).
+  const workCounts = useMemo(() => {
+    const c: Record<ManualWorkKind, number> = { none: 0, signin: 0, bot_setup: 0, provider_key: 0, env_key: 0 };
+    for (const { result, work: w } of rows) {
+      if (result.status === "pass") continue;
+      c[w.kind] += 1;
+    }
+    return c;
+  }, [rows]);
+  const needsHumanCount = NEEDS_HUMAN_KINDS.reduce((n, k) => n + workCounts[k], 0);
+
   const tested = counts.pass + counts.attention + counts.fail;
   const pctTested = APP_COUNT > 0 ? Math.round((tested / APP_COUNT) * 100) : 0;
 
   const filtered = useMemo(() => {
-    return rows.filter(({ app, result }) => {
+    return rows.filter(({ app, result, work: w }) => {
       if (status !== "all" && result.status !== status) return false;
+      if (work === "needs") {
+        if (!NEEDS_HUMAN_KINDS.includes(w.kind) || result.status === "pass") return false;
+      } else if (work !== "all" && w.kind !== work) {
+        return false;
+      }
       return appMatchesSearch(app, query);
     });
-  }, [rows, status, query]);
+  }, [rows, status, work, query]);
 
   return (
     <div>
@@ -244,6 +319,14 @@ export default function AdminAppTesting() {
           <span className="text-[#ccc]">Human checked</span> is a separate, manual sign-off: tick it once a
           person has verified the app for real (checked the inbox, listed the root folder). It saves the
           moment you tick or untick.
+        </p>
+        <p className="mt-1">
+          <span className="text-[#ccc]">Manual work</span> shows what only a human can do before an app
+          works: get an API key from the provider, click a sign-in, create a bot, or set a server env var.
+          It is derived from each app's connection metadata, and dims once the app tests green.
+          Outstanding right now: <span className="text-[#ccc]">{needsHumanCount} apps</span>
+          {" "}({workCounts.provider_key} API keys, {workCounts.signin} sign-ins,{" "}
+          {workCounts.bot_setup} bot or app setups, {workCounts.env_key} env vars).
         </p>
       </div>
 
@@ -285,21 +368,33 @@ export default function AdminAppTesting() {
         </div>
       </div>
 
+      {/* Manual-work filter: jump straight to the apps waiting on a human */}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">Manual work</span>
+        <FilterChip label="All" active={work === "all"} onClick={() => setWork("all")} />
+        <FilterChip label={`Needs a human (${needsHumanCount})`} active={work === "needs"} onClick={() => setWork("needs")} />
+        {NEEDS_HUMAN_KINDS.map((k) => (
+          <FilterChip key={k} label={MANUAL_WORK_META[k].label} active={work === k} onClick={() => setWork(k)} />
+        ))}
+        <FilterChip label="None" active={work === "none"} onClick={() => setWork("none")} />
+      </div>
+
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.03]">
-        <div className="min-w-[940px]">
+        <div className="min-w-[1080px]">
           <div className={`grid ${COLS} items-center gap-3 border-b border-white/[0.08] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35`}>
             <span>Status</span>
             <span>App</span>
             <span>Category</span>
             <span className="text-right">Actions</span>
             <span>Result</span>
+            <span>Manual work</span>
             <span>Comments</span>
             <span className="text-right">Tested</span>
             <span className="text-center">Human checked</span>
           </div>
           <div className="divide-y divide-white/[0.04]">
-            {filtered.map(({ app, result }) => (
+            {filtered.map(({ app, result, work: w }) => (
               <div key={app.slug} className={`grid ${COLS} items-start gap-3 px-3 py-2 text-xs`}>
                 <div className="flex flex-col items-start gap-1">
                   <StatusBadge status={result.status} />
@@ -315,6 +410,7 @@ export default function AdminAppTesting() {
                 <span className="truncate text-white/45">{app.category}</span>
                 <span className="text-right tabular-nums text-white/40">{app.toolCount}</span>
                 <ExpandableCell text={result.note ?? "-"} className="text-white/50" />
+                <ManualWorkCell work={w} status={result.status} />
                 <ExpandableCell text={result.comment ?? "-"} className="text-white/70" />
                 <span className="text-right tabular-nums text-white/35">{whenLabel(result.testedAt)}</span>
                 <HumanCheckCell
@@ -338,6 +434,18 @@ export default function AdminAppTesting() {
           <div key={s} className="flex items-start gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
             <StatusBadge status={s} />
             <span className="text-[11px] leading-5 text-white/50">{APP_TEST_STATUS_META[s].description}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Manual-work legend */}
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        {NEEDS_HUMAN_KINDS.map((k) => (
+          <div key={k} className="flex items-start gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+            <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium ${MANUAL_WORK_META[k].tone}`}>
+              {MANUAL_WORK_META[k].label}
+            </span>
+            <span className="text-[11px] leading-5 text-white/50">{MANUAL_WORK_META[k].description}</span>
           </div>
         ))}
       </div>

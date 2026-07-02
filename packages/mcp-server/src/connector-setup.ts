@@ -1018,6 +1018,13 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
   },
 
   // ─── Australian / local ───────────────────────────────────────────────────
+  abn: {
+    displayName: "ABN Lookup",
+    credential:  "registered GUID",
+    envVar:      "ABN_GUID",
+    setupUrl:    "https://abr.business.gov.au/Tools/WebServices",
+    note:        "Operator secret: register for ABN Lookup web services and set ABN_GUID on the deployment. Callers can override with a guid arg.",
+  },
   australiapost: {
     displayName: "Australia Post",
     credential:  "API key",
@@ -1049,7 +1056,35 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     setupUrl:    "https://brickset.com/tools/webservices/requestkey",
   },
 
+  // ─── Media / fandom data ──────────────────────────────────────────────────
+  lotr: {
+    displayName: "Lord of the Rings API",
+    credential:  "API key",
+    envVar:      "LOTR_API_KEY",
+    setupUrl:    "https://the-one-api.dev/",
+    note:        "Free key from the-one-api.dev; required for the books, characters, and quotes endpoints.",
+  },
+
+  // ─── Email (SMTP/IMAP, provider-agnostic) ─────────────────────────────────
+  email: {
+    displayName: "Email (SMTP/IMAP)",
+    credential:  "SMTP/IMAP login",
+    envVar:      "SMTP_USER",
+    setupUrl:    "https://support.google.com/accounts/answer/185833",
+    note:        "Set SMTP_USER and SMTP_PASS to send, IMAP_USER and IMAP_PASS to read (or pass smtp_*/imap_* args). Use an app password from your email provider, not your main password.",
+  },
+
   // ─── Supercell games (one tool, three game APIs) ──────────────────────────
+  // The catalog-facing slug is `supercell`; the per-game rows below keep the
+  // real env var names for each game's developer portal.
+  supercell: {
+    displayName: "Supercell games",
+    credential:  "API key",
+    arg:         "api_key",
+    envVar:      "COC_API_KEY",
+    setupUrl:    "https://developer.clashofclans.com/",
+    note:        "Each game has its own key: COC_API_KEY (developer.clashofclans.com), CR_API_KEY (developer.clashroyale.com), BS_API_KEY (developer.brawlstars.com).",
+  },
   coc: {
     displayName: "Clash of Clans",
     credential:  "API key",

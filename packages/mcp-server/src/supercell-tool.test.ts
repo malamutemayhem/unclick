@@ -27,6 +27,19 @@ describe("supercell connector resilience (L2)", () => {
     expect(String(result.error)).toMatch(/tag is required/i);
   });
 
+  it("returns the standard not-connected card when the key is missing", async () => {
+    const saved = process.env.COC_API_KEY;
+    delete process.env.COC_API_KEY;
+    try {
+      const result = await cocPlayer({ tag: "#ABC123" }) as Record<string, unknown>;
+      expect(result.not_connected).toBe(true);
+      expect(result.connector).toBe("coc");
+      expect(Array.isArray(result.how_to_connect)).toBe(true);
+    } finally {
+      if (saved !== undefined) process.env.COC_API_KEY = saved;
+    }
+  });
+
   it("maps player responses into a clean shape", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true, status: 200, headers: { get: (): string | null => null },
