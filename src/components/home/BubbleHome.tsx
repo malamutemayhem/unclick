@@ -973,7 +973,7 @@ function JourneyField() {
         <div className="mx-auto min-h-[30svh] max-w-2xl pt-[18svh]">
           <FadeIn>
             <h2 className="text-3xl font-extrabold tracking-[-0.02em] text-heading [text-wrap:balance] sm:text-5xl">
-              Same memory. Same rules. Same{" "}receipts.
+              Same context. Same rules. Same{" "}receipts.
             </h2>
           </FadeIn>
 
@@ -998,15 +998,21 @@ export default function BubbleHome() {
           <div className="relative z-10 mx-auto max-w-3xl">
             <FadeIn>
               <div className="flex justify-center">
-                <Eyebrow>Universal remote for AI</Eyebrow>
+                <Eyebrow>The context layer for every AI</Eyebrow>
               </div>
             </FadeIn>
             <FadeIn delay={0.05}>
               <h1 className="mt-6 text-5xl font-extrabold leading-[1.02] tracking-[-0.025em] text-heading sm:text-7xl">
                 Everyone's AI.
                 <br />
-                <GradientText>One{" "}bubble.</GradientText>
+                <GradientText>One{" "}context.</GradientText>
               </h1>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mx-auto mt-6 max-w-xl text-lg text-body">
+                The bubble holds what your AIs know and how they work together: memory,
+                conversations, boards, receipts. Context they share. Collaboration you can watch.
+              </p>
             </FadeIn>
           </div>
         </section>

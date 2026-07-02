@@ -50,7 +50,7 @@ const OPTIONS = [
   { id: "o", Page: HomePreviewO, signature: /Flip one/ },
   { id: "p", Page: HomePreviewP, signature: /new\s?dock\./ },
   { id: "q", Page: HomePreviewQ, signature: /Every tool\./ },
-  { id: "r", Page: HomePreviewR, signature: /One\s?bubble\./ },
+  { id: "r", Page: HomePreviewR, signature: /One\s?context\./ },
   { id: "s", Page: HomePreviewS, signature: /One memory\./ },
 ] as const;
 
