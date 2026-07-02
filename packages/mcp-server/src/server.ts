@@ -24,6 +24,7 @@ import { emitSignal } from "./signals/emit.js";
 import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
 import { WORKSPACE_VISIBLE_TOOLS, handleWorkspaceTool } from "./workspace-tool.js";
+import { parseSeatToolMode, decideSeatToolCall } from "./tool-mode-policy.js";
 import { createHash } from "node:crypto";
 
 // Build provenance stamp, set by the release tooling. Do not edit by hand.
@@ -1921,6 +1922,26 @@ const DIRECT_HANDLERS: Record<string, DirectHandler> = {
     c.call("POST", "/v1/report-bug", a as Record<string, unknown>),
 };
 
+// Resolution for unclick_call endpoint ids against the generated
+// connector/integration handler table. Checked BEFORE the built-in
+// ENDPOINT_MAP in the dispatcher: live connector tools such as
+// gmail_search, dropbox_list_folder, or higgsfield_generate_image exist
+// only as generated handlers, and the old map-first order answered
+// "Endpoint not found" for them even though unclick_search had just
+// listed them. Dotted ids ("gmail.search") resolve via dot-to-underscore
+// conversion.
+export function resolveUnclickCallHandlerKey(
+  endpointId: string,
+  handlers: Record<string, unknown> = ADDITIONAL_HANDLERS,
+): string | null {
+  const clean = endpointId.trim();
+  if (!clean) return null;
+  const underscored = clean.replace(/\./g, "_");
+  if (handlers[underscored]) return underscored;
+  if (handlers[clean]) return clean;
+  return null;
+}
+
 // ─── Server factory ─────────────────────────────────────────────────────────
 
 export function createServer(): Server {
@@ -1984,6 +2005,27 @@ export function createServer(): Server {
         }],
         isError: true,
       };
+    }
+
+    // Subscription seat gate: when this process is the tool child of a
+    // seat-bridge turn (UNCLICK_SEAT_TOOL_MODE set by the worker), enforce
+    // the chat tool-mode policy server-side. This holds for every CLI
+    // runtime, including ones with no client-side tool allowlists, and uses
+    // the SAME classifier as the api lane's call_tool gate. Unset env means
+    // a normal MCP session and nothing changes.
+    const seatToolMode = parseSeatToolMode(process.env.UNCLICK_SEAT_TOOL_MODE);
+    if (seatToolMode) {
+      const seatDecision = decideSeatToolCall(
+        seatToolMode,
+        name,
+        typeof args.endpoint_id === "string" ? args.endpoint_id : undefined,
+      );
+      if (!seatDecision.allowed) {
+        return {
+          content: [{ type: "text", text: seatDecision.refusal ?? "Blocked by seat tool mode." }],
+          isError: true,
+        };
+      }
     }
 
     const validationError = validateToolArgumentsForRuntime(name, args);
@@ -2516,6 +2558,21 @@ export function createServer(): Server {
           };
         }
 
+        // Generated connector/integration handlers come BEFORE the built-in
+        // endpoint map: connector tools discovered by unclick_search live
+        // only here, and the old map-first order rejected them as
+        // "Endpoint not found" (see resolveUnclickCallHandlerKey).
+        const handlerKey = resolveUnclickCallHandlerKey(endpointId);
+        if (handlerKey) {
+          const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
+          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
+          const result = await additionalHandler(handlerArgs);
+          signalToolFailure(handlerKey, result, handlerArgs);
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          };
+        }
+
         const entry = ENDPOINT_MAP.get(endpointId);
         if (!entry) {
           return {
@@ -2526,18 +2583,6 @@ export function createServer(): Server {
               },
             ],
             isError: true,
-          };
-        }
-
-        // Try ADDITIONAL_HANDLERS via dot-to-underscore key conversion ("foo.bar" -> "foo_bar")
-        const handlerKey = endpointId.replace(/\./g, "_");
-        const additionalHandler = ADDITIONAL_HANDLERS[handlerKey];
-        if (additionalHandler) {
-          const { args: handlerArgs } = await applyToolMemoryDefaults(handlerKey, params);
-          const result = await additionalHandler(handlerArgs);
-          signalToolFailure(handlerKey, result, handlerArgs);
-          return {
-            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           };
         }
 

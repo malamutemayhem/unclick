@@ -164,150 +164,30 @@ export async function internalMcpCall(
   }
 }
 
-// Leaf actions that READ. Read-first is conservative: anything not clearly a
-// read is denied. Live connector IDs are not always dotted ("gmail.read");
-// many arrive as snake-case tool IDs ("gmail_search", "dropbox_list_folder"),
-// so we tokenise before deciding.
-const READ_VERBS = new Set([
-  "browse",
-  "count",
-  "describe",
-  "fetch",
-  "find",
-  "get",
-  "info",
-  "list",
-  "lookup",
-  "query",
-  "read",
-  "search",
-  "status",
-  "view",
-]);
+// The read/build endpoint classification is single-sourced in the MCP
+// package (packages/mcp-server/src/tool-mode-policy.ts) so the api seat
+// lane here and the subscription seat bridge child gate can never drift.
+// Re-exported for existing imports and tests.
+import {
+  isReadOnlyEndpointId,
+  isBuildModeEndpointId,
+  READ_MODE_REFUSAL,
+  BUILD_MODE_REFUSAL,
+} from "../../packages/mcp-server/src/tool-mode-policy.js";
 
-// Actions that mutate, spend, send, or otherwise act on the world. These are
-// explicitly NOT read even if the endpoint also contains a read-ish word.
-const WRITE_VERBS = new Set([
-  "add",
-  "approve",
-  "cancel",
-  "charge",
-  "comment",
-  "complete",
-  "copy",
-  "create",
-  "delete",
-  "deploy",
-  "generate",
-  "invite",
-  "merge",
-  "modify",
-  "move",
-  "pay",
-  "post",
-  "promote",
-  "push",
-  "remove",
-  "reply",
-  "revoke",
-  "rotate",
-  "save",
-  "send",
-  "set",
-  "share",
-  "store",
-  "update",
-  "upload",
-  "vote",
-  "write",
-]);
+export { isReadOnlyEndpointId, isBuildModeEndpointId };
 
-// Actions still blocked even in Build mode. These need the next confirmation
-// layer because they send externally, destroy state, spend money, ship code, or
-// change permissions.
-const HIGH_RISK_VERBS = new Set([
-  "approve",
-  "auth",
-  "cancel",
-  "charge",
-  "comment",
-  "delete",
-  "deploy",
-  "invite",
-  "merge",
-  "pay",
-  "permission",
-  "permissions",
-  "post",
-  "push",
-  "remove",
-  "reply",
-  "revoke",
-  "rotate",
-  "scope",
-  "scopes",
-  "send",
-  "set",
-  "share",
-  "token",
-  "tokens",
-  "vote",
-]);
+const REFUSAL = READ_MODE_REFUSAL;
 
-// Extra verbs Build mode can run after high-risk verbs are ruled out. This is
-// intentionally broader than media generation so API seats can begin doing real
-// builder work, but not so broad that sends/deletes/deploys slip through.
-const BUILD_VERBS = new Set([
-  "add",
-  "create",
-  "generate",
-  "save",
-  "store",
-  "upload",
-  "write",
-]);
+const BUILD_REFUSAL = BUILD_MODE_REFUSAL;
 
-// Some media endpoints are named "text_to_image" / "image_to_image", with no
-// obvious verb token. Treat them as Build-mode actions, not read actions.
-const BUILD_MEDIA_TOKENS = new Set(["audio", "image", "images", "media", "video", "videos"]);
-
-function endpointTokens(endpointId: string): string[] {
-  return endpointId
-    .trim()
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean);
-}
-
-/**
- * True only when the endpoint's leaf action is clearly a read. The leaf is the
- * segment after the last "." (e.g. "google-drive.list" -> "list",
- * "memory.search_memory" -> "search_memory"); within it the verb is the first
- * underscore-separated token ("search_memory" -> "search").
- *
- * Ambiguous or write-looking actions return false (deny). Read-first mode.
- */
-export function isReadOnlyEndpointId(endpointId: string): boolean {
-  if (typeof endpointId !== "string" || !endpointId.trim()) return false;
-  const tokens = endpointTokens(endpointId);
-  if (tokens.some((token) => WRITE_VERBS.has(token))) return false;
-  return tokens.some((token) => READ_VERBS.has(token));
-}
-
-export function isBuildModeEndpointId(endpointId: string): boolean {
-  if (isReadOnlyEndpointId(endpointId)) return true;
-  if (typeof endpointId !== "string" || !endpointId.trim()) return false;
-  const tokens = endpointTokens(endpointId);
-  if (tokens.some((token) => HIGH_RISK_VERBS.has(token))) return false;
-  if (tokens.some((token) => BUILD_VERBS.has(token))) return true;
-  return tokens.includes("to") && tokens.some((token) => BUILD_MEDIA_TOKENS.has(token));
-}
-
-const REFUSAL =
-  "Write/send actions on connected apps are not enabled yet (read-first mode). I can only call read or list endpoints right now.";
-
-const BUILD_REFUSAL =
-  "That connector action is still blocked in Build mode. I can read/list/search and run non-destructive create/write/generate actions, but sends, deletes, payments, merges, deploys, permission changes, and other high-risk actions need the next approval layer.";
+// Returned when the model called call_tool with a meta name (unclick_call,
+// call_tool, ...) and the real endpoint could not be recovered from the
+// wrapper. Before this existed the call fell through to the mode refusal,
+// which misled models into blaming Read/Build mode when the actual problem
+// was the call shape.
+const META_CALL_GUIDE =
+  "tool error: call_tool needs the real endpoint id, not a wrapper name like unclick_call. Retry call_tool with endpoint_id set to the exact tool name from find_tools (for example 'gmail_search' or 'higgsfield_generate_image') and that endpoint's parameters in params.";
 
 const TOOL_INFO_FALLBACK_PREFIX =
   "tool_info did not find that built-in catalog slug, but integration tools can still be called directly by endpoint_id. Here are the matching integration results from find_tools. Use the exact tool name shown below as call_tool.endpoint_id; do not pass unclick_call as the endpoint_id.";
@@ -405,7 +285,12 @@ export function normalizeConnectorCall(
   let resolvedParams = params ?? {};
 
   const args = isPlainRecord(resolvedParams.arguments) ? resolvedParams.arguments : null;
-  const nestedRecords = [resolvedParams, args].filter(isPlainRecord);
+  // Models wrap the real call one level deeper in several shapes; some put
+  // the real endpoint under an inner "params" record instead of "arguments"
+  // ({endpoint_id: "unclick_call", params: {params: {endpoint_id, ...}}}),
+  // so that record is scanned too.
+  const inner = isPlainRecord(resolvedParams.params) ? resolvedParams.params : null;
+  const nestedRecords = [resolvedParams, args, inner].filter(isPlainRecord);
   const nestedEndpoint = nestedRecords.map(pickEndpointId).find((value): value is string => Boolean(value));
 
   if ((isMetaCallEndpoint(resolvedEndpointId) || !resolvedEndpointId) && nestedEndpoint) {
@@ -550,12 +435,23 @@ export function buildChatTools({
       }),
       execute: async ({ endpoint_id, params }) => {
         const normalized = normalizeConnectorCall(endpoint_id, params);
+        // A wrapper name that could not be unwrapped is a call-shape problem,
+        // not a permission problem: answer with retry guidance instead of a
+        // misleading mode refusal.
+        if (!normalized.endpointId || isMetaCallEndpoint(normalized.endpointId)) {
+          return META_CALL_GUIDE;
+        }
         // Permission guarantee is unconditional: refused endpoint classes are
         // denied whether or not a connector key is present.
         const allowed = isBuildMode
           ? isBuildModeEndpointId(normalized.endpointId)
           : isReadOnlyEndpointId(normalized.endpointId);
-        if (!allowed) return isBuildMode ? BUILD_REFUSAL : REFUSAL;
+        if (!allowed) {
+          // Name the refused endpoint so users and models can see WHAT was
+          // judged high-risk instead of guessing.
+          const refusal = isBuildMode ? BUILD_REFUSAL : REFUSAL;
+          return `${refusal} (refused endpoint: "${normalized.endpointId}")`;
+        }
         if (!connectorKey) return NO_CONNECTOR_KEY;
         try {
           return await internalMcpCall(origin, connectorKey, "unclick_call", {

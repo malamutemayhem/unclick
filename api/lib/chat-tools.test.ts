@@ -136,6 +136,18 @@ describe("normalizeConnectorCall", () => {
       params: { connector: "higgsfield", prompt: "cyberpunk robot" },
     });
   });
+
+  it("unwraps the real endpoint from an inner params record", () => {
+    // Live failure shape: the model nested the whole call under params.params.
+    expect(
+      normalizeConnectorCall("unclick_call", {
+        params: {
+          endpoint_id: "gmail_search",
+          query: "today",
+        },
+      }),
+    ).toEqual({ endpointId: "gmail_search", params: { query: "today" } });
+  });
 });
 
 describe("internalMcpCall", () => {
@@ -414,6 +426,31 @@ describe("connector tools (require a validated connector key)", () => {
     const out = await callTool.execute({ endpoint_id: "gmail_send", params: {} });
 
     expect(out).toMatch(/blocked in Build mode/i);
+    // The refusal names WHAT was refused, so users and models can tell a
+    // genuinely high-risk endpoint apart from a call-shape mistake.
+    expect(out).toContain('refused endpoint: "gmail_send"');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("call_tool answers an unresolvable wrapper with retry guidance, not a mode refusal", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    for (const toolMode of ["read", "build"] as const) {
+      const tools = buildChatTools({
+        origin: "https://example.test",
+        connectorKey: "uc_abc",
+        memory: fakeMemory(),
+        toolMode,
+      });
+      const callTool = tools.call_tool as { execute: (args: unknown) => Promise<string> };
+      // No real endpoint anywhere in the wrapper: nothing to unwrap.
+      const out = await callTool.execute({ endpoint_id: "unclick_call", params: {} });
+
+      expect(out).toMatch(/needs the real endpoint id/i);
+      expect(out).not.toMatch(/blocked in Build mode/i);
+      expect(out).not.toMatch(/read-first mode/i);
+    }
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

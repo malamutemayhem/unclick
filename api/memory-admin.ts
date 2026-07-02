@@ -5287,10 +5287,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Order deterministically + limit(1): with a duplicate row present,
         // a bare maybeSingle() raises PGRST116 and leaves `existing` null,
         // which would mint yet another duplicate key. Pick the freshest row.
+        // Worker keys (tier="worker", agt_ rows managed via /api/worker-keys)
+        // are excluded: only the PRIMARY key counts as the account's api key.
         const existing = (await supabase
           .from("api_keys")
           .select("id, key_prefix, tier")
           .eq("user_id", user.id)
+          .neq("tier", "worker")
           .order("last_used_at", { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle()).data as { id: string; key_prefix: string | null; tier: string | null } | null;
@@ -5339,11 +5342,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Order deterministically + limit(1): with a duplicate row present,
         // a bare maybeSingle() raises PGRST116 and wrongly 404s a user who
-        // does have a key. Rotate the freshest row.
+        // does have a key. Rotate the freshest PRIMARY row. Worker keys (agt_,
+        // managed via /api/worker-keys) are never rotated by this action.
         const existing = (await supabase
           .from("api_keys")
           .select("id, tier")
           .eq("user_id", user.id)
+          .neq("tier", "worker")
           .order("last_used_at", { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle()).data as { id: string; tier: string | null } | null;
@@ -5409,24 +5414,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const user = await resolveSessionUser(req, supabaseUrl, supabaseKey);
         if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-        // Order deterministically + limit(1) so a duplicate row never raises
-        // PGRST116 (which would null this out and skip the scoped wipe,
-        // orphaning the account's memory rows).
-        const keyRow = (await supabase
+        // An account may have several api_keys rows: one primary uc_ key plus
+        // any number of worker (agt_) keys sharing the same account lane.
+        // Fetch them ALL (a maybeSingle() would raise PGRST116 once a second
+        // key exists): every row is removed at cleanup so no key survives the
+        // account. Ordered so the freshest primary row leads.
+        const keyRows = ((await supabase
           .from("api_keys")
-          .select("key_hash, lane_hash")
+          .select("key_hash, lane_hash, tier")
           .eq("user_id", user.id)
-          .order("last_used_at", { ascending: false, nullsFirst: false })
-          .limit(1)
-          .maybeSingle()).data as { key_hash?: string | null; lane_hash?: string | null } | null;
+          .order("last_used_at", { ascending: false, nullsFirst: false })).data ?? []) as Array<{
+            key_hash: string; lane_hash: string | null; tier: string | null }>;
+        const allKeyHashes = keyRows.map((r) => r.key_hash).filter(Boolean);
         // Scope the wipe to the MEMORY LANE, where the account's data actually
         // lives. After a rotation that is lane_hash, not the current key_hash;
         // using key_hash here would orphan every memory row (compliance gap).
-        const apiKeyHash = keyRow?.lane_hash ?? keyRow?.key_hash ?? null;
+        const primaryRow = keyRows.find((r) => r.tier !== "worker") ?? keyRows[0] ?? null;
+        const apiKeyHash = primaryRow?.lane_hash ?? primaryRow?.key_hash ?? null;
 
         // Idempotency: if a previous deletion removed the api_keys link
         // already, return a benign response without re-attempting.
-        if (!keyRow && !apiKeyHash) {
+        if (allKeyHashes.length === 0) {
           const { error: idempotentAuthErr } = await supabase.auth.admin.deleteUser(user.id);
           if (idempotentAuthErr && idempotentAuthErr.message?.toLowerCase().includes("not found")) {
             return res.status(200).json({ success: true, already_deleted: true });
@@ -5532,17 +5540,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
         }
 
-        // api_keys.user_id has ON DELETE SET NULL so the row survives
-        // auth deletion. Clean it up now that the cascade is done.
-        if (apiKeyHash) {
+        // api_keys.user_id has ON DELETE SET NULL so the rows survive
+        // auth deletion. Clean up every key (primary + workers) now that the
+        // cascade is done, addressing them by hash since user_id is now null.
+        if (allKeyHashes.length > 0) {
           try {
+            // Remove every fetched key row (primary + workers) explicitly.
+            await supabase.from("api_keys").delete().in("key_hash", allKeyHashes);
             // apiKeyHash is the resolved LANE (lane_hash). After an in-place
-            // rotation lane_hash and key_hash can differ, so match either to
-            // avoid leaving a dangling api_keys row.
-            await supabase
-              .from("api_keys")
-              .delete()
-              .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`);
+            // rotation lane_hash and key_hash can differ, so also match either
+            // to catch any same-lane stray the user_id fetch missed.
+            if (apiKeyHash) {
+              await supabase
+                .from("api_keys")
+                .delete()
+                .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`);
+            }
           } catch { /* best effort */ }
         }
 

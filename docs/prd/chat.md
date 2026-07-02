@@ -29,7 +29,7 @@ Goals:
 Non-goals (v1):
 - No ML ranking, no comparative seat-vs-seat rating (Elo, Bradley-Terry, TrueSkill), no LLM-as-judge in the public rank. There is no like-for-like comparison to rate today, so any such rating would be fabricated. These are gated on duplicate or bake-off dispatch existing first, and even then a quality term stays a small capped tiebreaker that can never outrank reliability or truth-rate.
 - No hosted or platform-key fallback model. The existing server-side Gemini fallback in `AIChatPanel` is intentionally dropped for Chat.
-- No subscription or platform-key framing anywhere. All cost is the user's own spend.
+- No subscription or platform-key framing anywhere. All cost is the user's own spend. (Update 2026-07: the user's OWN consumer plan is now a third seat lane via a local bridge; see `docs/prd/chat-subscription-seats.md`. Still zero platform-billed calls and zero platform keys; the "subscription" this non-goal banned was a platform-paid model, not the user's own plan.)
 - No rename of the existing coordination room, and Chat rooms do not merge into the Boardroom coordination tables. The Boardroom stays the internal coordination surface per `AUTOPILOT.md`; Chat rooms are a separate user-facing room type.
 - No voice, no file attachments, no cross-tenant leaderboards.
 
