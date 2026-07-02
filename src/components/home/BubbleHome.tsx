@@ -266,6 +266,7 @@ function JourneyField() {
   const peopleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tetherCanvasRef = useRef<HTMLCanvasElement>(null);
+  const dragCatchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -321,6 +322,21 @@ function JourneyField() {
     let cs = 1;
     let sp = 0;
     let lastNow = performance.now();
+    // The easter egg: grab the bubble and it pulls against its
+    // strings, then springs home on release. The drag offset rides on
+    // top of the scripted center, so scroll choreography and play
+    // never fight each other.
+    const catcher = dragCatchRef.current;
+    let dragging = false;
+    let grabDx = 0;
+    let grabDy = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+    let ox = 0;
+    let oy = 0;
+    let vox = 0;
+    let voy = 0;
+    let grabbable = false;
     // Power management: the loop only runs while the journey is on (or
     // near) screen and the tab is visible; at rest it drops to half
     // rate (the idle drift and tether sway are slow sines, invisible
@@ -364,6 +380,32 @@ function JourneyField() {
       enableLite();
     }
 
+    const onPointerDown = (event: PointerEvent) => {
+      if (!catcher) return;
+      dragging = true;
+      catcher.setPointerCapture(event.pointerId);
+      grabDx = event.clientX - (cx + ox);
+      grabDy = event.clientY - (cy + oy);
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      catcher.style.cursor = "grabbing";
+      event.preventDefault();
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+    };
+    const endDrag = () => {
+      if (!dragging || !catcher) return;
+      dragging = false;
+      catcher.style.cursor = "grab";
+    };
+    catcher?.addEventListener("pointerdown", onPointerDown);
+    catcher?.addEventListener("pointermove", onPointerMove);
+    catcher?.addEventListener("pointerup", endDrag);
+    catcher?.addEventListener("pointercancel", endDrag);
+
     const tick = (now: number) => {
       if (!running) return;
       frame += 1;
@@ -375,7 +417,10 @@ function JourneyField() {
       const restful =
         Math.abs(p - sp) < 0.0005 &&
         ropes.every((rope) => rope.phase === "idle") &&
-        Math.abs(sp - 0.955) * 26 > 1.2;
+        Math.abs(sp - 0.955) * 26 > 1.2 &&
+        !dragging &&
+        ox === 0 &&
+        oy === 0;
       if (restful && frame % 2 === 1) {
         raf = requestAnimationFrame(tick);
         return;
@@ -442,21 +487,62 @@ function JourneyField() {
       cy += (targetY - cy) * posEase;
       cs += (scale - cs) * ease(sm ? 0.14 : 0.17);
 
+      // Easter egg physics. Held: the offset chases the pointer
+      // through a rubber band (tanh soft clamp keeps the pull gentle).
+      // Released: an underdamped spring carries it home with a small
+      // wobble. The strings stretch for free; they redraw from the
+      // rendered center every frame.
+      if (dragging) {
+        const wantX = pointerX - grabDx - cx;
+        const wantY = pointerY - grabDy - cy;
+        const want = Math.hypot(wantX, wantY);
+        const maxPull = sm ? 70 : 110;
+        const give = want > 0.001 ? (maxPull * Math.tanh(want / maxPull)) / want : 0;
+        const chase = ease(0.05);
+        const nextOx = ox + (wantX * give - ox) * chase;
+        const nextOy = oy + (wantY * give - oy) * chase;
+        vox = dt > 0 ? (nextOx - ox) / dt : 0;
+        voy = dt > 0 ? (nextOy - oy) / dt : 0;
+        ox = nextOx;
+        oy = nextOy;
+      } else if (ox !== 0 || oy !== 0 || vox !== 0 || voy !== 0) {
+        vox += (-ox * 70 - vox * 9) * dt;
+        voy += (-oy * 70 - voy * 9) * dt;
+        ox += vox * dt;
+        oy += voy * dt;
+        if (Math.hypot(ox, oy) < 0.3 && Math.hypot(vox, voy) < 2) {
+          ox = 0;
+          oy = 0;
+          vox = 0;
+          voy = 0;
+        }
+      }
+      const rx = cx + ox;
+      const ry = cy + oy;
+
       const installRect = installEl?.getBoundingClientRect();
       const installFade = installRect ? interp(installRect.top, [vh * 0.62, vh * 0.95], [0, 1]) : 1;
       const visible = cs > 0.015 && sp < 0.985;
       bubble.style.opacity = visible ? String(installFade) : "0";
-      bubble.style.transform = `translate(${cx - (base * cs) / 2}px, ${cy - (base * cs) / 2}px)`;
+      bubble.style.transform = `translate(${rx - (base * cs) / 2}px, ${ry - (base * cs) / 2}px)`;
       inner.style.transform = `scale(${cs})`;
+
+      // The catcher only exists while there is a bubble to grab.
+      const wantGrab = visible && installFade > 0.5 && cs > 0.2;
+      if (catcher && wantGrab !== grabbable) {
+        grabbable = wantGrab;
+        catcher.style.pointerEvents = wantGrab ? "auto" : "none";
+        if (!wantGrab) endDrag();
+      }
 
       const ringOpacity = Math.max(0, 1 - Math.abs(sp - 0.955) * 26);
       const ringScale = 1 + Math.max(0, sp - 0.93) * 14;
       ring.style.opacity = String(ringOpacity * 0.8 * installFade);
-      ring.style.transform = `translate(${cx - 40}px, ${cy - 40}px) scale(${ringScale})`;
+      ring.style.transform = `translate(${rx - 40}px, ${ry - 40}px) scale(${ringScale})`;
 
       // Hero bundle to the people.
       ctx.clearRect(0, 0, vw, vh);
-      const gatherY = cy + (base * cs) / 2 - 6;
+      const gatherY = ry + (base * cs) / 2 - 6;
       const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]) * installFade;
       if (peopleAlpha > 0.01) {
         ctx.strokeStyle = `hsl(183 50% 62% / ${0.5 * peopleAlpha})`;
@@ -466,9 +552,9 @@ function JourneyField() {
           const r = el.getBoundingClientRect();
           const px = r.left + r.width / 2;
           const py = r.top + 6;
-          const sx = cx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
+          const sx = rx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
           const sway = Math.sin(t * 0.5 + i * 0.7) * 3;
-          const bx = cx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
+          const bx = rx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
           const by = gatherY + (py - gatherY) * 0.62;
           ctx.beginPath();
           ctx.moveTo(sx, gatherY);
@@ -486,12 +572,12 @@ function JourneyField() {
       // the bubble straight across the glass face.
       const rimR = Math.max(0, (base * cs) / 2 - 4);
       const rimX = (aimX: number, aimY: number) => {
-        const d = Math.hypot(aimX - cx, aimY - cy) || 1;
-        return cx + ((aimX - cx) / d) * rimR;
+        const d = Math.hypot(aimX - rx, aimY - ry) || 1;
+        return rx + ((aimX - rx) / d) * rimR;
       };
       const rimY = (aimX: number, aimY: number) => {
-        const d = Math.hypot(aimX - cx, aimY - cy) || 1;
-        return cy + ((aimY - cy) / d) * rimR;
+        const d = Math.hypot(aimX - rx, aimY - ry) || 1;
+        return ry + ((aimY - ry) / d) * rimR;
       };
       const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]) * installFade;
 
@@ -522,8 +608,8 @@ function JourneyField() {
         // A free hand shoots the new web from the rim facing it.
         const free = ropes.find((rope) => rope !== holding) ?? ropes[0];
         const tr = stageRefs.current[bestI]?.getBoundingClientRect();
-        const tx = tr ? tr.left + tr.width / 2 : cx;
-        const ty = tr ? tr.top + tr.height / 2 : cy + rimR;
+        const tx = tr ? tr.left + tr.width / 2 : rx;
+        const ty = tr ? tr.top + tr.height / 2 : ry + rimR;
         free.idx = bestI;
         free.phase = "out";
         free.prog = 0;
@@ -539,8 +625,8 @@ function JourneyField() {
         if (rope.phase === "idle") return;
         const el = rope.idx >= 0 ? stageRefs.current[rope.idx] : null;
         const r = el?.getBoundingClientRect();
-        const axp = r ? r.left + r.width / 2 : cx;
-        const ayp = r ? r.top + r.height / 2 : cy + rimR;
+        const axp = r ? r.left + r.width / 2 : rx;
+        const ayp = r ? r.top + r.height / 2 : ry + rimR;
         // A reeling rope retracts toward the rim facing where it let
         // go; a live one ties to the rim facing its stage.
         const aimX = rope.phase === "reel" ? rope.sx : axp;
@@ -618,6 +704,10 @@ function JourneyField() {
       ro?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", sizeCanvas);
+      catcher?.removeEventListener("pointerdown", onPointerDown);
+      catcher?.removeEventListener("pointermove", onPointerMove);
+      catcher?.removeEventListener("pointerup", endDrag);
+      catcher?.removeEventListener("pointercancel", endDrag);
     };
   }, [reduced]);
 
@@ -662,6 +752,16 @@ function JourneyField() {
                 <span className="relative flex w-[64%] flex-col">
                   <img src="/logo-lockup.svg" alt="UnClick. Where AI Belongs. Humans welcome." className="w-full" />
                 </span>
+                {/* Grab handle for the easter egg: a circle, so the
+                    square corners never block clicks underneath. The
+                    engine flips pointer-events on only while the
+                    bubble is actually visible. */}
+                <div
+                  ref={dragCatchRef}
+                  className="absolute inset-0 rounded-full"
+                  style={{ pointerEvents: "none", touchAction: "none", cursor: "grab" }}
+                  aria-hidden="true"
+                />
               </div>
             </div>
           </div>
