@@ -37,6 +37,20 @@ import {
   findChatProvider,
   estimateTokens,
 } from "@/components/admin/chatTransportConfig";
+import {
+  councilReceiptFromMetadata,
+  mergeThreadRows,
+  nextCursor,
+  rowToUiMessage,
+  streamEndedSilently,
+  type CouncilReceiptSeat,
+  type ThreadMessageRow,
+} from "@/components/admin/chatSync";
+
+// How often an open shared room polls for new turns from other members and
+// their seats. Incremental (?after=cursor), paused while a reply is
+// streaming and while the tab is hidden.
+const ROOM_POLL_MS = 5000;
 
 // Join the text parts of a UI message into a single string. Non-text parts
 // (tool calls, files, reasoning) are ignored, so a tool-call step never breaks
@@ -182,8 +196,22 @@ export default function AdminChatPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [seatByMsg, setSeatByMsg] = useState<Record<string, string>>({});
+  const [councilByMsg, setCouncilByMsg] = useState<
+    Record<string, CouncilReceiptSeat[]>
+  >({});
+  // Which human sent each persisted human turn (sender_id from the row), so
+  // another member's messages render left-aligned with their name instead of
+  // being indistinguishable from the viewer's own turns.
+  const [humanByMsg, setHumanByMsg] = useState<Record<string, string>>({});
   const [humanMembers, setHumanMembers] = useState<HumanMember[]>([]);
   const targetSeatLabelRef = useRef<string>("AI");
+  // Incremental sync cursor: created_at of the newest persisted row this
+  // client has seen for the active thread. Drives the ?after= room poll.
+  const syncCursorRef = useRef<string | null>(null);
+  // True between firing an AI send and the stream settling, so we can tell a
+  // silent stall apart from a human-only send that never expects a reply.
+  const awaitingReplyRef = useRef(false);
+  const [stalledNotice, setStalledNotice] = useState(false);
 
   // Incoming Circle requests waiting on the operator (loud top banner), and a
   // one-off "you need to connect first" block raised when starting a shared
@@ -212,6 +240,15 @@ export default function AdminChatPage() {
   });
   const busy = status === "submitted" || status === "streaming";
   const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
+  // How this account signs its human turns in the shared stream. Falls back
+  // to the legacy "you" for accounts without an email.
+  const selfSenderId = (user?.email ?? "").trim().toLowerCase() || "you";
+  // Mirror of `messages` for the room poll, so a tick merges against the
+  // list as it is when the fetch returns (not a stale closure).
+  const messagesRef = useRef<UIMessage[]>([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   function scrollMessagesToBottom(behavior: ScrollBehavior = "smooth") {
     window.setTimeout(() => {
@@ -223,8 +260,15 @@ export default function AdminChatPage() {
     if (!busy) {
       setWorkingSeatIds([]);
       setCouncilRunSeats([]);
+      // A send was in flight and the stream settled: if it ended with no
+      // visible answer (a tool loop that ran out of steps, a provider that
+      // closed early), say so instead of leaving an empty canvas.
+      if (awaitingReplyRef.current) {
+        awaitingReplyRef.current = false;
+        setStalledNotice(streamEndedSilently(messages, Boolean(error)));
+      }
     }
-  }, [busy]);
+  }, [busy, error, messages]);
 
   useEffect(() => {
     scrollMessagesToBottom(busy ? "auto" : "smooth");
@@ -345,13 +389,58 @@ export default function AdminChatPage() {
     await refreshThreads();
   }
 
-  // Row shape returned by ?action=messages.
-  interface ThreadMessageRow {
-    id: string;
-    sender_kind: string;
-    sender_id: string | null;
-    model: string | null;
-    content: string | null;
+  // Stamp the caller's read cursor on a room (fire-and-forget) and clear the
+  // unread indicator locally without waiting for the next list refresh.
+  function markThreadRead(id: string) {
+    if (!accessToken) return;
+    const readAt = new Date().toISOString();
+    setThreads((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, my_last_read_at: readAt } : t)),
+    );
+    fetch("/api/chat-threads?action=mark_read", {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify({ thread_id: id }),
+    }).catch(() => {});
+  }
+
+  // Rebuild attribution and council receipts for rows arriving from the DB
+  // (initial load or room poll). Assistant rows show which model answered;
+  // council rows carry the persisted run receipt.
+  function absorbRowAnnotations(rows: ThreadMessageRow[]) {
+    if (rows.length === 0) return;
+    setSeatByMsg((prev) => {
+      const next = { ...prev };
+      for (const row of rows) {
+        if (row.sender_kind !== "human") {
+          next[row.id] = row.model ?? row.sender_id ?? "AI";
+        }
+      }
+      return next;
+    });
+    setCouncilByMsg((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const row of rows) {
+        const receipt = councilReceiptFromMetadata(row.metadata);
+        if (receipt.length > 0) {
+          next[row.id] = receipt;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+    setHumanByMsg((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const row of rows) {
+        if (row.sender_kind === "human" && row.sender_id) {
+          next[row.id] = row.sender_id;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
   }
 
   // Open a thread: load its shared message stream into the chat UI and
@@ -364,6 +453,8 @@ export default function AdminChatPage() {
     setActiveSeatId(null);
     setActiveHumanMemberId(null);
     setInput("");
+    setStalledNotice(false);
+    syncCursorRef.current = null;
     try {
       const r = await fetch(
         `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(id)}`,
@@ -372,20 +463,13 @@ export default function AdminChatPage() {
       if (!r.ok) return;
       const b = (await r.json()) as { messages?: ThreadMessageRow[] };
       const rows = Array.isArray(b.messages) ? b.messages : [];
-      const uiMessages: UIMessage[] = rows.map((row) => ({
-        id: row.id,
-        role: row.sender_kind === "human" ? "user" : "assistant",
-        parts: [{ type: "text", text: row.content ?? "" }],
-      }));
-      setMessages(uiMessages);
-      // Rebuild seat attribution: assistant rows show which model answered.
-      const attribution: Record<string, string> = {};
-      for (const row of rows) {
-        if (row.sender_kind !== "human") {
-          attribution[row.id] = row.model ?? row.sender_id ?? "AI";
-        }
-      }
-      setSeatByMsg(attribution);
+      setMessages(rows.map(rowToUiMessage));
+      setCouncilByMsg({});
+      setSeatByMsg({});
+      setHumanByMsg({});
+      absorbRowAnnotations(rows);
+      syncCursorRef.current = nextCursor(rows, null);
+      markThreadRead(id);
       await refreshRoomMembers(id);
     } catch {
       /* ignore */
@@ -397,6 +481,10 @@ export default function AdminChatPage() {
     if (!accessToken) return;
     setMessages([]);
     setSeatByMsg({});
+    setCouncilByMsg({});
+    setHumanByMsg({});
+    setStalledNotice(false);
+    syncCursorRef.current = null;
     setWorkingSeatIds([]);
     setCouncilRunSeats([]);
     setHumanMembers([]);
@@ -458,6 +546,10 @@ export default function AdminChatPage() {
         setActiveThread(null);
         setMessages([]);
         setSeatByMsg({});
+        setCouncilByMsg({});
+        setHumanByMsg({});
+        setStalledNotice(false);
+        syncCursorRef.current = null;
         setWorkingSeatIds([]);
         setCouncilRunSeats([]);
         setHumanMembers([]);
@@ -484,6 +576,10 @@ export default function AdminChatPage() {
         setActiveThread(null);
         setMessages([]);
         setSeatByMsg({});
+        setCouncilByMsg({});
+        setHumanByMsg({});
+        setStalledNotice(false);
+        syncCursorRef.current = null;
         setWorkingSeatIds([]);
         setCouncilRunSeats([]);
         setHumanMembers([]);
@@ -519,6 +615,60 @@ export default function AdminChatPage() {
     void refreshPendingHandshakes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
+
+  // Keep an open shared room live. Without a socket layer this is the
+  // classic fallback mainstream chat clients use: an incremental poll
+  // (?after=cursor) that merges only genuinely new turns, paused while a
+  // reply is streaming and while the tab is hidden. Solo threads skip it;
+  // only this client writes to them.
+  const roomIsLive = Boolean(activeThread?.shared || humanMembers.length > 0);
+  useEffect(() => {
+    if (!accessToken || !activeThreadId || !roomIsLive || busy) return;
+    let cancelled = false;
+    const threadId = activeThreadId;
+
+    async function tick() {
+      if (cancelled) return;
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      )
+        return;
+      try {
+        const cursor = syncCursorRef.current;
+        const r = await fetch(
+          `/api/chat-threads?action=messages&thread_id=${encodeURIComponent(threadId)}` +
+            (cursor ? `&after=${encodeURIComponent(cursor)}` : ""),
+          { headers: authHeaders() },
+        );
+        if (!r.ok || cancelled) return;
+        const b = (await r.json()) as { messages?: ThreadMessageRow[] };
+        const rows = Array.isArray(b.messages) ? b.messages : [];
+        if (rows.length === 0) return;
+        syncCursorRef.current = nextCursor(rows, syncCursorRef.current);
+        if (cancelled) return;
+        const { messages: merged, added } = mergeThreadRows(
+          messagesRef.current,
+          rows,
+        );
+        if (added.length === 0) return;
+        setMessages(merged);
+        absorbRowAnnotations(added);
+        markThreadRead(threadId);
+        void refreshThreads();
+        scrollMessagesToBottom();
+      } catch {
+        /* ignore - the next tick retries */
+      }
+    }
+
+    const timer = window.setInterval(() => void tick(), ROOM_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken, activeThreadId, roomIsLive, busy]);
 
   const calledInSeats = seats.filter((s) => s.active);
   const calledInSeat = calledInSeats.length === 1 ? calledInSeats[0] : null;
@@ -736,6 +886,7 @@ export default function AdminChatPage() {
     const raw = input.trim();
     const pending = attachments;
     if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
+    setStalledNotice(false);
     const { seats: targetSeats, text } = resolveTarget(raw);
     const leadSeat = targetSeats[0] ?? null;
     const councilLabel =
@@ -824,12 +975,18 @@ export default function AdminChatPage() {
     // Persist the human turn (this auto-titles the thread server-side). We
     // persist `combined` (typed text + inlined file text); images are NOT
     // saved to thread history in v1, so reopening a thread shows the text only.
+    // The client_msg_id makes a retried request idempotent server-side.
     if (threadId) {
       try {
         await fetch("/api/chat-threads?action=append", {
           method: "POST",
           headers: authHeaders(true),
-          body: JSON.stringify({ thread_id: threadId, content: combined }),
+          body: JSON.stringify({
+            thread_id: threadId,
+            content: combined,
+            sender_id: selfSenderId,
+            client_msg_id: crypto.randomUUID(),
+          }),
         });
       } catch {
         /* ignore */
@@ -857,6 +1014,7 @@ export default function AdminChatPage() {
     // AI SDK v3 sendMessage: the { text, files } overload accepts FileUIPart[]
     // for `files`; the server forwards image file parts to the model as vision
     // via convertToModelMessages (see api/chat.ts).
+    awaitingReplyRef.current = true;
     sendMessage(
       imageParts.length > 0
         ? { text: combined, files: imageParts }
@@ -1006,8 +1164,25 @@ export default function AdminChatPage() {
               const isUser = m.role === "user";
               const images = isUser ? messageImageParts(m.parts) : [];
               const toolNames = isUser ? [] : messageToolNames(m.parts);
+              // Another member's persisted turn renders left-aligned with
+              // their name; the viewer's own turns (and legacy "you" rows)
+              // stay right-aligned.
+              const humanSender = isUser ? (humanByMsg[m.id] ?? null) : null;
+              const isSelfTurn =
+                !humanSender ||
+                humanSender === "you" ||
+                humanSender.toLowerCase() === selfSenderId;
+              const alignRight = isUser && isSelfTurn;
               return (
-                <div key={m.id} className={isUser ? "text-right" : "text-left"}>
+                <div
+                  key={m.id}
+                  className={alignRight ? "text-right" : "text-left"}
+                >
+                  {isUser && !isSelfTurn && humanSender && (
+                    <div className="mb-0.5 text-[10px] text-muted-foreground">
+                      {humanSender}
+                    </div>
+                  )}
                   {toolNames.length > 0 && (
                     <div className="mb-1 flex flex-wrap gap-1">
                       {toolNames.map((name, i) => (
@@ -1049,6 +1224,33 @@ export default function AdminChatPage() {
                     <div className="mt-0.5 text-[10px] text-muted-foreground">
                       {seatByMsg[m.id] ?? "AI"} - ~{estimateTokens(text)} tokens
                       (est)
+                    </div>
+                  )}
+                  {!isUser && (councilByMsg[m.id]?.length ?? 0) > 1 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {councilByMsg[m.id].map((seat, i) => (
+                        <span
+                          key={`${m.id}-council-${i}`}
+                          title={
+                            seat.status === "answered"
+                              ? (seat.brief ?? undefined)
+                              : (seat.error ?? undefined)
+                          }
+                          className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                            seat.status === "answered"
+                              ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100/90"
+                              : "border-amber-500/40 bg-amber-500/10 text-amber-200/90"
+                          }`}
+                        >
+                          {seat.label || seat.model}:{" "}
+                          {seat.status === "answered"
+                            ? "contributed"
+                            : seat.status}
+                          {typeof seat.ms === "number"
+                            ? ` (${(seat.ms / 1000).toFixed(1)}s)`
+                            : ""}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -1110,6 +1312,13 @@ export default function AdminChatPage() {
             {error && (
               <div className="text-xs text-red-400">
                 {friendlyChatError(error.message)}
+              </div>
+            )}
+            {stalledNotice && !busy && !error && (
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200/90">
+                The seat stopped without a final answer. This usually means a
+                tool-call loop ran out of steps or the provider ended the
+                stream early. Try sending again, or rephrase the request.
               </div>
             )}
             <div ref={messagesEndRef} aria-hidden="true" />

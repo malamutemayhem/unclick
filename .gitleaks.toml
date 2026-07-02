@@ -26,4 +26,6 @@ regexes = [
   '''unclick-keychain-v1''',
   # localStorage key name, not a credential.
   '''jobsmith\.cvFacts\.v1''',
+  # localStorage key name for Circle matrix section collapse state.
+  '''unclick_circle_sections_v2''',
 ]

@@ -9,8 +9,12 @@
 //   GET    ?action=list                       -> threads the caller owns OR is an active member of
 //   POST   ?action=create   {title?, kind?}   -> create a thread (rooms get an owner membership row)
 //   GET    ?action=messages&thread_id=...      -> load a thread's messages (members only)
+//                                              optional &after=<ISO timestamp> returns only
+//                                              newer rows (the incremental sync cursor the
+//                                              chat page polls with)
 //   POST   ?action=append   {thread_id, content, sender_id?}
 //                                              -> persist a human turn (auto-titles)
+//   POST   ?action=mark_read {thread_id}       -> stamp the caller's last_read_at (read cursor)
 //   POST   ?action=update   {thread_id, title?, pinned?}
 //                                              -> rename / pin (owner/admin only)
 //   POST   ?action=delete   {thread_id}        -> delete a thread + its messages (owner/admin only)
@@ -381,12 +385,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       member_lane_hash: string;
       role: AccessRole;
       status: string;
+      last_read_at?: string | null;
     }> = [];
     if (allIds.length) {
       const inList = allIds.join(",");
       const memberAllRes = await fetch(
         `${rest}/chat_room_members?thread_id=in.(${inList})` +
-          `&status=eq.active&select=thread_id,member_lane_hash,role,status&limit=2000`,
+          `&status=eq.active&select=thread_id,member_lane_hash,role,status,last_read_at&limit=2000`,
         { headers: sbHeaders(serviceKey) },
       );
       memberAllRows = memberAllRes.ok
@@ -394,12 +399,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : [];
     }
 
-    // Group active members per thread, and capture the caller's own role.
+    // Group active members per thread, and capture the caller's own role and
+    // read cursor (last_read_at drives the unread indicator in the rail).
     const countByThread = new Map<string, number>();
     const myRoleByThread = new Map<string, AccessRole>();
+    const myLastReadByThread = new Map<string, string | null>();
     for (const m of memberAllRows) {
       countByThread.set(m.thread_id, (countByThread.get(m.thread_id) ?? 0) + 1);
-      if (m.member_lane_hash === lane) myRoleByThread.set(m.thread_id, m.role);
+      if (m.member_lane_hash === lane) {
+        myRoleByThread.set(m.thread_id, m.role);
+        myLastReadByThread.set(m.thread_id, m.last_read_at ?? null);
+      }
     }
 
     const threads = rows
@@ -420,6 +430,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             shared: false,
             my_role: "owner" as const,
             member_count: 1,
+            my_last_read_at: null,
           };
         }
         // Room: caller owns it if their lane is the thread row's lane (owned
@@ -440,6 +451,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           shared: activeCount > 1,
           my_role: (myRole ?? "member") as "owner" | "admin" | "member",
           member_count: activeCount,
+          my_last_read_at: myLastReadByThread.get(t.id) ?? null,
         };
       })
       .sort((a, b) => {
@@ -451,6 +463,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── GET messages ────────────────────────────────────────────────
   // Shared stream: any owner or active member reads the same rows.
+  // An optional `after` cursor (an ISO timestamp, normally the created_at of
+  // the newest row the client already has) returns only newer rows, so the
+  // chat page can poll a room cheaply instead of re-reading the whole thread.
   if (req.method === "GET" && action === "messages") {
     const threadId = String((req.query.thread_id ?? "") || "").trim();
     if (!threadId)
@@ -458,9 +473,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
     if (!role)
       return res.status(403).json({ error: "Not a member of this room." });
+    const afterRaw = String((req.query.after ?? "") || "").trim();
+    const after =
+      afterRaw && !Number.isNaN(Date.parse(afterRaw))
+        ? new Date(afterRaw).toISOString()
+        : "";
     const url =
       `${rest}/chat_thread_messages?thread_id=eq.${encodeURIComponent(threadId)}` +
-      `&select=id,sender_id,sender_kind,seat_lane,model,content,status,created_at` +
+      (after ? `&created_at=gt.${encodeURIComponent(after)}` : "") +
+      `&select=id,sender_id,sender_kind,seat_lane,model,content,status,metadata,created_at` +
       `&order=created_at.asc&limit=2000`;
     const r = await fetch(url, { headers: sbHeaders(serviceKey) });
     if (!r.ok)
@@ -577,7 +598,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // ── POST append (persist a human turn; auto-title on first message) ──────────
-  // Owner or active member may post into the shared stream.
+  // Owner or active member may post into the shared stream. An optional
+  // client_msg_id makes the send idempotent: a retried request with the same
+  // key hits the unique index and is reported as already saved instead of
+  // duplicating the turn (the Matrix txnId / Slack client_msg_id pattern).
   if (action === "append") {
     const threadId =
       typeof body.thread_id === "string" ? body.thread_id.trim() : "";
@@ -586,6 +610,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       typeof body.sender_id === "string" && body.sender_id.trim()
         ? body.sender_id.trim()
         : "you";
+    const clientMsgId =
+      typeof body.client_msg_id === "string" && body.client_msg_id.trim()
+        ? body.client_msg_id.trim().slice(0, 64)
+        : null;
     if (!threadId)
       return res.status(400).json({ error: "thread_id is required." });
     if (!content.trim())
@@ -616,10 +644,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         sender_kind: "human",
         content,
         status: "complete",
+        client_msg_id: clientMsgId,
         created_at: now,
       }),
     });
     if (!insert.ok) {
+      // A retried send with the same client_msg_id trips the unique index
+      // (PostgREST reports 409). The original insert already succeeded, so
+      // report it as saved instead of surfacing a duplicate error.
+      if (insert.status === 409 && clientMsgId) {
+        return res.status(200).json({ success: true, deduped: true });
+      }
       // Log the upstream body server-side; never leak it to the client.
       const detail = (await insert.text().catch(() => "")).slice(0, 200);
       console.error("chat-threads append failed:", insert.status, detail);
@@ -668,6 +703,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         success: true,
         title: patch.title ?? existingTitle ?? "New chat",
       });
+  }
+
+  // ── POST mark_read (stamp the caller's read cursor) ───────────────────
+  // The classic chat read-cursor: the caller says "I have seen this room up
+  // to now" and their own membership row's last_read_at is stamped. Unread
+  // indicators compare a thread's updated_at against this cursor. Solo agent
+  // threads have no membership row; marking them read is a harmless no-op so
+  // the client can call this unconditionally on open.
+  if (action === "mark_read") {
+    const threadId =
+      typeof body.thread_id === "string" ? body.thread_id.trim() : "";
+    if (!threadId)
+      return res.status(400).json({ error: "thread_id is required." });
+    const { role } = await resolveAccessRole(rest, serviceKey, threadId, lane);
+    if (!role)
+      return res.status(403).json({ error: "Not a member of this room." });
+    const readAt = new Date().toISOString();
+    await fetch(
+      `${rest}/chat_room_members?thread_id=eq.${encodeURIComponent(threadId)}` +
+        `&member_lane_hash=eq.${encodeURIComponent(lane)}`,
+      {
+        method: "PATCH",
+        headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" },
+        body: JSON.stringify({ last_read_at: readAt }),
+      },
+    ).catch(() => {});
+    return res.status(200).json({ success: true, last_read_at: readAt });
   }
 
   // ── POST update (rename / pin) ──────────────────────────────────────
