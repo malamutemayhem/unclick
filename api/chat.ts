@@ -748,7 +748,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error instanceof Error ? error.message : "unknown",
       );
     },
-    onFinish({ text, usage }) {
+    // Async and awaited: the AI SDK holds the stream open until onFinish
+    // resolves, so the serverless function cannot be frozen before the
+    // assistant turn lands in the thread. A fire-and-forget write here gets
+    // killed on Vercel when the response closes, which silently drops
+    // assistant replies from reopened threads.
+    async onFinish({ text, usage }) {
       if (!parsed.thread_id) return;
       const u = usage as
         | {
@@ -758,7 +763,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             completionTokens?: number;
           }
         | undefined;
-      void persistAssistantTurn({
+      await persistAssistantTurn({
         supabaseUrl,
         serviceKey,
         apiKeyHash: threadPersistenceLane ?? apiKeyHash,
