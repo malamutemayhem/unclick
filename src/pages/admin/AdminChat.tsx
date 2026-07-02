@@ -50,6 +50,13 @@ import {
   type BridgeTurn,
   type SubscriptionRuntime,
 } from "@/components/admin/subscriptionSeats";
+import {
+  isLocalSeat,
+  newLocalSeat,
+  runLocalChatTurn,
+  toLocalMessages,
+  type LocalChatMessage,
+} from "@/components/admin/localSeats";
 
 // Join the text parts of a UI message into a single string. Non-text parts
 // (tool calls, files, reasoning) are ignored, so a tool-call step never breaks
@@ -613,6 +620,16 @@ export default function AdminChatPage() {
     ]);
   }
 
+  function addLocalSeat(model: string) {
+    setSeats((prev) => [
+      ...prev,
+      newLocalSeat(
+        model,
+        prev.map((s) => s.handle),
+      ) as AiSeat,
+    ]);
+  }
+
   function addSeat(slug: string, model: string) {
     setSeats((prev) => [
       ...prev,
@@ -840,18 +857,76 @@ export default function AdminChatPage() {
     }
   }
 
+  // One local seat turn: the browser asks the local engine (Ollama) on this
+  // computer directly, paints the reply, then persists it to the thread so
+  // the room history survives reloads. Nothing about the turn touches a
+  // cloud model; only the finished text is saved to the room.
+  async function runLocalTurn(
+    seat: AiSeat,
+    threadId: string | null,
+    localMessages: LocalChatMessage[],
+  ) {
+    setBridgeWorkingSeatIds((prev) =>
+      prev.includes(seat.id) ? prev : [...prev, seat.id],
+    );
+    const append = (text: string) => {
+      // Same guard as the bridge lane: never paint onto a different thread.
+      if (activeThreadRef.current !== threadId) return;
+      const id = crypto.randomUUID();
+      setMessages((prev) => [
+        ...prev,
+        { id, role: "assistant" as const, parts: [{ type: "text" as const, text }] },
+      ]);
+      setSeatByMsg((prev) => ({ ...prev, [id]: seat.label }));
+      scrollMessagesToBottom();
+    };
+    try {
+      const outcome = await runLocalChatTurn({
+        model: seat.model,
+        messages: localMessages,
+      });
+      if (!outcome.ok || !outcome.content) {
+        append(outcome.error ?? "The local model returned no reply.");
+        return;
+      }
+      append(outcome.content);
+      if (threadId) {
+        try {
+          await fetch("/api/chat-threads?action=append", {
+            method: "POST",
+            headers: authHeaders(true),
+            body: JSON.stringify({
+              thread_id: threadId,
+              content: outcome.content,
+              sender_kind: "agent",
+              seat_lane: "local",
+              model: seat.model,
+              sender_id: seat.handle,
+            }),
+          });
+        } catch {
+          /* the canvas already shows the reply */
+        }
+      }
+    } finally {
+      setBridgeWorkingSeatIds((prev) => prev.filter((id) => id !== seat.id));
+    }
+  }
+
   async function onSend() {
     const raw = input.trim();
     const pending = attachments;
     if ((!raw && pending.length === 0) || !apiKey || busy || processing) return;
     const { seats: targetSeats, text } = resolveTarget(raw);
-    // Subscription seats answer through their local bridge, independently of
-    // the api-lane stream; only api seats ride /api/chat (and its council).
+    // Subscription seats answer through their local bridge and local seats
+    // answer from the engine on this computer, both independently of the
+    // api-lane stream; only api seats ride /api/chat (and its council).
     const subscriptionTargets = targetSeats.filter((seat) =>
       isSubscriptionSeat(seat),
     );
+    const localTargets = targetSeats.filter((seat) => isLocalSeat(seat));
     const apiTargets = targetSeats.filter(
-      (seat) => !isSubscriptionSeat(seat),
+      (seat) => !isSubscriptionSeat(seat) && !isLocalSeat(seat),
     );
     const leadSeat = apiTargets[0] ?? null;
     const councilLabel =
@@ -952,20 +1027,17 @@ export default function AdminChatPage() {
       }
     }
 
-    // Launch subscription turns first: each runs independently on its own
-    // local bridge while any api seats stream below.
-    if (subscriptionTargets.length > 0) {
+    // Launch subscription and local turns first: each runs independently
+    // (bridge worker or the engine on this computer) while any api seats
+    // stream below.
+    const offStreamTargets =
+      subscriptionTargets.length + localTargets.length;
+    if (offStreamTargets > 0) {
       const priorTurns = messages.map((m) => ({
         role: m.role === "user" ? ("user" as const) : ("assistant" as const),
         text: messageText(m.parts),
         author: m.role === "user" ? undefined : seatByMsg[m.id],
       }));
-      const bridgeMessages = toBridgeMessages(priorTurns, combined);
-      // Image attachments ride to full-tier subscription runtimes.
-      const bridgeImages: BridgeImagePayload[] = pending
-        .filter((a) => a.kind === "image" && a.dataUrl)
-        .slice(0, 3)
-        .map((a) => ({ name: a.name, data_url: a.dataUrl as string }));
       if (!leadSeat) {
         // No api stream will echo the human turn onto the canvas, so show it.
         setMessages((prev) => [
@@ -978,13 +1050,27 @@ export default function AdminChatPage() {
         ]);
         scrollMessagesToBottom();
       }
-      for (const seat of subscriptionTargets) {
-        void runSubscriptionTurn(seat, threadId, bridgeMessages, bridgeImages);
+      if (subscriptionTargets.length > 0) {
+        const bridgeMessages = toBridgeMessages(priorTurns, combined);
+        // Image attachments ride to full-tier subscription runtimes.
+        const bridgeImages: BridgeImagePayload[] = pending
+          .filter((a) => a.kind === "image" && a.dataUrl)
+          .slice(0, 3)
+          .map((a) => ({ name: a.name, data_url: a.dataUrl as string }));
+        for (const seat of subscriptionTargets) {
+          void runSubscriptionTurn(seat, threadId, bridgeMessages, bridgeImages);
+        }
+      }
+      if (localTargets.length > 0) {
+        const localMessages = toLocalMessages(priorTurns, combined);
+        for (const seat of localTargets) {
+          void runLocalTurn(seat, threadId, localMessages);
+        }
       }
     }
 
     if (!leadSeat) {
-      if (subscriptionTargets.length === 0) {
+      if (offStreamTargets === 0) {
         if (threadId) await selectThread(threadId);
       }
       await refreshThreads();
@@ -1078,6 +1164,7 @@ export default function AdminChatPage() {
           onSelectHumanMember={selectHumanMember}
           onAddSeat={addSeat}
           onAddSubscriptionSeat={addSubscriptionSeat}
+          onAddLocalSeat={addLocalSeat}
           onRemoveSeat={removeSeat}
           onToggleSeatActive={toggleSeatActive}
           onAddHumanMember={addHumanMember}

@@ -842,6 +842,94 @@ describe("chat-threads shared rooms", () => {
     });
   });
 
+  it("append accepts a local-lane agent turn and logs it as assistant", async () => {
+    // A local seat's reply is relayed by the browser (only it can reach the
+    // model on the user's machine). The row must carry sender_kind=agent,
+    // seat_lane=local, and the model tag, and must NOT auto-title the room.
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      callerMembership: { role: "owner" },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: {
+          thread_id: "thread-1",
+          content: "local reply",
+          sender_kind: "agent",
+          seat_lane: "local",
+          model: "llama3.2:3b",
+          sender_id: "EverydayHelper",
+        },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(200);
+    const insert = cfg.calls.find(
+      (c) => c.url.includes("/chat_thread_messages") && c.method === "POST",
+    );
+    expect(insert).toBeTruthy();
+    expect(insert!.body).toMatchObject({
+      thread_id: "thread-1",
+      sender_kind: "agent",
+      seat_lane: "local",
+      model: "llama3.2:3b",
+      sender_id: "EverydayHelper",
+    });
+
+    const contextInsert = cfg.calls.find(
+      (c) => c.url.includes("/mc_conversation_log") && c.method === "POST",
+    );
+    expect(contextInsert).toBeTruthy();
+    expect(contextInsert!.body).toMatchObject({ role: "assistant" });
+
+    // Agent turns never set the room title.
+    const patch = cfg.calls.find(
+      (c) => c.method === "PATCH" && c.url.includes("/chat_threads"),
+    );
+    expect(patch).toBeTruthy();
+    expect(
+      (patch!.body as { title?: string }).title,
+    ).toBeUndefined();
+  });
+
+  it("append rejects agent turns for non-local lanes", async () => {
+    const cfg: RouteConfig = {
+      calls: [],
+      threadOwner: CALLER_LANE,
+      callerMembership: { role: "owner" },
+    };
+    stubFetch(cfg);
+    const res = createResponse();
+    await handler(
+      {
+        method: "POST",
+        query: { action: "append" },
+        headers: auth,
+        body: {
+          thread_id: "thread-1",
+          content: "spoofed",
+          sender_kind: "agent",
+          seat_lane: "api",
+        },
+      } as never,
+      res as never,
+    );
+
+    expect(res.statusCode).toBe(400);
+    expect(
+      cfg.calls.find(
+        (c) => c.url.includes("/chat_thread_messages") && c.method === "POST",
+      ),
+    ).toBeUndefined();
+  });
+
   // ── list: shared / my_role / member_count augmentation ──────────────────
   it("list marks a solo agent thread as shared=false, my_role=owner, member_count=1", async () => {
     const cfg: RouteConfig = {

@@ -71,9 +71,24 @@ describe("AdminSeatsLocalPage routing defaults", () => {
     });
   });
 
-  it("renders the local page heading", async () => {
+  it("renders the guided local setup", async () => {
     render(React.createElement(AdminSeatsLocalPage));
 
-    expect(await screen.findByText("Local")).toBeInTheDocument();
+    expect(await screen.findByText("Local AI")).toBeInTheDocument();
+    expect(screen.getByText("Get the engine")).toBeInTheDocument();
+    expect(screen.getByText("Check this computer")).toBeInTheDocument();
+    expect(screen.getByText("Pick your models")).toBeInTheDocument();
+    // The curated catalog renders with friendly names, not raw tags only.
+    // (A name can appear twice: in the recommendation line and on its card.)
+    expect(screen.getAllByText("Everyday Helper").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("The Librarian").length).toBeGreaterThan(0);
+  });
+
+  it("shows the connect button before any connection is made", async () => {
+    render(React.createElement(AdminSeatsLocalPage));
+
+    expect(
+      await screen.findByRole("button", { name: /I installed it - connect/ }),
+    ).toBeInTheDocument();
   });
 });

@@ -43,6 +43,17 @@ import {
   type BridgeSeatPresence,
   type SubscriptionRuntime,
 } from "@/components/admin/subscriptionSeats";
+import {
+  isLocalSeat,
+  listInstalledLocalModels,
+  pingLocalEngine,
+  type InstalledLocalModel,
+} from "@/components/admin/localSeats";
+import {
+  findCuratedModel,
+  friendlyModelName,
+  normalizeModelTag,
+} from "@/components/admin/localModels";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -54,8 +65,9 @@ export interface AiSeat {
   active: boolean;
   // The model traffic channel. Absent (stored seats predate the field)
   // means "api". Subscription seats answer through a local bridge worker
-  // driving the official CLI signed in on the user's machine.
-  lane?: "api" | "subscription";
+  // driving the official CLI signed in on the user's machine. Local seats
+  // answer from a model running on this computer via the local engine.
+  lane?: "api" | "subscription" | "local";
   runtime?: string;
 }
 
@@ -117,6 +129,89 @@ function AddSubscriptionSeatSection({
   );
 }
 
+// The local seat picker: lists the chat-capable models installed on this
+// computer (via the local engine) so one tap seats them in the room. When
+// nothing is detected it points at the Local models setup page instead of
+// dead-ending.
+function AddLocalSeatSection({
+  seatedModels,
+  onAdd,
+}: {
+  seatedModels: string[];
+  onAdd: (model: string) => void;
+}) {
+  const [models, setModels] = useState<InstalledLocalModel[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    listInstalledLocalModels()
+      .then((rows) => {
+        if (!cancelled) setModels(rows);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Chat seats only: skip helper models (embeddings) that cannot converse.
+  const chatModels = (models ?? []).filter(
+    (m) => findCuratedModel(m.name)?.chatSeat !== false,
+  );
+  const seated = new Set(seatedModels.map(normalizeModelTag));
+  const available = chatModels.filter(
+    (m) => !seated.has(normalizeModelTag(m.name)),
+  );
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+        Local models (on this computer)
+      </p>
+      {loading && (
+        <p className="px-0.5 text-[11px] text-muted-foreground">
+          Looking for models on this computer...
+        </p>
+      )}
+      {!loading && models === null && (
+        <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
+          No local engine detected.{" "}
+          <a href="/admin/agents/local" className="text-primary hover:underline">
+            Set up local models
+          </a>{" "}
+          - free, private, works offline.
+        </p>
+      )}
+      {!loading && models !== null && available.length === 0 && (
+        <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
+          {chatModels.length > 0
+            ? "All local models are already seated."
+            : "The engine is running but has no chat models yet."}{" "}
+          <a href="/admin/agents/local" className="text-primary hover:underline">
+            Get models
+          </a>
+        </p>
+      )}
+      {available.map((m) => (
+        <button
+          key={m.name}
+          type="button"
+          onClick={() => onAdd(m.name)}
+          className="flex flex-col items-start gap-0.5 rounded-md border border-border/50 bg-card/40 px-3 py-1.5 text-left transition-colors hover:border-primary/50"
+        >
+          <span className="text-sm text-body">{friendlyModelName(m.name)}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {m.name} - answers from this computer, free
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Shown under an offline subscription seat: one plain sentence and the
 // start command with a one-tap copy. The seat answers from the user's own
 // computer, so all they need is "paste this in a terminal there".
@@ -158,12 +253,16 @@ function BridgeStartHint({ command }: { command: string }) {
 
 function AddSeatForm({
   connectedSlugs,
+  seatedLocalModels,
   onAdd,
   onAddSubscription,
+  onAddLocal,
 }: {
   connectedSlugs: string[];
+  seatedLocalModels: string[];
   onAdd: (slug: string, model: string) => void;
   onAddSubscription: (runtime: SubscriptionRuntime) => void;
+  onAddLocal: (model: string) => void;
 }) {
   const connectedProviders = CHAT_PROVIDERS.filter((p) =>
     connectedSlugs.includes(p.slug),
@@ -216,6 +315,10 @@ function AddSeatForm({
             and it shows up here.
           </p>
         </div>
+        <AddLocalSeatSection
+          seatedModels={seatedLocalModels}
+          onAdd={onAddLocal}
+        />
         <AddSubscriptionSeatSection onAdd={onAddSubscription} />
       </div>
     );
@@ -275,6 +378,12 @@ function AddSeatForm({
       >
         + Connect another provider
       </a>
+      <div className="border-t border-border/40 pt-2">
+        <AddLocalSeatSection
+          seatedModels={seatedLocalModels}
+          onAdd={onAddLocal}
+        />
+      </div>
       <div className="border-t border-border/40 pt-2">
         <AddSubscriptionSeatSection onAdd={onAddSubscription} />
       </div>
@@ -370,6 +479,7 @@ export function ChatMemberRail({
   onSelectHumanMember,
   onAddSeat,
   onAddSubscriptionSeat,
+  onAddLocalSeat,
   onRemoveSeat,
   onToggleSeatActive,
   onAddHumanMember,
@@ -386,6 +496,7 @@ export function ChatMemberRail({
   onSelectHumanMember: (member: HumanMember) => void;
   onAddSeat: (slug: string, model: string) => void;
   onAddSubscriptionSeat: (runtime: SubscriptionRuntime) => void;
+  onAddLocalSeat: (model: string) => void;
   onRemoveSeat: (id: string) => void;
   onToggleSeatActive: (id: string) => void;
   onAddHumanMember: (member: HumanMember) => void;
@@ -397,6 +508,11 @@ export function ChatMemberRail({
   const [bridgePresence, setBridgePresence] = useState<
     Record<string, BridgeSeatPresence>
   >({});
+  // Presence for local seats: can this browser reach the local engine?
+  // null = not checked yet (no local seats or first ping still in flight).
+  const [localEngineOnline, setLocalEngineOnline] = useState<boolean | null>(
+    null,
+  );
 
   // Presence for subscription seats: is the local bridge worker heartbeating?
   // Polled while any subscription seat is in the room.
@@ -421,6 +537,27 @@ export function ChatMemberRail({
       window.clearInterval(timer);
     };
   }, [accessToken, hasSubscriptionSeats]);
+
+  // Ping the local engine while any local seat is in the room, so the rail
+  // can say honestly whether the seat can answer right now.
+  const hasLocalSeats = seats.some(isLocalSeat);
+  useEffect(() => {
+    if (!hasLocalSeats) {
+      setLocalEngineOnline(null);
+      return;
+    }
+    let cancelled = false;
+    const refresh = async () => {
+      const online = await pingLocalEngine();
+      if (!cancelled) setLocalEngineOnline(online);
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [hasLocalSeats]);
 
   // Which AI providers this account has connected a key for. Drives the seat
   // picker so it only offers usable providers. Refetches when the picker opens.
@@ -526,6 +663,7 @@ export function ChatMemberRail({
           const isSelected = activeSeatId === s.id;
           const isWorking = Boolean(workingSeatIds?.includes(s.id));
           const isSubscription = isSubscriptionSeat(s);
+          const isLocal = isLocalSeat(s);
           const bridgeOnline = isSubscription
             ? Boolean(bridgePresence[s.handle]?.online)
             : null;
@@ -599,6 +737,20 @@ export function ChatMemberRail({
                       {bridgeOnline ? "· connected" : "· needs your PC"}
                     </span>
                   )}
+                  {isLocal && (
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        localEngineOnline === false
+                          ? "text-amber-300"
+                          : "text-emerald-300",
+                      )}
+                    >
+                      {localEngineOnline === false
+                        ? "· engine off"
+                        : "· on this computer"}
+                    </span>
+                  )}
                   {isWorking && (
                     <span
                       className="ml-0.5 flex shrink-0 items-end gap-0.5"
@@ -655,6 +807,21 @@ export function ChatMemberRail({
                 command={bridgeCommand(s.runtime ?? "claude-code", s.handle)}
               />
             )}
+            {isLocal && localEngineOnline === false && (
+              <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2.5 py-2">
+                <p className="text-[11px] leading-relaxed text-amber-200/90">
+                  This seat answers from this computer, but the local engine is
+                  not reachable. Open the Ollama app to wake it, or check{" "}
+                  <a
+                    href="/admin/agents/local"
+                    className="text-amber-100 underline"
+                  >
+                    Local models
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
             </Fragment>
           );
         })}
@@ -674,12 +841,19 @@ export function ChatMemberRail({
           <PopoverContent align="start" className="p-0">
             <AddSeatForm
               connectedSlugs={connectedSlugs}
+              seatedLocalModels={seats
+                .filter(isLocalSeat)
+                .map((s) => s.model)}
               onAdd={(slug, model) => {
                 onAddSeat(slug, model);
                 setAddOpen(false);
               }}
               onAddSubscription={(runtime) => {
                 onAddSubscriptionSeat(runtime);
+                setAddOpen(false);
+              }}
+              onAddLocal={(model) => {
+                onAddLocalSeat(model);
                 setAddOpen(false);
               }}
             />
