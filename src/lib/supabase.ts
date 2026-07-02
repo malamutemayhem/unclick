@@ -26,14 +26,21 @@ const browserLocalAuthLock: SupabaseAuthLock = async (_name, _acquireTimeout, fn
 export const supabase = createClient(
   supabaseUrl || "https://placeholder.supabase.co",
   supabaseAnonKey || "placeholder-anon-key",
-  {
-    auth: {
-      // The admin app is a single-page control room. A local queue avoids the
-      // browser Web Locks path that can leave gotrue auth locked after React
-      // Strict Mode remounts, while still serialising auth calls in this tab.
-      lock: browserLocalAuthLock,
-    },
-  },
+  // The tab-local queue below exists for DEV ONLY: React Strict Mode's double
+  // mount can leave gotrue's Web Locks path stuck, so dev serialises auth
+  // calls in-tab instead. In PRODUCTION the default Web Locks lock must stay:
+  // it serialises token refresh ACROSS tabs. Without it, two open tabs can
+  // refresh the same session at the same moment, gotrue's refresh-token reuse
+  // detection reads the double-spend as theft, and it revokes the whole
+  // session family - the "signed out over and over with several UnClick tabs
+  // open" bug. Do not extend the local lock to production.
+  import.meta.env.DEV
+    ? {
+        auth: {
+          lock: browserLocalAuthLock,
+        },
+      }
+    : undefined,
 );
 
 // ────────────────────────────────────────────────────────────────
