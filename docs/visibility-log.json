@@ -1,7 +1,7 @@
 {
   "package": "@unclick/mcp-server",
   "repo": "malamutemayhem/unclick",
-  "updated_at": "2026-06-11T11:48:12.245Z",
+  "updated_at": "2026-07-02T05:18:52.757Z",
   "snapshots": [
     {
       "date": "2026-06-11",
@@ -16,6 +16,21 @@
         "npm_downloads_last_30d is approximate (reported as ~8.9k in 2026-06-11 web research); api.npmjs.org returned HTTP 403 from the seeding environment",
         "github_stars recorded manually from 2026-06-11 web research; api.github.com returned HTTP 403 from the seeding environment",
         "future rows: run node scripts/visibility-snapshot.mjs from an environment with open egress for fully API-sourced numbers"
+      ]
+    },
+    {
+      "date": "2026-07-02",
+      "npm_version": "0.3.99",
+      "npm_downloads_last_30d": null,
+      "github_stars": 4,
+      "github_forks": 0,
+      "github_watchers": null,
+      "github_open_issues": 85,
+      "notes": [
+        "npm downloads: HTTP 403 from https://api.npmjs.org/downloads/point/last-month/@unclick/mcp-server (blocked from this seat; direct fetch and WebFetch both 403)",
+        "github_stars/forks/open_issues sourced live via GitHub API (MCP) on 2026-07-02; watchers not exposed by that endpoint",
+        "npm latest is still 0.3.99, published 2026-05-17 (registry.npmjs.org time map); repo package.json is at 0.3.110. No npm publish in ~6 weeks; the enriched npm description/keywords from the 2026-06-11 playbook PR are NOT live on npm yet",
+        "publish-mcp-package.yml intentionally publishes GitHub Release tarballs only (no NPM_TOKEN); npm publishes are manual and operator-owned"
       ]
     }
   ]
