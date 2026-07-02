@@ -27,6 +27,19 @@ describe("pandascore connector resilience (L2)", () => {
     expect(String(result.error)).toMatch(/id is required/i);
   });
 
+  it("returns the standard not-connected card when the token is missing", async () => {
+    const saved = process.env.PANDASCORE_TOKEN;
+    delete process.env.PANDASCORE_TOKEN;
+    try {
+      const result = await esportsMatches({}) as Record<string, unknown>;
+      expect(result.not_connected).toBe(true);
+      expect(result.connector).toBe("esports");
+      expect(Array.isArray(result.how_to_connect)).toBe(true);
+    } finally {
+      if (saved !== undefined) process.env.PANDASCORE_TOKEN = saved;
+    }
+  });
+
   it("maps match listings into a clean shape", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true, status: 200, headers: { get: () => null },

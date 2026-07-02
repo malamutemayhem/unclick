@@ -408,8 +408,9 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     displayName: "WhatsApp",
     credential:  "bearer token",
     arg:         "bearer_token",
-    envVar:      "WHATSAPP_TOKEN",
+    envVar:      "WHATSAPP_BEARER_TOKEN",
     setupUrl:    "https://developers.facebook.com/apps",
+    note:        "Also pass phone_number_id (or set WHATSAPP_PHONE_NUMBER_ID).",
   },
   twilio: {
     displayName: "Twilio",
@@ -453,6 +454,7 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     arg:         "api_key",
     envVar:      "CONVERTKIT_API_KEY",
     setupUrl:    "https://app.convertkit.com/account_settings/advanced_settings",
+    note:        "Subscriber endpoints need the API secret too: pass api_secret or set CONVERTKIT_API_SECRET.",
   },
   pushover: {
     displayName: "Pushover",
@@ -460,7 +462,7 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     arg:         "app_token",
     envVar:      "PUSHOVER_APP_TOKEN",
     setupUrl:    "https://pushover.net/apps/build",
-    note:        "Also pass user (your Pushover user key).",
+    note:        "Also pass user, your Pushover user key (or set PUSHOVER_USER_KEY).",
   },
 
   // ─── Social / content ─────────────────────────────────────────────────────
@@ -606,9 +608,9 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     displayName: "Datadog",
     credential:  "API key",
     arg:         "api_key",
-    envVar:      "DATADOG_API_KEY",
+    envVar:      "DD_API_KEY",
     setupUrl:    "https://app.datadoghq.com/organization-settings/api-keys",
-    note:        "Some endpoints also need an application key (app_key).",
+    note:        "Some endpoints also need an application key: pass app_key or set DD_APP_KEY.",
   },
   sentry: {
     displayName: "Sentry",

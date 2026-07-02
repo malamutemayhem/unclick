@@ -28,6 +28,19 @@ describe("lego connector resilience (L2)", () => {
     expect(r.error).toMatch(/set_num is required/i);
   });
 
+  it("returns the standard not-connected card when the key is missing", async () => {
+    const saved = process.env.REBRICKABLE_API_KEY;
+    delete process.env.REBRICKABLE_API_KEY;
+    try {
+      const r = await legoGetSet({ set_num: "75192-1" }) as Record<string, unknown>;
+      expect(r.not_connected).toBe(true);
+      expect(r.connector).toBe("lego");
+      expect(Array.isArray(r.how_to_connect)).toBe(true);
+    } finally {
+      if (saved !== undefined) process.env.REBRICKABLE_API_KEY = saved;
+    }
+  });
+
   it("maps a set", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ set_num: "75192-1", name: "Millennium Falcon", year: 2017, num_parts: 7541 }) })));
     const r = await legoGetSet({ rebrickable_api_key: "k", set_num: "75192-1" }) as Record<string, any>;

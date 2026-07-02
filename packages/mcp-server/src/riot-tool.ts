@@ -4,19 +4,16 @@
 // Match v5 uses regional routing: europe / americas / asia
 
 import { stampMeta } from "./connector-meta.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const RIOT_DEFAULT_REGION = "euw1";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.RIOT_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "RIOT_API_KEY is required. Get a key at https://developer.riotgames.com/"
-    );
-  }
-  return key;
+// Missing keys RETURN the standard not-connected card (two-lane rule).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("riot", args);
 }
 
 function platformBase(region: string): string {
@@ -73,6 +70,7 @@ export async function riotSummoner(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const summonerName = String(args.summonerName ?? "").trim();
   if (!summonerName) return { error: "summonerName is required." };
 
@@ -105,6 +103,7 @@ export async function riotRanked(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const summonerId = String(args.summonerId ?? "").trim();
   if (!summonerId) return { error: "summonerId is required." };
 
@@ -139,6 +138,7 @@ export async function riotMatchHistory(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const puuid = String(args.puuid ?? "").trim();
   if (!puuid) return { error: "puuid is required." };
 
@@ -169,6 +169,7 @@ export async function riotGetMatch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const matchId = String(args.matchId ?? "").trim();
   if (!matchId) return { error: "matchId is required." };
 
@@ -214,6 +215,7 @@ export async function riotValorantAccount(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const gameName = String(args.gameName ?? "").trim();
   const tagLine = String(args.tagLine ?? "").trim();
   if (!gameName) return { error: "gameName is required." };

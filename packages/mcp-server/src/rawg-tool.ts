@@ -4,19 +4,16 @@
 // Base URL: https://api.rawg.io/api/
 
 import { stampMeta } from "./connector-meta.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const RAWG_BASE = "https://api.rawg.io/api";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.RAWG_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "RAWG_API_KEY is required. Get a free key at https://rawg.io/apidocs"
-    );
-  }
-  return key;
+// Missing keys RETURN the standard not-connected card (two-lane rule).
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("rawg", args);
 }
 
 const RAWG_TIMEOUT_MS = Number(process.env.RAWG_TIMEOUT_MS) || 10000;
@@ -89,6 +86,7 @@ export async function rawgSearchGames(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const search = String(args.search ?? "").trim();
   if (!search) return { error: "search is required." };
 
@@ -119,6 +117,7 @@ export async function rawgGetGame(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const id = String(args.id ?? "").trim();
   if (!id) return { error: "id is required (RAWG game ID or slug)." };
 
@@ -173,6 +172,7 @@ export async function rawgGetGameScreenshots(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const id = String(args.id ?? "").trim();
   if (!id) return { error: "id is required (RAWG game ID or slug)." };
 
@@ -200,6 +200,7 @@ export async function rawgListGenres(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await rawgFetch<Record<string, unknown>>("/genres", key);
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
@@ -221,6 +222,7 @@ export async function rawgListPlatforms(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const data = await rawgFetch<Record<string, unknown>>("/platforms", key);
   const results = (data.results as Record<string, unknown>[]) ?? [];
 
@@ -244,6 +246,7 @@ export async function rawgUpcomingGames(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireKey(args);
+  if (typeof key !== "string") return key;
   const extra: Record<string, string> = {
     dates: "upcoming",
     ordering: "-added",
