@@ -34,7 +34,7 @@ describe("heartbeat_protocol payload", () => {
       "watch_state_key",
     ]);
     expect(protocol.version).toMatch(/^\d{4}-\d{2}-\d{2}\.v\d+$/);
-    expect(protocol.procedure).toHaveLength(20);
+    expect(protocol.procedure).toHaveLength(21);
     expect(protocol.procedure[0]).toContain("full heartbeat policy");
     expect(protocol.procedure[1]).toContain("continuity receipts");
     expect(protocol.procedure[2]).toContain("unclick-builder-tether-seat");
@@ -72,6 +72,12 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[17]).toContain("missing capability");
     expect(protocol.procedure[19]).toContain("memory.consolidate");
     expect(protocol.procedure[19]).toContain("source: 'heartbeat'");
+    // Dead-man's-switch arming (v17): the watcher can only flag a vanished
+    // seat when a check-in promise exists, so every scheduled run must end
+    // by arming next_checkin_at via set_my_status.
+    expect(protocol.procedure[20]).toContain("set_my_status");
+    expect(protocol.procedure[20]).toContain("next_checkin_at");
+    expect(protocol.procedure[20]).toContain("dead-man's-switch");
     expect(protocol.alert_format).toEqual({
       heading: "UnClick alert",
       line_template: "owner -- target -- status -- next safe action",
@@ -95,9 +101,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(16)).toBe("2026-06-02.v16");
-    expect(protocol.version).toBe("2026-06-02.v16");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("2367132433c023f4");
+    expect(formatHeartbeatProtocolVersion(17)).toBe("2026-07-02.v17");
+    expect(protocol.version).toBe("2026-07-02.v17");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("864fae6570135b55");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );
