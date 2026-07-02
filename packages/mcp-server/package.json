@@ -38,7 +38,7 @@
     "@unclick/flowpass": "*",
     "@unclick/securitypass": "*",
     "ajv": "^8.20.0",
-    "csv-parse": "^6.2.1",
+    "csv-parse": "^7.0.0",
     "csv-stringify": "^6.7.0",
     "fast-xml-parser": "^5.8.0",
     "imap": "0.8.19",
