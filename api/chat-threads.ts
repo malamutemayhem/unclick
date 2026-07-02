@@ -191,7 +191,7 @@ interface AccessResult {
   ownerLane: string | null;
 }
 
-// ── access helpers ────────────────────────────────────────────────
+// ── access helpers ──────────────────────────────────
 // All reads/writes authorize by ownership-or-membership, not by the
 // owner-scope filter (a member does not own the thread row).
 
@@ -265,6 +265,31 @@ async function fetchMemberByLane(
   return Array.isArray(rows) ? (rows[0] ?? null) : null;
 }
 
+// The identity a human turn is signed with. NEVER trusted from the client:
+// a room member could otherwise render as any other member. Resolved from
+// the verified session (user id -> auth email); falls back to the legacy
+// "you" when the account has no resolvable email.
+async function resolveVerifiedSenderId(
+  authHeader: string | undefined,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<string> {
+  try {
+    const userId = await resolveCallerUserId(authHeader, supabaseUrl, serviceKey);
+    if (!userId) return "you";
+    const r = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!r.ok) return "you";
+    const user = (await r.json().catch(() => null)) as { email?: string | null } | null;
+    const email = (user?.email ?? "").trim().toLowerCase();
+    return email || "you";
+  } catch {
+    return "you";
+  }
+}
+
 async function persistChatContextTurn(opts: {
   rest: string;
   serviceKey: string;
@@ -315,7 +340,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const rest = `${supabaseUrl}/rest/v1`;
   const scope = `api_key_hash=eq.${encodeURIComponent(lane)}`;
 
-  // ── GET list ──────────────────────────────────────────────────────
+  // ── GET list ──────────────────────────────────
   // Threads the caller OWNS (api_key_hash == lane) UNION threads where the
   // caller is an ACTIVE member. Never leaks threads the caller is neither
   // owner nor member of.
@@ -461,7 +486,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ threads });
   }
 
-  // ── GET messages ────────────────────────────────────────────────
+  // ── GET messages ──────────────────────────────
   // Shared stream: any owner or active member reads the same rows.
   // An optional `after` cursor (an ISO timestamp, normally the created_at of
   // the newest row the client already has) returns only newer rows, so the
@@ -492,7 +517,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .json({ messages: Array.isArray(messages) ? messages : [] });
   }
 
-  // ── GET members ──────────────────────────────────────────────────
+  // ── GET members ────────────────────────────────
   if (req.method === "GET" && action === "members") {
     const threadId = String((req.query.thread_id ?? "") || "").trim();
     if (!threadId)
@@ -535,7 +560,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = (req.body ?? {}) as Record<string, unknown>;
 
-  // ── POST create ────────────────────────────────────────────────
+  // ── POST create ────────────────────────────────
   if (action === "create") {
     const title =
       typeof body.title === "string" && body.title.trim()
@@ -606,10 +631,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const threadId =
       typeof body.thread_id === "string" ? body.thread_id.trim() : "";
     const content = typeof body.content === "string" ? body.content : "";
-    const senderId =
-      typeof body.sender_id === "string" && body.sender_id.trim()
-        ? body.sender_id.trim()
-        : "you";
+    // sender_id is server-derived from the verified session. Any client-sent
+    // sender_id is ignored: it renders as a name label to OTHER members, so
+    // trusting it would let one member impersonate another.
+    const senderId = await resolveVerifiedSenderId(
+      req.headers.authorization,
+      supabaseUrl,
+      serviceKey,
+    );
     const clientMsgId =
       typeof body.client_msg_id === "string" && body.client_msg_id.trim()
         ? body.client_msg_id.trim().slice(0, 64)
@@ -705,7 +734,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
   }
 
-  // ── POST mark_read (stamp the caller's read cursor) ───────────────────
+  // ── POST mark_read (stamp the caller's read cursor) ───────────
   // The classic chat read-cursor: the caller says "I have seen this room up
   // to now" and their own membership row's last_read_at is stamped. Unread
   // indicators compare a thread's updated_at against this cursor. Solo agent
@@ -732,7 +761,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true, last_read_at: readAt });
   }
 
-  // ── POST update (rename / pin) ──────────────────────────────────────
+  // ── POST update (rename / pin) ──────────────────────────
   // Only owner or admin may rename a room.
   if (action === "update") {
     const threadId =
@@ -792,7 +821,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true });
   }
 
-  // ── POST delete (thread + its messages) ───────────────────────────────
+  // ── POST delete (thread + its messages) ─────────────────────
   // Only owner or admin may delete a room.
   if (action === "delete") {
     const threadId =
@@ -839,7 +868,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true });
   }
 
-  // ── POST add_member (REQUIRES an accepted Circle link) ────────────────
+  // ── POST add_member (REQUIRES an accepted Circle link) ──────────────
   // (a) Caller must be owner or admin of the room.
   // (b) An account_links row with status='accepted' must pair the caller's
   //     user and the target user (the Circle handshake). If none, return 409
