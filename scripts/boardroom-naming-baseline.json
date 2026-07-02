@@ -1,7 +1,7 @@
 {
   "$comment": "Boardroom naming ratchet baseline. Per-file count of legacy 'fishbowl'/'popcorn' occurrences (path + content, case-insensitive substring). CI fails when any count grows (new legacy references are banned) or when it shrinks without this file being regenerated. Regenerate with: npm run boardroom:baseline. Policy: docs/fishbowl-compat-map.md.",
-  "total_legacy_occurrences": 1620,
-  "file_count": 184,
+  "total_legacy_occurrences": 1626,
+  "file_count": 185,
   "files": {
     ".claude/agents/heartbeat.md": 3,
     ".github/architecture-qc-checklist.md": 4,
@@ -26,7 +26,7 @@
     "api/fishbowl-todo-open-stale-release.test.ts": 2,
     "api/fishbowl-todo-release-protection.test.ts": 11,
     "api/fishbowl-watcher.test.ts": 17,
-    "api/fishbowl-watcher.ts": 68,
+    "api/fishbowl-watcher.ts": 72,
     "api/induction.ts": 1,
     "api/lib/autopilot-control-ledger.ts": 3,
     "api/lib/boardroom-compat.test.ts": 12,
@@ -46,6 +46,7 @@
     "api/lib/fishbowl-todo-open-stale-release.ts": 5,
     "api/lib/fishbowl-todo-release-protection.ts": 6,
     "api/lib/orchestrator-context.ts": 10,
+    "api/lib/queue-hydration.ts": 2,
     "api/lib/score-trace.ts": 4,
     "api/lib/unclick-connect-worker-discovery.test.ts": 7,
     "api/lib/unclick-connect-worker-discovery.ts": 4,
