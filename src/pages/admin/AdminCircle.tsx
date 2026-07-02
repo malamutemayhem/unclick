@@ -1,36 +1,66 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useSession } from "@/lib/auth";
 import { productName } from "@/config/product-names";
 import { relativeTime } from "@/lib/relativeTime";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import UserAvatar from "@/components/UserAvatar";
 import {
   AlertTriangle,
   AppWindow,
-  BookOpen,
   Brain,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
-  Database,
-  FileStack,
-  FolderKanban,
   Loader2,
   MessageSquare,
-  SearchCheck,
+  MessagesSquare,
   Shield,
   ShieldOff,
-  SlidersHorizontal,
   UserPlus,
   Users,
   X,
 } from "lucide-react";
 
-type PermissionKey = "shared_memory" | "shared_orchestrator";
-type PermissionDirection = "give" | "receive";
-type GlyphMode = "self" | "handshake" | "give" | "receive" | "neutral" | "locked";
+// ============================================================
+// Circle permissions matrix v2.
+//
+// Design: docs/prd/circle-permissions-matrix-v2.md plus the operator's
+// toggle-vocabulary mockups. The glyph grammar, exactly as the mockups
+// draw it:
+//
+//   knob position = MY side (right = my side is on, left = off)
+//   arrows        = whose intent exists, drawn beside the knob and
+//                   never underneath it:
+//     neutral    [ knob          ]  nothing shared
+//     receive    [ knob        < ]  they are offering, waiting on me
+//     give       [ >       knob  ]  I am sharing toward them
+//     handshake  [ < >     knob  ]  both sides on, two-way (brightest)
+//     master     [         knob  ]  plain toggle, no arrows: whole row
+//   Every state also has a dimmed, non-interactive twin for cells that
+//   are visual info only (scope mirrors, app mandates not yet live).
+//
+// One tap moves MY whole side (offer out + standing acceptance), the You
+// column is the row master across everyone, sections collapse to one
+// compact row by default, and incoming handshake requests glow amber and
+// auto-expand their section. Fine control exposes give/receive halves.
+// ============================================================
+
+type PermissionKey = "shared_memory" | "shared_orchestrator" | "shared_chat";
+type PermissionDirection = "give" | "receive" | "both";
+type GlyphMode = "master-on" | "master-mixed" | "handshake" | "give" | "receive" | "neutral" | "locked";
 
 interface PermissionState {
   give_enabled: boolean;
@@ -40,6 +70,15 @@ interface PermissionState {
   receive_offered: boolean;
   receive_active: boolean;
 }
+
+const BLANK_STATE: PermissionState = {
+  give_enabled: false,
+  give_accepted: false,
+  give_active: false,
+  receive_enabled: false,
+  receive_offered: false,
+  receive_active: false,
+};
 
 interface CirclePerson {
   user_id: string | null;
@@ -55,7 +94,7 @@ interface CircleLink {
   person: CirclePerson;
   created_at: string;
   accepted_at: string | null;
-  permissions: Record<PermissionKey, PermissionState>;
+  permissions: Partial<Record<PermissionKey, PermissionState>>;
 }
 
 interface AuditRow {
@@ -73,127 +112,83 @@ interface CircleResponse {
   audit: AuditRow[];
 }
 
-interface MatrixRow {
+interface MatrixSection {
   id: string;
   label: string;
   detail: string;
   icon: ComponentType<{ className?: string }>;
   permission?: PermissionKey;
-  derivedFrom?: PermissionKey;
-  dimmed?: boolean;
+  // Dimmed, non-interactive rows shown when the section is expanded. They
+  // mirror the section state and name the granularity that is coming, in
+  // the mockups' "visual info only" vocabulary.
+  mirrorRows?: Array<{ label: string; detail: string }>;
+  // Muted single line shown under the expanded section.
+  futureNote?: string;
+  accent?: "default" | "apps";
 }
 
-interface MatrixSection {
-  id: string;
-  label: string;
-  accent?: "default" | "apps";
-  rows: MatrixRow[];
-}
+const MEMORY_SCOPES = [
+  "Saved Facts",
+  "Library",
+  "Files & Notes",
+  "Project Briefs",
+  "Preferences",
+  "Recall Check",
+];
+
+const APP_MANDATE_ROWS = [
+  "Dropbox",
+  "Google Drive",
+  "Gmail",
+  "Spotify",
+  "OneDrive",
+  "GitHub",
+];
 
 const MATRIX_SECTIONS: MatrixSection[] = [
   {
     id: "memory",
     label: "Memory",
-    rows: [
-      {
-        id: "memory-bundle",
-        label: "Memory Bundle",
-        detail: "Facts, preferences, summaries, and saved context.",
-        icon: Brain,
-        permission: "shared_memory",
-      },
-      {
-        id: "saved-facts",
-        label: "Saved Facts",
-        detail: "Covered by Memory Bundle.",
-        icon: Database,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-      {
-        id: "library",
-        label: "Library",
-        detail: "Covered by Memory Bundle.",
-        icon: BookOpen,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-      {
-        id: "chats",
-        label: "Chats",
-        detail: "Covered by Orchestrator.",
-        icon: MessageSquare,
-        derivedFrom: "shared_orchestrator",
-        dimmed: true,
-      },
-      {
-        id: "files-notes",
-        label: "Files & Notes",
-        detail: "Covered by Memory Bundle.",
-        icon: FileStack,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-      {
-        id: "project-briefs",
-        label: "Project Briefs",
-        detail: "Covered by Memory Bundle.",
-        icon: FolderKanban,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-      {
-        id: "preferences",
-        label: "Preferences",
-        detail: "Covered by Memory Bundle.",
-        icon: SlidersHorizontal,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-      {
-        id: "recall-check",
-        label: "Recall Check",
-        detail: "Covered by Memory Bundle.",
-        icon: SearchCheck,
-        derivedFrom: "shared_memory",
-        dimmed: true,
-      },
-    ],
+    detail: "Facts, preferences, summaries, and saved context.",
+    icon: Brain,
+    permission: "shared_memory",
+    mirrorRows: MEMORY_SCOPES.map((label) => ({
+      label,
+      detail: "Covered by the Memory bundle.",
+    })),
+    futureNote:
+      "Per-scope toggles unlock when scoped sharing ships; today Memory shares as one bundle and the rows above follow it.",
   },
   {
     id: "orchestrator",
     label: "Orchestrator",
-    rows: [
-      {
-        id: "orchestrator-continuity",
-        label: "Orchestrator",
-        detail: "Chat continuity and session context.",
-        icon: MessageSquare,
-        permission: "shared_orchestrator",
-      },
-    ],
+    detail: "Chat continuity and session context.",
+    icon: MessageSquare,
+    permission: "shared_orchestrator",
+  },
+  {
+    id: "rooms",
+    label: "Chat rooms",
+    detail: "Allow adding each other to shared chat rooms.",
+    icon: MessagesSquare,
+    permission: "shared_chat",
   },
   {
     id: "apps",
-    label: "Apps",
+    label: "Apps (you connected)",
+    detail: "Scoped app delegation requires mandate receipts.",
+    icon: AppWindow,
     accent: "apps",
-    rows: [
-      {
-        id: "app-mandates",
-        label: "App Mandates",
-        detail: "Scoped app delegation requires mandate receipts.",
-        icon: AppWindow,
-        dimmed: true,
-      },
-      { id: "dropbox", label: "Dropbox", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-      { id: "google-drive", label: "Google Drive", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-      { id: "gmail", label: "Gmail", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-      { id: "spotify", label: "Spotify", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-      { id: "onedrive", label: "OneDrive", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-      { id: "github", label: "GitHub", detail: "No mandate active.", icon: AppWindow, dimmed: true },
-    ],
+    mirrorRows: APP_MANDATE_ROWS.map((label) => ({
+      label,
+      detail: "No mandate active.",
+    })),
+    futureNote:
+      "App sharing is asymmetric: apps someone shares toward you get their own section here with accept and request toggles, and no master applies to them. Nothing is shared until mandates ship.",
   },
 ];
+
+const SECTION_STORE_KEY = "unclick_circle_sections_v2";
 
 function timeAgo(iso: string | null) {
   return relativeTime(iso, { justNow: true });
@@ -202,10 +197,6 @@ function timeAgo(iso: string | null) {
 function initials(person: CirclePerson) {
   const source = person.display_name || person.email || "?";
   return source.slice(0, 2).toUpperCase();
-}
-
-function initialsFromLabel(label: string | null | undefined) {
-  return (label || "?").slice(0, 2).toUpperCase();
 }
 
 function personLabel(person: CirclePerson) {
@@ -219,24 +210,45 @@ function actionLabel(action: string) {
     .join(" ");
 }
 
-function stateMode(state: PermissionState | null | undefined): GlyphMode {
-  if (!state) return "locked";
-  const giveVisible = state.give_active || state.give_enabled || state.give_accepted;
-  const receiveVisible = state.receive_active || state.receive_enabled || state.receive_offered;
+function stateFor(link: CircleLink, permission: PermissionKey): PermissionState {
+  return link.permissions[permission] ?? BLANK_STATE;
+}
 
+// My side of a cell: my offer out or my standing acceptance in.
+export function mySideOn(state: PermissionState): boolean {
+  return state.give_enabled || state.receive_enabled;
+}
+
+// An incoming handshake request waiting on me.
+export function hasIncomingRequest(state: PermissionState): boolean {
+  return state.receive_offered && !state.receive_enabled;
+}
+
+// My offer is out but the other side has not accepted yet.
+export function isPendingOutbound(state: PermissionState): boolean {
+  return state.give_enabled && !state.give_accepted;
+}
+
+// The arrows render INTENT that exists: my offer out (>) and their offer in
+// (<). My standing acceptance alone draws nothing; a handshake needs both
+// parties' offers, exactly like the mockup key.
+export function stateMode(state: PermissionState): GlyphMode {
+  const giveVisible = state.give_enabled;
+  const receiveVisible = state.receive_offered;
   if (giveVisible && receiveVisible) return "handshake";
   if (giveVisible) return "give";
   if (receiveVisible) return "receive";
   return "neutral";
 }
 
-function stateLabel(state: PermissionState | null | undefined) {
-  if (!state) return "Locked";
+export function stateLabel(state: PermissionState): string {
   if (state.give_active && state.receive_active) return "Two-way";
+  if (hasIncomingRequest(state) && state.give_enabled) return "Request in";
   if (state.give_active) return "Sharing";
   if (state.receive_active) return "Receiving";
-  if (state.give_enabled || state.receive_enabled) return "Pending";
-  if (state.give_accepted || state.receive_offered) return "Offered";
+  if (hasIncomingRequest(state)) return "Request";
+  if (isPendingOutbound(state)) return "Trying to share";
+  if (state.receive_enabled) return "Open to theirs";
   return "Off";
 }
 
@@ -245,133 +257,186 @@ function personStatus(link: CircleLink) {
   return `Pending ${timeAgo(link.created_at)}`;
 }
 
+// ── the compact pill ─────────────────────────────────────────────
+//
+// Geometry per the mockups: the knob owns one end of the pill and the
+// arrows own the other, so a handshake reads as "< > [knob]" and both
+// chevrons stay visible instead of hiding under the knob.
+
 function PermissionGlyph({
   mode,
+  attention = false,
+  pending = false,
   dimmed = false,
   busy = false,
   className,
 }: {
   mode: GlyphMode;
+  // Amber salience: an incoming request is waiting on the viewer.
+  attention?: boolean;
+  // My offer is out, not yet accepted: soft pulse instead of full solid.
+  pending?: boolean;
   dimmed?: boolean;
   busy?: boolean;
   className?: string;
 }) {
-  const live = mode === "self" || mode === "handshake" || mode === "give" || mode === "receive";
-  const knobRight = mode === "self" || mode === "handshake" || mode === "give";
-  const showArrows = mode !== "self" && mode !== "locked";
+  const live =
+    mode === "master-on" || mode === "handshake" || mode === "give" || mode === "receive";
+  const knobRight = mode === "master-on" || mode === "handshake" || mode === "give";
+  const half = mode === "master-mixed";
+  const showLeftArrow = mode === "handshake" || mode === "receive";
+  const showRightArrow = mode === "handshake" || mode === "give";
 
   return (
     <div
       className={cn(
-        "relative mx-auto flex h-9 w-[96px] items-center justify-between overflow-hidden rounded-full border px-3 transition",
-        live
-          ? "border-[#7CF4AF]/70 bg-[#3CD783]/30 text-[#D9FFE8] shadow-[0_0_18px_rgba(124,244,175,0.35)]"
-          : "border-white/15 bg-[#071821] text-white/30",
+        "relative mx-auto flex h-5 w-12 items-center overflow-hidden rounded-full border transition",
+        knobRight ? "justify-start pl-1 pr-5" : "justify-end pl-5 pr-1",
+        live && !attention &&
+          "border-[#7CF4AF]/70 bg-[#3CD783]/25 text-[#D9FFE8] shadow-[0_0_10px_rgba(124,244,175,0.3)]",
+        live && attention &&
+          "border-amber-300/70 bg-amber-400/15 text-amber-100 shadow-[0_0_10px_rgba(251,191,36,0.35)]",
+        mode === "handshake" && !attention && "shadow-[0_0_14px_rgba(124,244,175,0.5)]",
+        !live && !half && "border-white/15 bg-[#071821] text-white/30",
+        half && "border-[#7CF4AF]/40 bg-[#3CD783]/10 text-[#D9FFE8]/70",
         mode === "locked" && "border-white/10 bg-white/[0.03] text-white/20",
-        dimmed && "opacity-45 grayscale",
+        pending && "animate-pulse",
+        dimmed && "opacity-40 grayscale",
         className,
       )}
     >
       <span
         className={cn(
-          "absolute top-1 h-7 w-7 rounded-full border transition-all",
-          live
-            ? "border-[#CFFFE2]/60 bg-[#CFFFE2] shadow-[0_0_12px_rgba(207,255,226,0.6)]"
-            : "border-white/20 bg-white/[0.06]",
-          knobRight ? "right-1" : "left-1",
+          "absolute top-[3px] h-3.5 w-3.5 rounded-full border transition-all",
+          live && !attention && "border-[#CFFFE2]/60 bg-[#CFFFE2] shadow-[0_0_8px_rgba(207,255,226,0.55)]",
+          live && attention && "border-amber-100/70 bg-amber-100 shadow-[0_0_8px_rgba(253,230,138,0.55)]",
+          !live && !half && "border-white/20 bg-white/[0.06]",
+          half && "border-[#CFFFE2]/40 bg-[#CFFFE2]/45 left-1/2 -translate-x-1/2",
+          !half && (knobRight ? "right-[3px]" : "left-[3px]"),
         )}
       />
-      {showArrows ? <ChevronLeft className="relative z-10 h-4 w-4" /> : <span className="relative z-10 h-4 w-4" />}
-      {showArrows ? <ChevronRight className="relative z-10 h-4 w-4" /> : <span className="relative z-10 h-4 w-4" />}
+      {showLeftArrow && <ChevronLeft className="relative z-10 h-3 w-3 shrink-0" />}
+      {showRightArrow && <ChevronRight className="relative z-10 h-3 w-3 shrink-0" />}
       {busy && (
         <span className="absolute inset-0 z-20 flex items-center justify-center rounded-full bg-[#071821]/75">
-          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <Loader2 className="h-3 w-3 animate-spin text-primary" />
         </span>
       )}
     </div>
   );
 }
 
+// One person + one resource. One tap = my whole side on or off. Fine control
+// swaps to explicit give/receive halves.
 function PermissionCell({
   link,
-  row,
+  label,
   state,
   busy,
+  fineControl,
   onChange,
 }: {
   link: CircleLink;
-  row: MatrixRow & { permission: PermissionKey };
+  label: string;
   state: PermissionState;
   busy: boolean;
+  fineControl: boolean;
   onChange: (direction: PermissionDirection, enabled: boolean) => void;
 }) {
-  const label = personLabel(link.person);
+  const person = personLabel(link.person);
   const mode = stateMode(state);
+  const attention = hasIncomingRequest(state);
+  const pending = isPendingOutbound(state) && !attention;
 
   return (
-    <div className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 px-3 py-3">
-      <div className="relative h-9 w-[96px]">
-        <PermissionGlyph mode={mode} busy={busy} />
-        <button
-          type="button"
-          aria-label={`Receive ${row.label} from ${label}`}
-          aria-pressed={state.receive_enabled}
-          title={`Receive ${row.label} from ${label}`}
-          disabled={busy}
-          onClick={() => onChange("receive", !state.receive_enabled)}
-          className="absolute inset-y-0 left-0 z-30 w-1/2 rounded-l-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        />
-        <button
-          type="button"
-          aria-label={`Share my ${row.label} with ${label}`}
-          aria-pressed={state.give_enabled}
-          title={`Share my ${row.label} with ${label}`}
-          disabled={busy}
-          onClick={() => onChange("give", !state.give_enabled)}
-          className="absolute inset-y-0 right-0 z-30 w-1/2 rounded-r-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        />
+    <div className="flex h-9 items-center justify-center px-1.5">
+      <div className="relative h-5 w-12">
+        <PermissionGlyph mode={mode} attention={attention} pending={pending} busy={busy} />
+        {fineControl ? (
+          <>
+            <button
+              type="button"
+              aria-label={`Receive ${label} from ${person}`}
+              aria-pressed={state.receive_enabled}
+              title={`Receive ${label} from ${person}`}
+              disabled={busy}
+              onClick={() => onChange("receive", !state.receive_enabled)}
+              className="absolute inset-y-0 left-0 z-30 w-1/2 rounded-l-full border-r border-dashed border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+            <button
+              type="button"
+              aria-label={`Share my ${label} with ${person}`}
+              aria-pressed={state.give_enabled}
+              title={`Share my ${label} with ${person}`}
+              disabled={busy}
+              onClick={() => onChange("give", !state.give_enabled)}
+              className="absolute inset-y-0 right-0 z-30 w-1/2 rounded-r-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            aria-label={`${mySideOn(state) ? "Stop sharing" : "Share"} ${label} with ${person}`}
+            aria-pressed={mySideOn(state)}
+            title={
+              attention
+                ? `${person} is requesting ${label}. Tap to complete the handshake.`
+                : `${label} with ${person}: ${stateLabel(state)}. Tap to ${mySideOn(state) ? "stop sharing" : "share"}.`
+            }
+            disabled={busy}
+            onClick={() => onChange("both", !mySideOn(state))}
+            className="absolute inset-0 z-30 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        )}
       </div>
-      <span className="max-w-[112px] truncate text-[11px] font-medium text-white/55">{stateLabel(state)}</span>
     </div>
   );
 }
 
-function VisualPermissionCell({
-  state,
-  unavailable = false,
+// The You column: the row master. On = my side is on with everyone.
+function RowMasterCell({
+  label,
+  allOn,
+  someOn,
+  busy,
+  disabled,
+  onToggle,
 }: {
-  state?: PermissionState;
-  unavailable?: boolean;
+  label: string;
+  allOn: boolean;
+  someOn: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onToggle: (enabled: boolean) => void;
 }) {
-  const mode = unavailable ? "locked" : stateMode(state);
+  const mode: GlyphMode = disabled ? "locked" : allOn ? "master-on" : someOn ? "master-mixed" : "neutral";
   return (
-    <div className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 px-3 py-3">
-      <PermissionGlyph mode={mode} dimmed />
-      <span className="max-w-[112px] truncate text-[11px] font-medium text-white/30">
-        {unavailable ? "Locked" : stateLabel(state)}
-      </span>
+    <div className="flex h-9 items-center justify-center px-1.5">
+      <div className="relative h-5 w-12">
+        <PermissionGlyph mode={mode} busy={busy} dimmed={disabled} />
+        {!disabled && (
+          <button
+            type="button"
+            aria-label={`${allOn ? "Stop sharing" : "Share"} ${label} with everyone`}
+            aria-pressed={allOn}
+            title={`${allOn ? "Stop sharing" : "Share"} ${label} with everyone in your Circle`}
+            disabled={busy}
+            onClick={() => onToggle(!allOn)}
+            className="absolute inset-0 z-30 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+        )}
+      </div>
     </div>
   );
 }
 
-function SelfPermissionCell({ available }: { available: boolean }) {
+function PersonAvatar({ person, fallback }: { person?: CirclePerson; fallback: string }) {
   return (
-    <div className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 px-3 py-3">
-      <PermissionGlyph mode={available ? "self" : "locked"} dimmed={!available} />
-      <span className="max-w-[112px] truncate text-[11px] font-medium text-primary/80">
-        {available ? "Mine" : "Locked"}
-      </span>
-    </div>
-  );
-}
-
-function PersonAvatar({ person, fallbackLabel }: { person?: CirclePerson; fallbackLabel: string }) {
-  return (
-    <div className="mx-auto flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-primary/35 bg-primary/10 text-sm font-semibold text-primary shadow-[0_0_18px_rgba(97,193,196,0.22)]">
+    <div className="mx-auto flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-primary/35 bg-primary/10 text-[10px] font-semibold text-primary">
       {person?.avatar_url ? (
         <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
       ) : (
-        initialsFromLabel(person ? initials(person) : fallbackLabel)
+        (person ? initials(person) : fallback).slice(0, 2).toUpperCase()
       )}
     </div>
   );
@@ -381,51 +446,80 @@ function PersonColumnHeader({
   label,
   sublabel,
   person,
+  avatar,
   highlighted = false,
 }: {
   label: string;
   sublabel?: string | null;
   person?: CirclePerson;
+  // Pre-rendered avatar node (the operator's own picked face).
+  avatar?: ReactNode;
   highlighted?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "flex min-h-[104px] flex-col items-center justify-end gap-2 border-l border-white/10 px-3 pb-3 text-center",
-        highlighted && "bg-primary/[0.08] shadow-[inset_0_0_26px_rgba(124,244,175,0.16)]",
+        "flex min-h-[58px] flex-col items-center justify-end gap-0.5 border-l border-white/10 px-1.5 pb-1.5 text-center",
+        highlighted && "bg-primary/[0.08]",
       )}
     >
-      <PersonAvatar person={person} fallbackLabel={label} />
+      {avatar ?? <PersonAvatar person={person} fallback={sublabel || label} />}
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-white">{label}</p>
-        {sublabel && <p className="mt-0.5 truncate text-[11px] text-white/35">{sublabel}</p>}
+        <p className="truncate text-[11px] font-semibold text-white">{label}</p>
+        {sublabel && <p className="truncate text-[9px] text-white/35">{sublabel}</p>}
       </div>
     </div>
   );
 }
 
-function RowHeader({ row }: { row: MatrixRow }) {
-  const Icon = row.icon;
-  return (
-    <div className="sticky left-0 z-10 flex min-h-[72px] items-center gap-3 border-r border-white/10 bg-[#071821] px-4 py-3">
-      <Icon className={cn("h-5 w-5 shrink-0", row.dimmed ? "text-white/35" : "text-primary")} />
-      <div className="min-w-0">
-        <p className={cn("truncate text-sm font-semibold", row.dimmed ? "text-white/60" : "text-white")}>
-          {row.label}
-        </p>
-        <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-white/38">{row.detail}</p>
-      </div>
-    </div>
-  );
+interface SectionSummary {
+  sharing: number;
+  receiving: number;
+  requests: number;
+}
+
+function summarizeSection(links: CircleLink[], permission: PermissionKey): SectionSummary {
+  let sharing = 0;
+  let receiving = 0;
+  let requests = 0;
+  for (const link of links) {
+    const state = stateFor(link, permission);
+    if (state.give_active) sharing += 1;
+    if (state.receive_active) receiving += 1;
+    if (hasIncomingRequest(state)) requests += 1;
+  }
+  return { sharing, receiving, requests };
+}
+
+function summaryText(summary: SectionSummary): string {
+  const parts: string[] = [];
+  if (summary.sharing) parts.push(`sharing with ${summary.sharing}`);
+  if (summary.receiving) parts.push(`receiving ${summary.receiving}`);
+  if (parts.length === 0) return "nothing shared";
+  return parts.join(", ");
+}
+
+function loadSectionPrefs(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(SECTION_STORE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
 function PermissionMatrix({
   me,
+  meAvatar,
   links,
   working,
   onPermissionChange,
+  onPermissionAll,
 }: {
   me: CircleResponse["me"] | null | undefined;
+  meAvatar?: ReactNode;
   links: CircleLink[];
   working: string | null;
   onPermissionChange: (
@@ -434,28 +528,49 @@ function PermissionMatrix({
     direction: PermissionDirection,
     enabled: boolean,
   ) => void;
+  onPermissionAll: (permission: PermissionKey, enabled: boolean) => void;
 }) {
-  const gridTemplateColumns = `minmax(240px, 1.35fr) repeat(${links.length + 1}, minmax(126px, 0.7fr))`;
+  const [fineControl, setFineControl] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => loadSectionPrefs());
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(SECTION_STORE_KEY, JSON.stringify(expanded));
+    } catch {
+      /* ignore */
+    }
+  }, [expanded]);
+
+  const gridTemplateColumns = `minmax(164px, 1.2fr) repeat(${links.length + 1}, minmax(60px, 0.5fr))`;
 
   return (
-    <section className="space-y-4" aria-label="Permission matrix">
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Permissions</h2>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-white/50">
-          Memory, Orchestrator, and app mandate access by person.
-        </p>
+    <section className="space-y-2" aria-label="Permission matrix">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Permissions</h2>
+          <p className="mt-0.5 max-w-2xl text-xs leading-5 text-white/45">
+            Tap a cell to share with that person; tap again to stop. The You column shares with everyone at once.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 rounded-md border border-border/50 bg-card/40 px-2 py-1 text-[11px] text-muted-foreground">
+          <span>Fine control</span>
+          <Switch
+            checked={fineControl}
+            onCheckedChange={setFineControl}
+            aria-label="Fine control (separate give and receive)"
+            className="h-4 w-8"
+          />
+        </label>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-primary/20 bg-[#071821]/88 shadow-[0_0_38px_rgba(97,193,196,0.08)]">
-        <div className="min-w-[760px]">
-          <div
-            className="grid border-b border-primary/20 bg-[#0A2632]/80"
-            style={{ gridTemplateColumns }}
-          >
-            <div className="sticky left-0 z-20 flex min-h-[104px] items-end border-r border-white/10 bg-[#0A2632] px-4 pb-4">
-              <span className="text-2xl font-semibold tracking-normal text-primary">Access</span>
+      <div className="overflow-x-auto rounded-lg border border-primary/20 bg-[#071821]/88">
+        <div className="min-w-[560px]">
+          <div className="grid border-b border-primary/20 bg-[#0A2632]/80" style={{ gridTemplateColumns }}>
+            <div className="sticky left-0 z-20 flex min-h-[58px] items-end border-r border-white/10 bg-[#0A2632] px-2.5 pb-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Access</span>
             </div>
-            <PersonColumnHeader label="You" sublabel={me?.email} highlighted />
+            <PersonColumnHeader label="You" sublabel={me?.email} avatar={meAvatar} highlighted />
             {links.map((link) => (
               <PersonColumnHeader
                 key={link.id}
@@ -466,95 +581,228 @@ function PermissionMatrix({
             ))}
           </div>
 
-          {MATRIX_SECTIONS.map((section) => (
-            <div key={section.id}>
-              <div
-                className={cn(
-                  "grid border-b border-white/10",
-                  section.accent === "apps" ? "bg-[#5B4212]/45" : "bg-primary/[0.08]",
-                )}
-                style={{ gridTemplateColumns }}
-              >
+          {MATRIX_SECTIONS.map((section) => {
+            const permission = section.permission;
+            const summary = permission ? summarizeSection(links, permission) : null;
+            // A section with a pending request defaults open so a handshake
+            // request is never buried, but an explicit user collapse wins
+            // (the amber badge stays visible on the header either way).
+            const isOpen =
+              expanded[section.id] !== undefined
+                ? Boolean(expanded[section.id])
+                : Boolean(summary && summary.requests > 0);
+            const states = permission ? links.map((link) => stateFor(link, permission)) : [];
+            const allOn = states.length > 0 && states.every(mySideOn);
+            const someOn = states.some(mySideOn);
+            const Icon = section.icon;
+            const masterBusy = permission ? working === `all-${permission}` : false;
+
+            return (
+              <div key={section.id}>
                 <div
                   className={cn(
-                    "sticky left-0 z-20 flex min-h-12 items-center gap-2 border-r border-white/10 px-4",
-                    section.accent === "apps" ? "bg-[#5B4212] text-[#FFE08A]" : "bg-[#0B2A34] text-primary",
+                    "grid border-b border-white/10",
+                    section.accent === "apps" ? "bg-[#5B4212]/45" : "bg-primary/[0.08]",
                   )}
-                >
-                  <span className="text-lg font-semibold">{section.label}</span>
-                </div>
-                {Array.from({ length: links.length + 1 }).map((_, index) => (
-                  <div key={`${section.id}-blank-${index}`} className="border-l border-white/10" />
-                ))}
-              </div>
-
-              {section.rows.map((row) => (
-                <div
-                  key={row.id}
-                  className="grid border-b border-white/10 last:border-b-0"
                   style={{ gridTemplateColumns }}
                 >
-                  <RowHeader row={row} />
-                  <div className="border-l border-white/10 bg-primary/[0.05]">
-                    <SelfPermissionCell available={Boolean(row.permission || row.derivedFrom)} />
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((prev) => ({ ...prev, [section.id]: !isOpen }))}
+                    aria-expanded={isOpen}
+                    aria-label={`${isOpen ? "Collapse" : "Expand"} ${section.label}`}
+                    className={cn(
+                      "sticky left-0 z-20 flex h-9 items-center gap-1.5 border-r border-white/10 px-2.5 text-left",
+                      section.accent === "apps" ? "bg-[#5B4212] text-[#FFE08A]" : "bg-[#0B2A34] text-primary",
+                    )}
+                  >
+                    <ChevronDown
+                      className={cn("h-3.5 w-3.5 shrink-0 transition-transform", !isOpen && "-rotate-90")}
+                    />
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate text-xs font-semibold">{section.label}</span>
+                    {summary && (
+                      <span className="ml-1 hidden truncate text-[10px] font-normal text-white/45 lg:inline">
+                        {summaryText(summary)}
+                      </span>
+                    )}
+                    {summary && summary.requests > 0 && (
+                      <span className="ml-auto shrink-0 rounded-full border border-amber-300/50 bg-amber-400/15 px-1.5 py-px text-[9px] font-semibold text-amber-200">
+                        {summary.requests} request{summary.requests === 1 ? "" : "s"}
+                      </span>
+                    )}
+                  </button>
+                  <div className="border-l border-white/10">
+                    {permission && !isOpen ? (
+                      <RowMasterCell
+                        label={section.label}
+                        allOn={allOn}
+                        someOn={someOn}
+                        busy={masterBusy}
+                        disabled={links.length === 0}
+                        onToggle={(enabled) => onPermissionAll(permission, enabled)}
+                      />
+                    ) : permission ? (
+                      <div className="h-9" />
+                    ) : (
+                      <div className="flex h-9 items-center justify-center">
+                        <PermissionGlyph mode="locked" dimmed />
+                      </div>
+                    )}
                   </div>
                   {links.map((link) => {
-                    if (row.permission) {
-                      const key = `${link.id}-${row.permission}`;
+                    if (!permission || isOpen) {
                       return (
-                        <div key={`${row.id}-${link.id}`} className="border-l border-white/10">
-                          <PermissionCell
-                            link={link}
-                            row={row as MatrixRow & { permission: PermissionKey }}
-                            state={link.permissions[row.permission]}
-                            busy={working === `${key}-give` || working === `${key}-receive`}
-                            onChange={(direction, enabled) =>
-                              onPermissionChange(link, row.permission, direction, enabled)
-                            }
-                          />
-                        </div>
+                        <div key={`${section.id}-head-${link.id}`} className="border-l border-white/10" />
                       );
                     }
-
-                    const derived = row.derivedFrom ? link.permissions[row.derivedFrom] : undefined;
+                    // Collapsed: the section header row doubles as the live
+                    // cells so the matrix stays one row tall per section.
+                    const key = `${link.id}-${permission}`;
                     return (
-                      <div key={`${row.id}-${link.id}`} className="border-l border-white/10">
-                        <VisualPermissionCell state={derived} unavailable={!derived} />
+                      <div key={`${section.id}-head-${link.id}`} className="border-l border-white/10">
+                        <PermissionCell
+                          link={link}
+                          label={section.label}
+                          state={stateFor(link, permission)}
+                          busy={working === `${key}-both` || working === `${key}-give` || working === `${key}-receive`}
+                          fineControl={fineControl}
+                          onChange={(direction, enabled) =>
+                            onPermissionChange(link, permission, direction, enabled)
+                          }
+                        />
                       </div>
                     );
                   })}
                 </div>
-              ))}
-            </div>
-          ))}
+
+                {isOpen && permission && (
+                  <div className="grid border-b border-white/10" style={{ gridTemplateColumns }}>
+                    <div className="sticky left-0 z-10 flex h-9 items-center border-r border-white/10 bg-[#071821] px-2.5">
+                      <p className="truncate text-[11px] leading-4 text-white/45" title={section.detail}>
+                        {section.detail}
+                      </p>
+                    </div>
+                    <div className="border-l border-white/10 bg-primary/[0.05]">
+                      <RowMasterCell
+                        label={section.label}
+                        allOn={allOn}
+                        someOn={someOn}
+                        busy={masterBusy}
+                        disabled={links.length === 0}
+                        onToggle={(enabled) => onPermissionAll(permission, enabled)}
+                      />
+                    </div>
+                    {links.map((link) => {
+                      const key = `${link.id}-${permission}`;
+                      return (
+                        <div key={`${section.id}-row-${link.id}`} className="border-l border-white/10">
+                          <PermissionCell
+                            link={link}
+                            label={section.label}
+                            state={stateFor(link, permission)}
+                            busy={working === `${key}-both` || working === `${key}-give` || working === `${key}-receive`}
+                            fineControl={fineControl}
+                            onChange={(direction, enabled) =>
+                              onPermissionChange(link, permission, direction, enabled)
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {isOpen &&
+                  section.mirrorRows?.map((mirror) => (
+                    <div
+                      key={`${section.id}-mirror-${mirror.label}`}
+                      className="grid border-b border-white/5"
+                      style={{ gridTemplateColumns }}
+                    >
+                      <div className="sticky left-0 z-10 flex h-8 items-center gap-1.5 border-r border-white/10 bg-[#071821] px-2.5 pl-7">
+                        <span className="truncate text-[11px] text-white/45">{mirror.label}</span>
+                        <span className="hidden truncate text-[10px] text-white/25 sm:inline">{mirror.detail}</span>
+                      </div>
+                      <div className="flex h-8 items-center justify-center border-l border-white/10">
+                        <PermissionGlyph
+                          mode={
+                            permission
+                              ? links.length > 0 && states.every(mySideOn)
+                                ? "master-on"
+                                : states.some(mySideOn)
+                                  ? "master-mixed"
+                                  : "neutral"
+                              : "locked"
+                          }
+                          dimmed
+                        />
+                      </div>
+                      {links.map((link) => (
+                        <div
+                          key={`${section.id}-mirror-${mirror.label}-${link.id}`}
+                          className="flex h-8 items-center justify-center border-l border-white/10"
+                        >
+                          <PermissionGlyph
+                            mode={permission ? stateMode(stateFor(link, permission)) : "locked"}
+                            dimmed
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                {isOpen && section.futureNote && (
+                  <div className="grid border-b border-white/10" style={{ gridTemplateColumns }}>
+                    <div className="sticky left-0 z-10 border-r border-white/10 bg-[#071821] px-2.5 py-1.5 text-[10px] leading-4 text-white/30">
+                      {section.futureNote}
+                    </div>
+                    {Array.from({ length: links.length + 1 }).map((_, index) => (
+                      <div key={`${section.id}-note-${index}`} className="border-l border-white/10" />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <PermissionLegend />
         </div>
       </div>
-
-      <PermissionLegend />
     </section>
   );
 }
 
+// The key: one slim muted strip inside the table frame, like the mockup.
 function PermissionLegend() {
-  const items: Array<{ mode: GlyphMode; label: string; dimmed?: boolean }> = [
-    { mode: "neutral", label: "Neutral, nothing shared" },
-    { mode: "handshake", label: "Handshake, two-way shared" },
-    { mode: "receive", label: "3rd party requesting handshake" },
-    { mode: "give", label: "You sharing to a 3rd party" },
-    { mode: "locked", label: "Locked / view only", dimmed: true },
+  const items: Array<{
+    mode: GlyphMode;
+    label: string;
+    attention?: boolean;
+    dimmed?: boolean;
+  }> = [
+    { mode: "neutral", label: "Nothing shared" },
+    { mode: "handshake", label: "Handshake, two-way" },
+    { mode: "receive", label: "Requesting you", attention: true },
+    { mode: "give", label: "You sharing" },
+    { mode: "master-on", label: "Whole row" },
+    { mode: "locked", label: "View only", dimmed: true },
   ];
 
   return (
-    <div className="rounded-lg border border-primary/15 bg-[#071821]/78 p-4">
-      <h3 className="mb-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-primary/80">Key</h3>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3">
-            <PermissionGlyph mode={item.mode} dimmed={item.dimmed} />
-            <span className="text-xs font-medium leading-5 text-white/62">{item.label}</span>
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/10 bg-[#06141b] px-3 py-2">
+      <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-white/30">Key</span>
+      {items.map((item) => (
+        <div key={item.label} className="flex items-center gap-1.5">
+          <PermissionGlyph
+            mode={item.mode}
+            attention={item.attention}
+            dimmed={item.dimmed}
+            className="scale-90"
+          />
+          <span className="text-[10px] leading-4 text-white/40">{item.label}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -575,11 +823,11 @@ function PendingInviteSection({
   if (links.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">{title}</h2>
-      <div className="grid gap-3 lg:grid-cols-2">
+    <section className="space-y-2">
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{title}</h2>
+      <div className="flex flex-col gap-2">
         {links.map((link) => (
-          <div key={link.id} className="rounded-lg border border-white/10 bg-card/55 p-4">
+          <div key={link.id} className="rounded-lg border border-white/10 bg-card/55 px-4 py-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <PersonSummary link={link} />
               {action === "incoming" ? (
@@ -625,22 +873,40 @@ function PendingInviteSection({
   );
 }
 
+// The audit trail: deliberately quiet. One slim collapsed row; a chevron
+// opens the recent entries.
 function AuditSection({ rows }: { rows: AuditRow[] }) {
+  const [open, setOpen] = useState(false);
   if (rows.length === 0) return null;
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Access audit</h2>
+    <section>
       <div className="overflow-hidden rounded-lg border border-white/10 bg-[#071821]/50">
-        {rows.slice(0, 8).map((row) => (
-          <div
-            key={row.id}
-            className="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-3 text-sm first:border-t-0"
-          >
-            <span className="min-w-0 truncate text-foreground">{actionLabel(row.action)}</span>
-            <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(row.created_at)}</span>
-          </div>
-        ))}
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-expanded={open}
+          aria-label={`${open ? "Collapse" : "Expand"} access audit`}
+          className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        >
+          <ChevronDown
+            className={cn("h-3.5 w-3.5 shrink-0 text-white/40 transition-transform", !open && "-rotate-90")}
+          />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
+            Access audit
+          </span>
+          <span className="ml-auto text-[10px] text-white/30">{rows.length} recent</span>
+        </button>
+        {open &&
+          rows.slice(0, 8).map((row) => (
+            <div
+              key={row.id}
+              className="flex items-center justify-between gap-4 border-t border-white/5 px-3 py-1.5 text-xs"
+            >
+              <span className="min-w-0 truncate text-white/55">{actionLabel(row.action)}</span>
+              <span className="shrink-0 text-[10px] text-white/30">{timeAgo(row.created_at)}</span>
+            </div>
+          ))}
       </div>
     </section>
   );
@@ -716,19 +982,20 @@ export default function AdminCircle() {
   const hasActiveSharing = (data?.sharing_count ?? 0) > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-4 sm:p-6">
+      <header className="flex flex-col gap-3 border-b border-white/10 pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            <Users className="h-3.5 w-3.5" />
+          <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary">
+            <Users className="h-3 w-3" />
             {accepted.length + 1} account{accepted.length === 0 ? "" : "s"}
           </div>
-          <h1 className="text-3xl font-semibold tracking-normal text-foreground">{circleName}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-normal text-foreground">{circleName}</h1>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Link human accounts and choose what is shared with each person.
           </p>
         </div>
         <Button
+          size="sm"
           variant={hasActiveSharing ? "destructive" : "outline"}
           disabled={!hasActiveSharing || working === "stop-all"}
           onClick={() => {
@@ -742,23 +1009,23 @@ export default function AdminCircle() {
         </Button>
       </header>
 
-      <form onSubmit={submitInvite} className="flex flex-col gap-3 rounded-lg border border-white/10 bg-card/40 p-4 sm:flex-row">
+      <form onSubmit={submitInvite} className="flex flex-col gap-2 rounded-lg border border-white/10 bg-card/40 p-3 sm:flex-row">
         <Input
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="person@example.com"
           type="email"
-          className="min-h-10 flex-1"
+          className="min-h-9 flex-1"
           aria-label="Circle invite email"
         />
-        <Button type="submit" disabled={!email.trim() || working === "invite"} className="min-h-10">
+        <Button type="submit" size="sm" disabled={!email.trim() || working === "invite"} className="min-h-9">
           {working === "invite" ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
           Add to {circleName}
         </Button>
       </form>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+        <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -782,6 +1049,12 @@ export default function AdminCircle() {
           {accepted.length > 0 ? (
             <PermissionMatrix
               me={data?.me}
+              meAvatar={
+                <UserAvatar
+                  user={session?.user ?? null}
+                  className="mx-auto h-7 w-7 border border-primary/35"
+                />
+              }
               links={accepted}
               working={working}
               onPermissionChange={(link, permission, direction, enabled) =>
@@ -790,6 +1063,9 @@ export default function AdminCircle() {
                   { link_id: link.id, permission, direction, enabled },
                   `${link.id}-${permission}-${direction}`,
                 )
+              }
+              onPermissionAll={(permission, enabled) =>
+                void runAction("set_permission_all", { permission, enabled }, `all-${permission}`)
               }
             />
           ) : (

@@ -127,9 +127,57 @@ export function newSubscriptionSeat(
   };
 }
 
+// The exact package version the bridge one-liner installs. Pinned because an
+// unpinned `npx @unclick/mcp-server` resolves whatever is on the registry;
+// registry versions older than 0.3.110 do not know the `seat-bridge`
+// subcommand and silently start the plain stdio server instead, which looks
+// like "bridge never connects" to the user. Must equal
+// packages/mcp-server/package.json version (consistency-tested).
+export const BRIDGE_PACKAGE_VERSION = "0.3.110";
+
 // The one-liner the user runs on the machine where the CLI is signed in.
 export function bridgeCommand(runtime: string, handle: string): string {
-  return `npx @unclick/mcp-server seat-bridge --runtime ${runtime} --handle ${handle}`;
+  return `npx @unclick/mcp-server@${BRIDGE_PACKAGE_VERSION} seat-bridge --runtime ${runtime} --handle ${handle}`;
+}
+
+// ─── setup wizard helpers ────────────────────────────────────
+
+export type BridgeOs = "windows" | "mac" | "linux";
+
+// Best-effort OS detection for defaulting the wizard's copy-paste line. The
+// wizard always lets the user switch, so a wrong guess costs one click.
+export function detectBridgeOs(userAgent: string): BridgeOs {
+  const ua = userAgent.toLowerCase();
+  if (ua.includes("windows")) return "windows";
+  if (ua.includes("mac os") || ua.includes("macintosh")) return "mac";
+  return "linux";
+}
+
+// One single line the user pastes into a terminal: it sets their UnClick key
+// AND starts the bridge, so there is no separate "set an environment
+// variable" step to explain. Without a key it falls back to a placeholder
+// the wizard tells them to replace.
+export function fullBridgeCommand(opts: {
+  runtime: string;
+  handle: string;
+  apiKey?: string | null;
+  os: BridgeOs;
+}): string {
+  const key = (opts.apiKey ?? "").trim() || "PASTE-YOUR-UNCLICK-KEY-HERE";
+  const run = bridgeCommand(opts.runtime, opts.handle);
+  if (opts.os === "windows") {
+    return `$env:UNCLICK_API_KEY="${key}"; ${run}`;
+  }
+  return `UNCLICK_API_KEY="${key}" ${run}`;
+}
+
+// How to open a terminal, per OS, written for someone who has never done it.
+export function openTerminalHint(os: BridgeOs): string {
+  if (os === "windows")
+    return "Press the Windows key, type powershell, press Enter. A blue or black window opens - that is the terminal.";
+  if (os === "mac")
+    return "Press Cmd + Space, type terminal, press Enter. A small window opens - that is the terminal.";
+  return "Open your terminal app (often Ctrl + Alt + T).";
 }
 
 // ─── transcript for the bridge ───────────────────────────────

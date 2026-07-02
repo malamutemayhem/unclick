@@ -379,13 +379,47 @@ async function unlink(db: Db, req: VercelRequest, caller: SessionUser) {
   return { status: 200, body: { success: true } };
 }
 
+// Write one direction of a permission pair. "give" flips the caller's offer
+// bit (owner_enabled on the caller-owned row); "receive" flips the caller's
+// acceptance bit (grantee_enabled on the row the other person owns).
+async function applyPermissionDirection(
+  db: Db,
+  linkId: string,
+  callerId: string,
+  otherId: string,
+  permission: string,
+  direction: "give" | "receive",
+  enabled: boolean,
+) {
+  const ownerId = direction === "give" ? callerId : otherId;
+  const granteeId = direction === "give" ? otherId : callerId;
+  const changes = direction === "give"
+    ? { owner_enabled: enabled, updated_at: new Date().toISOString() }
+    : { grantee_enabled: enabled, updated_at: new Date().toISOString() };
+
+  const { error } = await db
+    .from("link_permissions")
+    .update(changes)
+    .eq("link_id", linkId)
+    .eq("owner_user_id", ownerId)
+    .eq("grantee_user_id", granteeId)
+    .eq("permission", permission);
+  if (error) throw error;
+}
+
 async function setPermission(db: Db, req: VercelRequest, caller: SessionUser) {
   const body = jsonBody(req);
   const linkId = String(body.link_id ?? "");
   const permission = body.permission;
   const direction = body.direction;
   const enabled = Boolean(body.enabled);
-  if (!isCirclePermission(permission) || (direction !== "give" && direction !== "receive")) {
+  // "both" is the one-tap matrix cell: the caller's offer AND standing
+  // acceptance flip together (my whole side). The other party's bits are
+  // never writable from here, so a handshake still needs both people.
+  if (
+    !isCirclePermission(permission) ||
+    (direction !== "give" && direction !== "receive" && direction !== "both")
+  ) {
     return { status: 400, body: { error: "Invalid permission request." } };
   }
 
@@ -396,20 +430,11 @@ async function setPermission(db: Db, req: VercelRequest, caller: SessionUser) {
   }
   await ensurePermissionRows(db, link);
 
-  const ownerId = direction === "give" ? caller.id : otherId;
-  const granteeId = direction === "give" ? otherId : caller.id;
-  const changes = direction === "give"
-    ? { owner_enabled: enabled, updated_at: new Date().toISOString() }
-    : { grantee_enabled: enabled, updated_at: new Date().toISOString() };
-
-  const { error } = await db
-    .from("link_permissions")
-    .update(changes)
-    .eq("link_id", link.id)
-    .eq("owner_user_id", ownerId)
-    .eq("grantee_user_id", granteeId)
-    .eq("permission", permission);
-  if (error) throw error;
+  const directions: Array<"give" | "receive"> =
+    direction === "both" ? ["give", "receive"] : [direction];
+  for (const one of directions) {
+    await applyPermissionDirection(db, link.id, caller.id, otherId, permission, one, enabled);
+  }
 
   await writeAudit({
     db,
@@ -422,6 +447,62 @@ async function setPermission(db: Db, req: VercelRequest, caller: SessionUser) {
     metadata: { direction },
   });
   return { status: 200, body: { success: true } };
+}
+
+// Row master (the You column): set the caller's side of one permission across
+// every accepted Circle link in one action. Only the caller's own bits move;
+// each counterpart still controls their side, so this can offer or withdraw
+// but never force a handshake.
+async function setPermissionAll(db: Db, req: VercelRequest, caller: SessionUser) {
+  const body = jsonBody(req);
+  const permission = body.permission;
+  const enabled = Boolean(body.enabled);
+  if (!isCirclePermission(permission)) {
+    return { status: 400, body: { error: "Invalid permission request." } };
+  }
+
+  const { data: linksRaw, error: linksError } = await db
+    .from("account_links")
+    .select("*")
+    .or(`requester_user_id.eq.${caller.id},recipient_user_id.eq.${caller.id}`)
+    .eq("status", "accepted");
+  if (linksError) throw linksError;
+
+  const links = ((linksRaw ?? []) as AccountLinkRow[]).filter(
+    (link) => link.recipient_user_id,
+  );
+  for (const link of links) {
+    await ensurePermissionRows(db, link);
+  }
+
+  const linkIds = links.map((link) => link.id);
+  if (linkIds.length) {
+    const now = new Date().toISOString();
+    const give = await db
+      .from("link_permissions")
+      .update({ owner_enabled: enabled, updated_at: now })
+      .eq("owner_user_id", caller.id)
+      .eq("permission", permission)
+      .in("link_id", linkIds);
+    if (give.error) throw give.error;
+    const receive = await db
+      .from("link_permissions")
+      .update({ grantee_enabled: enabled, updated_at: now })
+      .eq("grantee_user_id", caller.id)
+      .eq("permission", permission)
+      .in("link_id", linkIds);
+    if (receive.error) throw receive.error;
+  }
+
+  await writeAudit({
+    db,
+    req,
+    actorUserId: caller.id,
+    action: enabled ? "permission_enabled_all" : "permission_disabled_all",
+    permission: permission as CirclePermission,
+    metadata: { affected_links: linkIds.length },
+  });
+  return { status: 200, body: { success: true, affected_links: linkIds.length } };
 }
 
 async function stopAllSharing(db: Db, req: VercelRequest, caller: SessionUser) {
@@ -485,6 +566,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       cancel,
       unlink,
       set_permission: setPermission,
+      set_permission_all: setPermissionAll,
       stop_all_sharing: stopAllSharing,
     } satisfies Record<string, (db: Db, req: VercelRequest, caller: SessionUser) => Promise<{ status: number; body: unknown }>>)[action]?.(db, req, caller);
 

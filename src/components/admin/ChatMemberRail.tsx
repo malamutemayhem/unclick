@@ -16,7 +16,7 @@
 // ============================================================
 
 import { Fragment, useEffect, useState } from "react";
-import { Plus, X, Bot, UserPlus, Power, Check, Copy } from "lucide-react";
+import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
 import {
@@ -37,12 +37,13 @@ import {
 } from "@/components/admin/chatMembers";
 import {
   SUBSCRIPTION_RUNTIMES,
-  bridgeCommand,
   fetchBridgeSeats,
   isSubscriptionSeat,
+  makeSubscriptionHandle,
   type BridgeSeatPresence,
   type SubscriptionRuntime,
 } from "@/components/admin/subscriptionSeats";
+import { BridgeSetupWizard } from "@/components/admin/BridgeSetupWizard";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -117,42 +118,19 @@ function AddSubscriptionSeatSection({
   );
 }
 
-// Shown under an offline subscription seat: one plain sentence and the
-// start command with a one-tap copy. The seat answers from the user's own
-// computer, so all they need is "paste this in a terminal there".
-function BridgeStartHint({ command }: { command: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(command);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-    } catch {
-      /* ignore - the command stays selectable */
-    }
-  }
-
+// Shown under an offline subscription seat: one button that opens the
+// step-by-step setup wizard. The seat answers from the user's own computer,
+// and the wizard walks them through starting it there.
+function BridgeWakeButton({ onOpen }: { onOpen: () => void }) {
   return (
-    <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2.5 py-2">
-      <p className="text-[11px] leading-relaxed text-amber-200/90">
-        To wake this seat, paste this in a terminal on your PC:
-      </p>
-      <div className="mt-1.5 flex items-start gap-1.5">
-        <code className="min-w-0 flex-1 break-all font-mono text-[11px] leading-relaxed text-amber-100">
-          {command}
-        </code>
-        <button
-          type="button"
-          onClick={copy}
-          aria-label="Copy start command"
-          title="Copy"
-          className="shrink-0 rounded border border-amber-300/30 p-1 text-amber-200 transition-colors hover:bg-amber-300/10"
-        >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onOpen}
+      className="mx-2 flex items-center gap-1.5 rounded-md border border-amber-400/30 bg-amber-400/[0.08] px-2.5 py-1.5 text-[12px] font-medium text-amber-200 transition-colors hover:bg-amber-400/[0.16]"
+    >
+      <Power className="h-3.5 w-3.5 shrink-0" />
+      Wake this seat - show me how
+    </button>
   );
 }
 
@@ -393,6 +371,13 @@ export function ChatMemberRail({
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  // Which subscription seat the setup wizard is walking through, if any.
+  // Opens automatically right after adding one (with the handle the seat
+  // will get) and on demand from an offline seat's wake button.
+  const [wizardSeat, setWizardSeat] = useState<{
+    runtime: string;
+    handle: string;
+  } | null>(null);
   const [connectedSlugs, setConnectedSlugs] = useState<string[]>([]);
   const [bridgePresence, setBridgePresence] = useState<
     Record<string, BridgeSeatPresence>
@@ -651,8 +636,13 @@ export function ChatMemberRail({
               </button>
             </div>
             {isSubscription && bridgeOnline === false && (
-              <BridgeStartHint
-                command={bridgeCommand(s.runtime ?? "claude-code", s.handle)}
+              <BridgeWakeButton
+                onOpen={() =>
+                  setWizardSeat({
+                    runtime: s.runtime ?? "claude-code",
+                    handle: s.handle,
+                  })
+                }
               />
             )}
             </Fragment>
@@ -679,8 +669,16 @@ export function ChatMemberRail({
                 setAddOpen(false);
               }}
               onAddSubscription={(runtime) => {
+                // Predict the handle the new seat will get so the wizard can
+                // show the exact start command and watch for that seat coming
+                // online. Must mirror the parent's seat creation.
+                const handle = makeSubscriptionHandle(
+                  runtime,
+                  seats.map((seat) => seat.handle),
+                );
                 onAddSubscriptionSeat(runtime);
                 setAddOpen(false);
+                setWizardSeat({ runtime, handle });
               }}
             />
           </PopoverContent>
@@ -707,6 +705,18 @@ export function ChatMemberRail({
           </PopoverContent>
         </Popover>
       </div>
+
+      {wizardSeat && (
+        <BridgeSetupWizard
+          open
+          onOpenChange={(open) => {
+            if (!open) setWizardSeat(null);
+          }}
+          runtime={wizardSeat.runtime}
+          handle={wizardSeat.handle}
+          accessToken={accessToken}
+        />
+      )}
     </aside>
   );
 }

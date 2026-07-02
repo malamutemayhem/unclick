@@ -18,6 +18,7 @@
 import { useState } from "react";
 import { Plus, Pin, Pencil, Trash2, MessageSquare, Users, LogOut, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isThreadUnread } from "@/components/admin/chatSync";
 
 export interface ChatThread {
   id: string;
@@ -29,6 +30,9 @@ export interface ChatThread {
   shared?: boolean;
   my_role?: "owner" | "admin" | "member";
   member_count?: number;
+  // The caller's read cursor on this room (null when never marked read).
+  // Drives the unread dot; solo threads never show one.
+  my_last_read_at?: string | null;
 }
 
 const PIN_GOLD = "#E2B93B";
@@ -36,6 +40,7 @@ const PIN_GOLD = "#E2B93B";
 function SessionRow({
   thread,
   active,
+  unread,
   onSelect,
   onRename,
   onTogglePin,
@@ -44,6 +49,7 @@ function SessionRow({
 }: {
   thread: ChatThread;
   active: boolean;
+  unread: boolean;
   onSelect: (id: string) => void;
   onRename: (id: string, title: string) => void;
   onTogglePin: (id: string, pinned: boolean) => void;
@@ -143,7 +149,22 @@ function SessionRow({
         )}
       </button>
 
-      <span className="min-w-0 flex-1 truncate text-sm text-body">{thread.title}</span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-sm",
+          unread ? "font-semibold text-heading" : "text-body",
+        )}
+      >
+        {thread.title}
+      </span>
+
+      {unread && (
+        <span
+          className="h-2 w-2 shrink-0 rounded-full bg-primary"
+          aria-label="Unread messages"
+          title="Unread messages"
+        />
+      )}
 
       {confirming ? (
         <span className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -245,6 +266,7 @@ export function ChatSessionList({
       key={t.id}
       thread={t}
       active={activeThreadId === t.id}
+      unread={isThreadUnread(t, activeThreadId)}
       onSelect={onSelect}
       onRename={onRename}
       onTogglePin={onTogglePin}
