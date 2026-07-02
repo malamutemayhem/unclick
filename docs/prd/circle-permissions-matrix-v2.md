@@ -69,3 +69,37 @@ Permission keys stay namespaced strings in `link_permissions.permission` (the CH
 - `api/account-links.ts`: `set_permission` direction `both`; new `set_permission_all` bulk action.
 - `api/lib/account-links-model.ts`: unchanged contract; `shared_chat` was already a live `CIRCLE_PERMISSIONS` member.
 - Tests: `src/pages/admin/AdminCircle.test.tsx`, `api/account-links.test.ts`.
+
+## 8. v3 refinements (operator feedback round 2)
+
+Direct feedback from live use of the previous matrix (screenshots, 2026-07-02):
+the table read as gigantic, the audit and key were too loud, the handshake
+glyph never showed both chevrons, states looked stuck on "Pending", and the
+operator's own column showed "YO" initials instead of their picked face.
+
+- Glyph geometry now follows the mockups exactly: the knob owns one end of
+  the pill and the chevrons own the other, so they can never stack. Neutral
+  is knob-left with no arrows; an incoming offer is knob-left with a right-
+  side `<`; sharing out is `>` then knob-right; a full handshake is `< >`
+  then knob-right at the brightest green with a glow. Masters stay arrowless.
+  Every state has a dimmed non-interactive twin (the mockups' "visual info
+  only" column) used for scope mirrors and unshipped app mandates.
+- Density: state labels under cells removed (the tooltip and key carry the
+  words), rows slimmed to 36px, headers shrunk, page width tightened.
+- The key is one slim muted strip inside the table frame, like the mockup
+  footer, instead of a boxed card.
+- Access audit collapses to a single quiet row with a chevron, collapsed by
+  default. Invites sent keeps the wide full-width row structure.
+- The You column header renders the operator's real avatar (UserAvatar over
+  session user metadata) with email-initials fallback; the literal label
+  "You" is never used to derive initials.
+- Memory expanded lists the coming per-scope rows (Saved Facts, Library,
+  Files & Notes, Project Briefs, Preferences, Recall Check) as dimmed
+  mirrors of the bundle state, and the Apps section lists mandate
+  placeholders the same way, so granularity is visible without fake toggles.
+- Why states looked stuck on "Pending" on the old live page: the old
+  implementation only ever wrote the caller's offer bit, so two people both
+  toggling produced two unaccepted offers and no handshake. The v2 tap
+  writes offer plus standing acceptance (`direction: "both"`), so mutual
+  taps complete the handshake; existing half-states surface as amber
+  requests that one tap resolves.

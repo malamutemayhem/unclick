@@ -111,7 +111,7 @@ describe("AdminCircle", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders the matrix, key, request badge, and audit rows", async () => {
+  it("renders the matrix, key, request badge, and mirror rows", async () => {
     await renderAdminCircle();
 
     expect(screen.getByText("Permissions")).toBeInTheDocument();
@@ -122,8 +122,22 @@ describe("AdminCircle", () => {
     // The incoming shared_memory offer surfaces as a request badge and
     // auto-expands the Memory section (Collapse label above proves it).
     expect(screen.getByText("1 request")).toBeInTheDocument();
-    expect(screen.getByText("Handshake, two-way shared")).toBeInTheDocument();
+    expect(screen.getByText("Handshake, two-way")).toBeInTheDocument();
+    // Expanded Memory shows the future per-scope rows as view-only mirrors:
+    // visible for orientation, but with no interactive control.
+    expect(screen.getByText("Saved Facts")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Saved Facts/ })).toBeNull();
+  });
+
+  it("keeps the audit collapsed until expanded", async () => {
+    await renderAdminCircle();
+
+    // Discreet by default: the entries stay hidden behind the header row.
+    expect(screen.queryByText("Permission Enabled")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Expand access audit/ }));
     expect(screen.getByText("Permission Enabled")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Collapse access audit/ }));
+    expect(screen.queryByText("Permission Enabled")).toBeNull();
   });
 
   it("sends invites with the signed-in session", async () => {
