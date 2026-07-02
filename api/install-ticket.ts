@@ -8,6 +8,8 @@
  *
  * Routes:
  *   POST /api/install-ticket
+ *     body: { action: "signup", email: "you@example.com" }
+ *       -> { api_key, prefix }
  *     body: { action: "issue",  api_key: "uc_..." }
  *       -> { ticket, expires_at }
  *     body: { action: "redeem", ticket: "unclick-ember-falcon-2847" }
@@ -74,6 +76,22 @@ function isValidTicketShape(ticket: unknown): ticket is string {
 
 function isValidApiKeyShape(key: unknown): key is string {
   return typeof key === "string" && /^uc_[a-f0-9]{16,}$/.test(key);
+}
+
+function isValidEmail(email: unknown): email is string {
+  return (
+    typeof email === "string" &&
+    email.length <= 320 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  );
+}
+
+function generateApiKey(): string {
+  return `uc_${crypto.randomBytes(16).toString("hex")}`;
+}
+
+function sha256hex(input: string): string {
+  return crypto.createHash("sha256").update(input).digest("hex");
 }
 
 // ─── Install guide (served over GET) ──────────────────────────────────────
@@ -339,11 +357,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Verify the API key is real and active.
+      const apiKeyHash = sha256hex(apiKey);
       const { data: keyRow, error: keyErr } = await supabase
         .from("api_keys")
-        .select("api_key, status")
-        .eq("api_key", apiKey)
-        .eq("status", "active")
+        .select("key_hash, is_active")
+        .eq("key_hash", apiKeyHash)
+        .eq("is_active", true)
         .maybeSingle();
       if (keyErr) throw keyErr;
       if (!keyRow) {
@@ -372,6 +391,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       return res.status(200).json({ ticket, expires_at: expiresAt });
+    }
+
+    if (action === "signup") {
+      const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+      if (!isValidEmail(email)) {
+        return res.status(400).json({ error: "Enter a valid email address." });
+      }
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return res.status(500).json({ error: "Signup service unavailable" });
+      }
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const rawKey = generateApiKey();
+        const { error: insertErr } = await supabase.from("api_keys").insert({
+          key_hash:    sha256hex(rawKey),
+          key_prefix:  rawKey.slice(0, 8),
+          label:       "public-signup",
+          tier:        "free",
+          is_active:   true,
+          usage_count: 0,
+        });
+
+        if (!insertErr) {
+          return res.status(200).json({
+            api_key: rawKey,
+            prefix:  rawKey.slice(0, 8),
+          });
+        }
+        if ((insertErr as { code?: string }).code !== "23505") throw insertErr;
+      }
+
+      return res.status(500).json({ error: "Could not allocate API key, try again" });
     }
 
     if (action === "redeem") {

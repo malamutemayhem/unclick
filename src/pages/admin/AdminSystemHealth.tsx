@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { HeartPulse } from "lucide-react";
 
 export default function AdminSystemHealth() {
@@ -11,10 +12,21 @@ export default function AdminSystemHealth() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
         <p className="text-sm leading-relaxed text-[#ccc]">
           A single place to see if the site is healthy: recent deploys, database stats, and a
           live feed of errors so you can catch problems the moment they happen.
+        </p>
+        <p className="mt-4 text-sm leading-relaxed text-[#ccc]">
+          Until this page is built, health questions are answered by{" "}
+          <Link to="/admin/signals" className="font-medium text-[#61C1C4] hover:opacity-80">
+            Signals
+          </Link>{" "}
+          (alerts from tools and workers) and{" "}
+          <Link to="/admin/testpass" className="font-medium text-[#61C1C4] hover:opacity-80">
+            TestPass
+          </Link>{" "}
+          (recorded proof runs).
         </p>
       </div>
     </div>

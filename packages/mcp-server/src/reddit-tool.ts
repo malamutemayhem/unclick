@@ -136,13 +136,27 @@ async function rFetch(
 async function rFetchPublicRss(path: string): Promise<string | Record<string, unknown>> {
   const rssPath = path.replace(/\.json$/i, "/.rss");
   const url = `${REDDIT_PUBLIC_BASE}${rssPath}`;
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/atom+xml, application/xml;q=0.9, */*;q=0.8",
-    },
-  });
+  const REDDIT_TIMEOUT_MS = Number(process.env.REDDIT_TIMEOUT_MS) || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REDDIT_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/atom+xml, application/xml;q=0.9, */*;q=0.8",
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { error: `Reddit RSS request timed out after ${REDDIT_TIMEOUT_MS}ms.` };
+    }
+    return { error: `Network error reaching Reddit RSS: ${err instanceof Error ? err.message : String(err)}` };
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (res.status === 429) {
     const retryAfter = res.headers.get("retry-after");

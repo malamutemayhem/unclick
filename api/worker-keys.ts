@@ -131,6 +131,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // Stamp the worker with the account's lane so the standard tenancy
+    // convention (lane_hash ?? key_hash) shares the account's memory and
+    // connections automatically, and main-key rotation never affects it.
+    // The lane is the primary (non-worker) key's lane_hash, falling back to
+    // its key_hash per the account-lane convention.
+    const { data: primary } = await supabase
+      .from("api_keys")
+      .select("key_hash, lane_hash")
+      .eq("user_id", user.id)
+      .neq("tier", WORKER_TIER)
+      .eq("is_active", true)
+      .order("last_used_at", { ascending: false, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+    const accountLane = primary?.lane_hash ?? primary?.key_hash ?? null;
+
     const { rawKey, keyHash, keyPrefix } = newWorkerKey();
     const { data: inserted, error } = await supabase
       .from("api_keys")
@@ -138,6 +154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user_id:     user.id,
         key_hash:    keyHash,
         key_prefix:  keyPrefix,
+        lane_hash:   accountLane,
         label,
         tier:        WORKER_TIER,
         is_active:   true,

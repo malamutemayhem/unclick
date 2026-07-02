@@ -375,7 +375,7 @@ describe("worker movement pilot API dry-run", () => {
       candidate: expiredLeaseCandidate({
         id: "todo-human-manual",
         title: "manual_only operator handoff",
-        assigned_to_agent_id: "human-chris",
+        assigned_to_agent_id: "human-operator",
       }),
     });
 

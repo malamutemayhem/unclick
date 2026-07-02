@@ -7,6 +7,7 @@ const CHECK_ORDER = [
   "flowpass",
   "securitypass",
   "rotatepass",
+  "connectorpass",
   "copypass",
   "fidelitypass",
   "seopass",
@@ -61,6 +62,7 @@ const CHECK_LABELS: Record<XPassCheck, string> = {
   flowpass: "FlowPass",
   securitypass: "SecurityPass",
   rotatepass: "RotatePass",
+  connectorpass: "ConnectorPass",
   copypass: "CopyPass",
   fidelitypass: "FidelityPass",
   seopass: "SEOPass",
@@ -89,6 +91,7 @@ const PASS_PRODUCT_CHECKS = new Map<string, XPassCheck>([
   ["uxpass", "uxpass"],
   ["wakepass", "wakepass"],
   ["rotatepass", "rotatepass"],
+  ["connectorpass", "connectorpass"],
 ]);
 
 const ENTERPRISE_READINESS_TERMS = [
@@ -100,6 +103,115 @@ const ENTERPRISE_READINESS_TERMS = [
   "model inventory",
   "technical documentation",
   "training data",
+];
+
+const APP_CONNECTION_SURFACE_PATHS = [
+  "src/lib/connectors.ts",
+  "src/data/app-catalog.generated.json",
+  "src/data/connector-setup.generated.json",
+  "src/pages/connect",
+  "src/components/apps/connectappmodal",
+  "src/components/apps/appicon",
+  "packages/mcp-server/src/connectors/",
+  "packages/mcp-server/src/connector-setup.ts",
+  "packages/mcp-server/src/vault-bridge.ts",
+  "packages/mcp-server/src/keychain-tool.ts",
+  "scripts/check-app-connection-readiness",
+  "api/oauth-init.ts",
+  "api/oauth-callback.ts",
+  "api/oauth-state.ts",
+  "api/credentials.ts",
+  "api/lib/managed-connections",
+  "api/memory-admin.ts",
+];
+
+const APP_CONNECTION_TERMS = [
+  "app connection",
+  "app connector",
+  "connector rollout",
+  "connect page",
+  "provider login",
+  "web popup login",
+  "popup login",
+  "oauth login",
+  "oauth setup",
+  "oauth callback",
+  "callback storage",
+  "credential resolver",
+  "keychain parity",
+  "token fallback",
+  "fallback visible",
+  "connected badge",
+  "status badge",
+  "stored credential",
+  "stored but untested",
+  "last tested",
+  "last_tested_at",
+  "live proof",
+  "live probe",
+  "connection state",
+  "credential health",
+  "setup pending",
+  "live oauth init",
+  "reconnect",
+  "token refresh",
+  "token expiry",
+  "managed connection",
+  "compatibility connector",
+  "hosted mcp",
+  "token scope",
+  "under-scoped token",
+  "expired access token",
+  "callable tool",
+  "data-plane tool",
+  "duplicate mcp",
+  "stale mcp",
+  "mcp registration",
+  "environment key",
+];
+
+const PROVIDER_MCP_BRIDGE_TERMS = [
+  "native mcp",
+  "hosted mcp",
+  "provider mcp",
+  "mcp account login",
+  "mcp login",
+  "mcp oauth",
+  "oauth popup",
+  "provider callback",
+  "subscription credits",
+  "cloud api fallback",
+  "api fallback",
+  "native tool",
+  "tool result",
+  "params wrapping",
+  "argument wrapping",
+  "expired token",
+  "invalid or expired token",
+  "refresh token",
+  "token refresh",
+  "refresh retry",
+  "reconnect state",
+  "connected badge",
+  "status badge",
+  "stored credential",
+  "stored but untested",
+  "last tested",
+  "last_tested_at",
+  "live proof",
+  "live probe",
+  "connection state",
+  "credential health",
+  "token scope",
+  "under-scoped token",
+  "expired access token",
+  "callable tool",
+  "data-plane tool",
+  "duplicate mcp",
+  "stale mcp",
+  "mcp registration",
+  "environment key",
+  "customer-facing copy",
 ];
 
 const COUNCIL_TRIGGER_TERMS = [
@@ -464,6 +576,16 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
     const pathWords = path.replace(/[/_.-]+/g, " ");
     const passProduct = passProductForPath(path);
 
+    if (appConnectionSurface(path, allText)) {
+      addAppConnectionReasons(reasons, path);
+      if (codeFile(path) && !testFile(path)) addReason(reasons, "sloppass", `app connection implementation quality surface: ${path}`);
+    }
+
+    if (providerMcpBridgeSurface(path, allText)) {
+      addProviderMcpBridgeReasons(reasons, path);
+      if (codeFile(path) && !testFile(path)) addReason(reasons, "sloppass", `provider-hosted MCP bridge implementation quality surface: ${path}`);
+    }
+
     if (passProduct) {
       addReason(reasons, "testpass", `XPass product implementation needs proof tests: ${path}`);
       addReason(reasons, passProduct, `XPass product should dogfood its own specialist check: ${path}`);
@@ -541,6 +663,8 @@ function selectXPassChecks(input: Record<string, unknown> = {}): SelectedCheck[]
   }
 
   if (hasAny(allText, ["mcp", "tool", "tools", "connector", "connectors", "api endpoint", "native endpoint"])) addReason(reasons, "testpass", "target text mentions tools/connectors/MCP");
+  if (hasAny(allText, APP_CONNECTION_TERMS)) addAppConnectionReasons(reasons, "target text mentions app connection readiness");
+  if (hasAny(allText, PROVIDER_MCP_BRIDGE_TERMS)) addProviderMcpBridgeReasons(reasons, "target text mentions provider-hosted MCP bridge readiness");
   if (hasAny(allText, ["ui", "visual", "screen", "screenshots", "dashboard", "admin page", "admin ui", "admin screen", "admin dashboard", "layout", "spacing", "typography", "mobile", "responsive", "accessibility", "wcag", "keyboard", "screen reader", "focus", "target size"])) addReason(reasons, "uipass", "target text mentions UI/visual changes");
   if (hasAny(allText, ["ux", "usability", "easy to use", "journey", "navigation", "onboarding", "form", "forms", "feedback", "recovery", "confusion", "task completion", "user path"])) addReason(reasons, "uxpass", "target text mentions UX/journey changes");
   if (hasAny(allText, ["flow", "journey", "path", "route", "checkout", "signup", "sign up", "onboarding", "handoff", "navigation", "funnel", "success state", "failure state"])) addReason(reasons, "flowpass", "target text mentions journey/flow completion");
@@ -729,6 +853,45 @@ function passProductForPath(path: string): XPassCheck | "" {
 
 function enterpriseReadinessSurface(path: string, allText: string): boolean {
   return path.includes("enterprise") || path.includes("compliance") || path.startsWith("public/enterprise/") || hasAny(allText, ENTERPRISE_READINESS_TERMS);
+}
+
+function appConnectionSurface(path: string, allText: string): boolean {
+  return APP_CONNECTION_SURFACE_PATHS.some((surfacePath) => path.includes(surfacePath))
+    || (path.startsWith("packages/mcp-server/src/") && path.endsWith("-tool.ts") && hasAny(allText, APP_CONNECTION_TERMS))
+    || (path.startsWith("supabase/migrations/") && hasAny(allText, APP_CONNECTION_TERMS));
+}
+
+function providerMcpBridgeSurface(path: string, allText: string): boolean {
+  if (path.includes("connectappmodal") && hasAny(allText, PROVIDER_MCP_BRIDGE_TERMS)) return true;
+  if (path.startsWith("packages/mcp-server/src/") && path.endsWith("-tool.ts") && hasAny(allText, PROVIDER_MCP_BRIDGE_TERMS)) return true;
+  if (APP_CONNECTION_SURFACE_PATHS.some((surfacePath) => path.includes(surfacePath)) && hasAny(allText, PROVIDER_MCP_BRIDGE_TERMS)) return true;
+  return false;
+}
+
+function addAppConnectionReasons(map: Map<XPassCheck, Set<string>>, reason: string): void {
+  addReason(map, "connectorpass", `app connector readiness proof: ${reason}`);
+  addReason(map, "testpass", `app connection readiness needs deterministic proof: ${reason}`);
+  addReason(map, "uxpass", `provider login and fallback UX surface: ${reason}`);
+  addReason(map, "flowpass", `OAuth login journey surface: ${reason}`);
+  addReason(map, "securitypass", `credential/OAuth storage surface: ${reason}`);
+  addReason(map, "rotatepass", `credential lifecycle/redaction surface: ${reason}`);
+  addReason(map, "wakepass", `client registration/env hydration can create stale connector routes: ${reason}`);
+  addReason(map, "copypass", `public connection copy and fallback wording surface: ${reason}`);
+  addReason(map, "commonsensepass", `connected/status badge must match live tool-facing credential proof, not just a stored row: ${reason}`);
+  addReason(map, "sloppass", `connector implementation quality surface: ${reason}`);
+}
+
+function addProviderMcpBridgeReasons(map: Map<XPassCheck, Set<string>>, reason: string): void {
+  addReason(map, "connectorpass", `native provider MCP bridge proof: ${reason}`);
+  addReason(map, "testpass", `native MCP argument/result contract needs deterministic proof: ${reason}`);
+  addReason(map, "uxpass", `customer-facing connect/reconnect/API fallback UX surface: ${reason}`);
+  addReason(map, "flowpass", `provider login popup and callback journey surface: ${reason}`);
+  addReason(map, "securitypass", `OAuth/token handling and secret redaction surface: ${reason}`);
+  addReason(map, "rotatepass", `provider token expiry, refresh, reconnect, and revocation surface: ${reason}`);
+  addReason(map, "wakepass", `client MCP registration/env hydration can shadow the live connector: ${reason}`);
+  addReason(map, "copypass", `customer-facing provider/MCP/API wording surface: ${reason}`);
+  addReason(map, "commonsensepass", `connected status must match live provider tool proof, not saved credentials or stale badges: ${reason}`);
+  addReason(map, "sloppass", `provider MCP connector implementation quality surface: ${reason}`);
 }
 
 function normalizeCheckName(value: unknown): string {

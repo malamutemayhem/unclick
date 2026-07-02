@@ -70,19 +70,19 @@ describe("lane-08 consolidation", () => {
     const now = "2026-06-04T00:00:00.000Z";
 
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.86,
       source_session_id: "s1",
     });
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts.",
+      fact: "User prefers compact memory first with source receipts.",
       category: "preference",
       confidence: 0.9,
       source_session_id: "s2",
     });
     await backend.addFact({
-      fact: "Chris prefers compact memory first with source receipts",
+      fact: "User prefers compact memory first with source receipts",
       category: "preference",
       confidence: 0.88,
       source_session_id: "s3",
@@ -123,17 +123,76 @@ describe("lane-08 consolidation", () => {
     assert.equal(superseded.every((row) => row.valid_to === now), true);
   });
 
+  test("NaN access_count does not break canonical selection sort", async () => {
+    const { buildMemoryConsolidationPlan } = await import("../consolidation.js");
+    const base = {
+      fact: "Chris prefers compact memory.",
+      category: "preference",
+      status: "active",
+      created_at: "2026-06-01T00:00:00Z",
+      valid_from: "2026-06-01T00:00:00Z",
+      valid_to: null,
+      invalidated_at: null,
+      source_type: "manual",
+      startup_fact_kind: "durable",
+    };
+    const rows = [
+      { ...base, id: "good", confidence: 0.95, access_count: 5 },
+      { ...base, id: "nan-access", confidence: 0.90, access_count: NaN as unknown as number },
+      { ...base, id: "null-access", confidence: 0.85, access_count: null },
+    ];
+    const plan = buildMemoryConsolidationPlan(rows as any, {
+      now: "2026-06-04T00:00:00Z",
+      dry_run: false,
+    });
+    assert.equal(plan.groups.length, 1, "all three duplicate facts form one group");
+    assert.equal(plan.groups[0].canonical_id, "good", "highest-scoring row is canonical");
+    const canonical = plan.patches.find((p) => p.id === "good");
+    assert.ok(canonical, "canonical patch exists");
+    assert.equal(Number.isFinite(canonical!.confidence), true, "confidence is finite");
+  });
+
+  test("NaN/Infinity confidence in decay patches are clamped to finite values", async () => {
+    const { buildMemoryDecayPlan } = await import("../consolidation.js");
+    const rows = [
+      {
+        id: "nan-conf",
+        fact: "fact with NaN confidence",
+        confidence: NaN as unknown as number,
+        status: "active",
+        access_count: NaN as unknown as number,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+      {
+        id: "inf-conf",
+        fact: "fact with Infinity confidence",
+        confidence: Infinity as unknown as number,
+        status: "active",
+        access_count: 3,
+        created_at: "2026-01-01T00:00:00Z",
+      },
+    ];
+    const plan = buildMemoryDecayPlan(rows as any, { now: "2026-06-04T00:00:00Z" });
+    for (const patch of plan.patches) {
+      assert.equal(Number.isFinite(patch.confidence), true, `${patch.id} confidence is finite`);
+      assert.equal(Number.isFinite(patch.effective_score), true, `${patch.id} effective_score is finite`);
+      assert.equal(Number.isFinite(patch.heat_score), true, `${patch.id} heat_score is finite`);
+      assert.equal(Number.isFinite(patch.decayed_confidence), true, `${patch.id} decayed_confidence is finite`);
+    }
+    assert.equal(Number.isFinite(plan.hot_set_staleness), true, "hot_set_staleness is finite");
+  });
+
   test("honors Worker 4 quarantine by excluding quarantined facts from consolidation", async () => {
     const { LocalBackend } = await import("../local.js");
     const backend = new LocalBackend();
 
     await backend.addFact({
-      fact: "Chris keeps credentials out of durable memory.",
+      fact: "User keeps credentials out of durable memory.",
       category: "security",
       confidence: 0.9,
     });
     await backend.addFact({
-      fact: "Chris keeps credentials out of durable memory.",
+      fact: "User keeps credentials out of durable memory.",
       category: "security",
       confidence: 0.89,
     });

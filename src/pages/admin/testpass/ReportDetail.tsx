@@ -154,7 +154,7 @@ export default function ReportDetail() {
         </div>
       )}
 
-      <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111] p-5">
+      <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-2 flex-wrap">
@@ -205,7 +205,7 @@ export default function ReportDetail() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111] overflow-hidden">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] overflow-hidden">
         <div className="px-4 py-3 border-b border-white/[0.06]">
           <h2 className="text-sm font-medium text-white">Run timeline</h2>
         </div>
@@ -272,7 +272,7 @@ export default function ReportDetail() {
 
       {showAbandonModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-sm rounded-xl border border-white/[0.08] bg-[#111] p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl border border-white/[0.08] bg-white/[0.03] p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Cancel this report?</h3>
               <button

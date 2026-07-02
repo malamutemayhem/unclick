@@ -37,7 +37,7 @@ describe("typed memory routing", () => {
     assert.equal(classifyMemoryClass({ text: logText, category: "project" }), "episodic");
     assert.equal(classifyMemoryClass({ text: "Always check Boardroom before edits.", category: "workflow" }), "procedural");
     assert.equal(classifyMemoryClass({ text: "Follow up with the coordinator.", category: "task" }), "task");
-    assert.equal(classifyMemoryClass({ text: "Chris prefers compact memory first.", category: "preference", memory_class: "semantic" }), "semantic");
+    assert.equal(classifyMemoryClass({ text: "User prefers compact memory first.", category: "preference", memory_class: "semantic" }), "semantic");
   });
 
   test("keeps existing local fact writes unchanged when the flag is off", async () => {

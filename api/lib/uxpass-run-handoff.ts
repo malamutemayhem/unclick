@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 export const UXPASS_RUN_HANDOFF_LEASE_SECONDS = 600;
-export const DEFAULT_UXPASS_RUN_HANDOFF_AGENT_ID = "chatgpt-55-plex-creativelead";
+export const DEFAULT_UXPASS_RUN_HANDOFF_AGENT_ID = process.env.UXPASS_DEFAULT_HANDOFF_AGENT_ID ?? "default-handoff-agent";
 
 export interface UxPassRunFailureHandoffInput {
   runId: string;

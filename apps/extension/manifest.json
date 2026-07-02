@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "UnClick Local",
+  "version": "0.1.0",
+  "description": "Scoped, approved, revocable local actions for UnClick. Mandates and redacted receipts only; no cookie, token, passkey, or MFA access.",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "UnClick Local"
+  }
+}

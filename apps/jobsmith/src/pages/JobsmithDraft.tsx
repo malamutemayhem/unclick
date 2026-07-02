@@ -5,7 +5,7 @@
 //
 // In v0, the corpus root must come from env (NEXT_PUBLIC_JOBSMITH_CV_ROOT or
 // VITE_JOBSMITH_CV_ROOT depending on the runtime). The lib function defaults to
-// process.env.JOBSMITH_CV_ROOT — adapt the env read for your framework.
+// process.env.JOBSMITH_CV_ROOT - adapt the env read for your framework.
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -157,13 +157,13 @@ function CorpusSummary({ corpus, profile }: { corpus: Corpus; profile: VoiceProf
       </summary>
       <div style={{ marginTop: 12, fontSize: 13, color: "#444" }}>
         <p>
-          <strong>Role types:</strong> {profile.roleTypes.join(", ") || "—"}
+          <strong>Role types:</strong> {profile.roleTypes.join(", ") || "-"}
         </p>
         <p>
-          <strong>Past brands:</strong> {profile.pastBrands.join(", ") || "—"}
+          <strong>Past brands:</strong> {profile.pastBrands.join(", ") || "-"}
         </p>
         <p>
-          <strong>Tone:</strong> {profile.tonalAdjectives.join(", ") || "—"}
+          <strong>Tone:</strong> {profile.tonalAdjectives.join(", ") || "-"}
         </p>
         {profile.openingFormulas[0] && (
           <p>
@@ -193,7 +193,7 @@ function DraftView({ draft }: { draft: DraftResult }) {
         style={{ width: "100%", fontFamily: "inherit", fontSize: 14, padding: 12 }}
       />
       <p style={{ color: "#777", fontSize: 12, marginTop: 4 }}>
-        Detected role: {draft.detectedRole ?? "—"} · company: {draft.detectedCompany ?? "—"}
+        Detected role: {draft.detectedRole ?? "-"} · company: {draft.detectedCompany ?? "-"}
       </p>
     </section>
   );

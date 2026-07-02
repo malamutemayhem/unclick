@@ -14,7 +14,7 @@ const NOW = new Date("2026-05-15T12:00:00Z");
 
 function baseInput(overrides: Partial<DataIslandInput> = {}): DataIslandInput {
   return {
-    profileCard: { user_id: "user-1", display_name: "Chris" },
+    profileCard: { user_id: "user-1", display_name: "Tester" },
     facts: [
       { id: "f1", text: "Loves Alaskan Malamutes", created_at: "2026-05-10T00:00:00Z", topics: ["personal"] },
       { id: "f2", text: "Default-deny on metered AI calls", created_at: "2026-05-15T00:00:00Z", topics: ["unclick", "security"] },

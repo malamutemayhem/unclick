@@ -37,10 +37,10 @@ scripts/pinballwake-autonomous-runner.test.mjs:2021
 ## Hard Stop Conditions
 
 - Do not run `UPDATE`, `DELETE`, `DROP`, migration SQL, or table policy changes
-  until Chris explicitly authorizes the production operation.
+  until the operator explicitly authorizes the production operation.
 - Do not print, copy, export, or log plaintext key values.
 - Do not use service-role credentials in a shared transcript or PR body.
-- Do not rotate credentials as part of this packet unless Chris separately
+- Do not rotate credentials as part of this packet unless the operator separately
   authorizes rotation and owns the off-platform follow-up.
 - Stop if the live schema does not have a clear soft-disable column such as
   `active`, `disabled_at`, `revoked_at`, or equivalent.
@@ -53,7 +53,7 @@ on the Jobs room todo or Boardroom thread.
 Suggested approval wording:
 
 ```text
-Chris authorizes the soft-disable of active api_keys_legacy rows in production.
+The operator authorizes the soft-disable of active api_keys_legacy rows in production.
 Use sanitized counts only, no plaintext values, and keep a rollback window.
 ```
 
@@ -184,5 +184,5 @@ If owner authorization is still missing:
 ```text
 BLOCKER: api_keys_legacy live mutation not authorized;
 checked: tracked grep shows no runtime repo references, read-only packet prepared;
-need: Chris approval for production soft-disable.
+need: operator approval for production soft-disable.
 ```

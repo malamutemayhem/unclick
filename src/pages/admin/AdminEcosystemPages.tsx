@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import AdminXPassHub from "./AdminXPassHub";
+import { useJobsQueueMetrics } from "@/hooks/useJobsQueueMetrics";
 import {
   AppWindow,
   Archive,
@@ -84,7 +85,7 @@ function TileGrid({ items }: { items: Item[] }) {
           </>
         );
 
-        const className = "block rounded-2xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]";
+        const className = "block rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]";
         return item.href ? (
           <Link key={item.title} to={item.href} className={className}>{content}</Link>
         ) : (
@@ -112,6 +113,45 @@ export function AdminProjects() {
   );
 }
 
+/**
+ * Live numbers from the Jobs queue. Renders nothing until real metrics
+ * arrive; a failed or unauthenticated fetch shows no strip rather than
+ * invented zeroes.
+ */
+function EngineNowStrip() {
+  const metrics = useJobsQueueMetrics();
+
+  if (!metrics) return null;
+
+  const items = [
+    { label: "in progress", value: metrics.active },
+    { label: "open in backlog", value: metrics.open_backlog },
+    { label: "done", value: metrics.done },
+  ];
+
+  return (
+    <Link
+      to="/admin/jobs"
+      data-testid="engine-now-strip"
+      className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border border-[#61C1C4]/20 bg-[#61C1C4]/[0.05] px-4 py-3 transition-colors hover:border-[#61C1C4]/40"
+    >
+      <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#61C1C4]">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#61C1C4]/60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#61C1C4]" />
+        </span>
+        Engine now
+      </span>
+      {items.map((item) => (
+        <span key={item.label} className="text-sm text-white/70">
+          <span className="font-semibold text-white">{item.value.toLocaleString()}</span> {item.label}
+        </span>
+      ))}
+      <span className="ml-auto text-xs text-white/40">Live from the Jobs queue</span>
+    </Link>
+  );
+}
+
 export function AdminAutopilot() {
   return (
     <PageShell
@@ -119,6 +159,7 @@ export function AdminAutopilot() {
       title="AutoPilot"
       subtitle="AutoPilot is the controlled work hub for projects. It gives people and companies a safe bubble to plan, build, check, route, and prove work using UnClick's tools and automation."
     >
+      <EngineNowStrip />
       <TileGrid
         items={[
           { title: "Boardroom", body: "Shared room for decisions, handoffs, and short updates from people and AI workers.", icon: MessagesSquare, href: "/admin/boardroom" },
@@ -217,10 +258,10 @@ export function AdminLedger() {
       <TileGrid
         items={[
           { title: "Activity", body: "What happened and when.", icon: ReceiptText, href: "/admin/activity" },
-          { title: "Approvals", body: "Trusted PASS, BLOCKER, and HOLD decisions.", icon: BadgeCheck },
-          { title: "Receipts", body: "Proof checks and completion evidence.", icon: ClipboardCheck },
-          { title: "Workers", body: "Trusted worker identity registry.", icon: Users },
-          { title: "Rollback", body: "Undo and recovery record.", icon: RefreshCw },
+          { title: "Approvals", body: "Trusted PASS, BLOCKER, and HOLD decisions.", icon: BadgeCheck, mote: "Not built yet" },
+          { title: "Receipts", body: "Proof checks and completion evidence. TestPass run receipts live here today.", icon: ClipboardCheck, href: "/admin/testpass" },
+          { title: "Workers", body: "The worker roles and lanes that produce trusted work.", icon: Users, href: "/admin/workers" },
+          { title: "Rollback", body: "Undo and recovery record.", icon: RefreshCw, mote: "Not built yet" },
           { title: "Audit", body: "Full immutable history for trust and investigation.", icon: FileText, href: "/admin/audit-log" },
         ]}
       />
@@ -252,11 +293,11 @@ export function AdminAppsIntro() {
       <div className="flex items-start gap-3">
         <AppWindow className="mt-0.5 h-4 w-4 shrink-0 text-[#61C1C4]" />
         <div>
-          <p className="text-sm font-semibold text-white">Apps are what UnClick can use. Actions are what each app can do.</p>
+          <p className="text-sm font-semibold text-white">Apps connect to UnClick once.</p>
           <p className="mt-1 text-sm leading-6 text-white/55">
-            Click any app row to expand its actions right here, or click its name to open its page.
-            Your AI picks the right app on its own, or you can ask for one by name. Every app is on by
-            default; untick one to stop your AI using it.
+            Your AI app talks to UnClick. UnClick reaches GitHub, Gmail, Spotify, and the rest from here.
+            Click any row to see its actions, connect private apps once, or untick one to keep every
+            paired AI app away from it.
           </p>
         </div>
       </div>

@@ -33,7 +33,7 @@ describe("memory passport", () => {
     } = await import("../passport.js");
     const backend = new LocalBackend();
 
-    await backend.setBusinessContext("identity", "preferred_name", "Chris", 100);
+    await backend.setBusinessContext("identity", "preferred_name", "Alex", 100);
     await backend.addFact({
       fact: "Portable memory marker lane-ten-silver should roundtrip.",
       category: "technical",
@@ -43,6 +43,16 @@ describe("memory passport", () => {
     });
     await backend.addFact({
       fact: "Temporary API key sk-test-secret-1234567890 should never export.",
+      category: "credential",
+      confidence: 1,
+    });
+    await backend.addFact({
+      fact: "Stripe key sk_live_0000000000fakefake should never export.",
+      category: "credential",
+      confidence: 1,
+    });
+    await backend.addFact({
+      fact: "Webhook secret whsec_0000000000fakefake should never export.",
       category: "credential",
       confidence: 1,
     });
@@ -65,8 +75,10 @@ describe("memory passport", () => {
     assert.equal(result.bundle.subject_id, "test-subject");
     assert.equal(result.metrics.passport_credential_leakage, 0);
     assert.equal(serialized.includes("sk-test-secret"), false);
+    assert.equal(serialized.includes("sk_live_"), false);
+    assert.equal(serialized.includes("whsec_"), false);
     assert.equal(serialized.includes("lane-ten-silver"), true);
-    assert.equal(result.bundle.summary.redacted_records, 1);
+    assert.equal(result.bundle.summary.redacted_records, 3);
     assert.deepEqual(auditMemoryPassportCredentialLeakage(result.bundle).leak_paths, []);
     assert.deepEqual(verifyMemoryPassportBundle(result.bundle, SIGNING_SECRET), { verified: true });
 
@@ -79,7 +91,7 @@ describe("memory passport", () => {
   test("imports a verified bundle and preserves searchable memory", async () => {
     const { LocalBackend } = await import("../local.js");
     const source = new LocalBackend();
-    await source.setBusinessContext("identity", "preferred_name", "Chris", 100);
+    await source.setBusinessContext("identity", "preferred_name", "Alex", 100);
     await source.addFact({
       fact: "Passport import marker lane-ten-teal should be searchable.",
       category: "technical",

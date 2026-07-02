@@ -234,7 +234,7 @@ function CheckCard({
                         type="button"
                         onClick={() => onCopyStep(stepKey, step)}
                         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#777] hover:bg-white/[0.08] hover:text-white"
-                        title="Copy this step"
+                        title="Copy step"
                       >
                         {copiedStep === stepKey ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <ClipboardCopy className="h-3.5 w-3.5" />}
                       </button>
@@ -265,7 +265,7 @@ function CheckCard({
 
 export default function RunDetail() {
   const { id: runId } = useParams<{ id: string }>();
-  const { session } = useSession();
+  const { session, loading: sessionLoading } = useSession();
   const navigate = useNavigate();
   const token = session?.access_token;
   const authHeader = useMemo(() => (token ? { Authorization: `Bearer ${token}` } : {}), [token]);
@@ -283,8 +283,17 @@ export default function RunDetail() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchRun = useCallback(async () => {
-    if (!runId || !token) {
+    if (!runId) {
       setLoading(false);
+      return null;
+    }
+    if (!token) {
+      // No token yet. If the session is still resolving, stay in the loading
+      // state rather than flashing "Run not found" before auth is ready (the
+      // session-readiness race that made listed runs look missing). Only once
+      // the session has finished loading with no token do we stop loading and
+      // let the signed-out branch render.
+      if (!sessionLoading) setLoading(false);
       return null;
     }
     try {
@@ -303,7 +312,7 @@ export default function RunDetail() {
     } finally {
       setLoading(false);
     }
-  }, [runId, token, authHeader]);
+  }, [runId, token, authHeader, sessionLoading]);
 
   useEffect(() => {
     const firstFetch = window.setTimeout(() => {
@@ -385,6 +394,17 @@ export default function RunDetail() {
     );
   }
 
+  if (!token) {
+    return (
+      <div className="py-24 text-center">
+        <p className="mb-4 text-sm text-[#888]">Sign in to view this run.</p>
+        <button onClick={() => navigate("/admin/testpass")} className="text-sm text-[#888] hover:text-white">
+          Back to TestPass
+        </button>
+      </div>
+    );
+  }
+
   if (error || !run) {
     return (
       <div className="py-24 text-center">
@@ -419,7 +439,7 @@ export default function RunDetail() {
         </p>
       )}
 
-      <section className="rounded-lg border border-white/[0.08] bg-[#101010] p-5">
+      <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -466,7 +486,7 @@ export default function RunDetail() {
       </section>
 
       {items.length === 0 ? (
-        <section className="rounded-lg border border-white/[0.08] bg-[#111] px-6 py-12 text-center">
+        <section className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-6 py-12 text-center">
           <p className="text-base font-semibold text-white">No checks yet</p>
           <p className="mt-2 text-sm text-[#888]">This run is still getting ready. Results will appear here as soon as TestPass has them.</p>
         </section>
@@ -485,7 +505,7 @@ export default function RunDetail() {
         </section>
       )}
 
-      <div className="rounded-lg border border-white/[0.08] bg-[#111] px-5 py-3">
+      <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-5 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {failItems.length > 0 && (
@@ -522,14 +542,14 @@ export default function RunDetail() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-white/[0.08] bg-[#111] p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-lg border border-white/[0.08] bg-white/[0.03] p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">Ask your AI agent</h3>
               <button onClick={() => setShowModal(false)} className="text-[#666] hover:text-white">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mb-3 text-xs text-[#888]">Copy this prompt into your AI chat to get help with these checks.</p>
+            <p className="mb-3 text-xs text-[#888]">Paste the prompt into your AI chat to get help with these checks.</p>
             <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-[#ccc]">
               {agentPrompt}
             </pre>

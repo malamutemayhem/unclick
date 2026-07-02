@@ -69,6 +69,16 @@ function stubFetch(generatedKey: string | null) {
             }),
         });
       }
+      if (url.includes("about_you_update")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              about_you: { text: "I run a studio.", updated_at: "2026-06-08T00:00:00.000Z" },
+            }),
+        });
+      }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
 
@@ -103,14 +113,15 @@ describe("AdminYou API key card", () => {
     vi.restoreAllMocks();
   });
 
-  it("shows clear copy actions when the raw API key is available", async () => {
+  it("shows public and compatibility copy actions when the raw API key is available", async () => {
     stubFetch("uc_test_1234567890");
 
     renderPage();
 
-    expect(await screen.findByRole("button", { name: /Copy API key/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Copy MCP URL/i })).toBeInTheDocument();
-    expect(screen.getByText(/Copy it now or copy the ready-made MCP URL/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Copy public URL/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copy compatibility URL/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copy key/i })).toBeInTheDocument();
+    expect(screen.getByText(/Use the public MCP door first/i)).toBeInTheDocument();
     await waitForInitialAdminYouFetches();
   });
 
@@ -120,17 +131,21 @@ describe("AdminYou API key card", () => {
     renderPage();
 
     expect(await screen.findByText(/stores only a hash after setup/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Create new copyable key/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Rotate compatibility key/i })).toBeInTheDocument();
+    expect(screen.getByText(/public MCP door is unchanged/i)).toBeInTheDocument();
     await waitForInitialAdminYouFetches();
   });
 
-  it("shows the first-run compass and active My Data controls", async () => {
+  it("shows the section nav and active My Data controls", async () => {
     stubFetch("uc_test_1234567890");
 
     renderPage();
 
-    expect(await screen.findByText(/First-visit compass/i)).toBeInTheDocument();
-    expect(screen.getByText(/Always on/i)).toBeInTheDocument();
+    // The compact nav strip doubles as the at-a-glance setup status.
+    expect(await screen.findByRole("link", { name: /About You/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /AI Style/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /My Data/i })).toBeInTheDocument();
+
     expect(screen.getByRole("button", { name: /Download Memory/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Download Sessions & Orchestrator/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Download Preferences/i })).toBeInTheDocument();
@@ -146,6 +161,38 @@ describe("AdminYou API key card", () => {
 
     expect(await screen.findByText(/Markdown notes/i)).toBeInTheDocument();
     expect(screen.getByText(/Suggest categories/i)).toBeInTheDocument();
+    await waitForInitialAdminYouFetches();
+  });
+
+  it("renders About You and AI Style as every-session sections", async () => {
+    stubFetch("uc_test_1234567890");
+
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: /About You/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /AI Style/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/About you and your business/i)).toBeInTheDocument();
+    // Both identity surfaces advertise that they load into every session.
+    expect(screen.getAllByText(/Applied every session/i).length).toBeGreaterThanOrEqual(2);
+    await waitForInitialAdminYouFetches();
+  });
+
+  it("saves About You through the about_you_update endpoint", async () => {
+    stubFetch("uc_test_1234567890");
+
+    renderPage();
+
+    const textarea = await screen.findByLabelText(/About you and your business/i);
+    fireEvent.change(textarea, { target: { value: "I run a studio." } });
+    fireEvent.click(screen.getByRole("button", { name: /Save About You/i }));
+
+    await waitFor(() => {
+      const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("about_you_update"),
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
     await waitForInitialAdminYouFetches();
   });
 });

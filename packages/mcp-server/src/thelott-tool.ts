@@ -1,37 +1,42 @@
 // The Lott AU integration.
 // Australian lottery results and jackpots. No authentication required.
 // Supports Tattslotto, Oz Lotto, Powerball, Set for Life, Monday/Wednesday Lotto.
-// Base URL: https://api.thelott.com/
+// The legacy REST API (api.thelott.com) was retired.
+// Now uses the data API at data.api.thelott.com (POST-based, returns open draws).
+// Public endpoint - no API key needed.
 
 import { stampMeta } from "./connector-meta.js";
 
-const LOTT_BASE = "https://api.thelott.com";
+const LOTT_BASE = "https://data.api.thelott.com";
 
-const GAME_SLUGS: Record<string, string> = {
-  "tattslotto": "saturday-tattslotto",
-  "saturday-lotto": "saturday-tattslotto",
-  "oz-lotto": "oz-lotto",
-  "ozlotto": "oz-lotto",
-  "powerball": "powerball",
-  "set-for-life": "set-for-life",
-  "setforlife": "set-for-life",
-  "monday-lotto": "monday-lotto",
-  "wednesday-lotto": "wednesday-lotto",
+const GAME_PRODUCTS: Record<string, string> = {
+  "tattslotto": "TattsLotto",
+  "saturday-lotto": "TattsLotto",
+  "saturday-tattslotto": "TattsLotto",
+  "oz-lotto": "OzLotto",
+  "ozlotto": "OzLotto",
+  "powerball": "Powerball",
+  "set-for-life": "SetForLife",
+  "setforlife": "SetForLife",
+  "monday-lotto": "MonWedLotto",
+  "wednesday-lotto": "MonWedLotto",
 };
 
 const LOTT_TIMEOUT_MS = Number(process.env.LOTT_TIMEOUT_MS) || 10000;
 
-async function lottGet(path: string, params?: Record<string, string>): Promise<unknown> {
-  const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+async function lottPost(path: string, body: unknown): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), LOTT_TIMEOUT_MS);
   let res: Response;
   try {
-    res = await fetch(`${LOTT_BASE}${path}${qs}`, {
+    res = await fetch(`${LOTT_BASE}${path}`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Accept: "application/json",
         "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
       },
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
   } catch (err) {
@@ -42,18 +47,24 @@ async function lottGet(path: string, params?: Record<string, string>): Promise<u
   } finally {
     clearTimeout(timer);
   }
-  if (res.status === 404) throw new Error("Game or draw not found.");
+  if (res.status === 404) throw new Error("Game or draw not found on The Lott data API.");
   if (res.status === 429) throw new Error("The Lott API rate limit exceeded.");
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`The Lott API HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`);
+    const text = await res.text().catch(() => "");
+    throw new Error(`The Lott API HTTP ${res.status}${text ? `: ${text.slice(0, 200)}` : ""}`);
   }
   return res.json() as Promise<unknown>;
 }
 
-function resolveSlug(game: string): string {
+function resolveProduct(game: string): string {
   const lower = game.toLowerCase().replace(/\s+/g, "-");
-  return GAME_SLUGS[lower] ?? lower;
+  const product = GAME_PRODUCTS[lower];
+  if (!product) {
+    throw new Error(
+      `Unknown game "${game}". Valid: ${Object.keys(GAME_PRODUCTS).join(", ")}`
+    );
+  }
+  return product;
 }
 
 // ─── get_lott_results ─────────────────────────────────────────────────────────
@@ -61,24 +72,34 @@ function resolveSlug(game: string): string {
 export async function getLottResults(args: Record<string, unknown>): Promise<unknown> {
   try {
     const game = String(args.game ?? "powerball").trim();
-    const slug = resolveSlug(game);
+    const product = resolveProduct(game);
 
-    const params: Record<string, string> = {};
-    if (args.draw_number) params["drawNumber"] = String(args.draw_number);
-    if (args.date) params["drawDate"] = String(args.date);
+    const reqBody: Record<string, unknown> = {
+      CompanyId: "Tattersalls",
+      MaxDrawCountPerProduct: 1,
+      OptionalProductFilter: [product],
+    };
 
-    const data = await lottGet(`/games/${slug}/draws/latest`, params) as Record<string, unknown>;
+    const data = await lottPost(
+      "/sales/vmax/web/data/lotto/latestresults",
+      reqBody,
+    ) as Record<string, unknown>;
+
+    const draws = (data["DrawResults"] ?? data["Draws"] ?? []) as Array<Record<string, unknown>>;
+    const draw = draws[0];
+
+    if (!draw) {
+      return { error: `No results found for ${product}.` };
+    }
 
     return stampMeta({
-      game: slug,
-      draw_number: data["drawNumber"],
-      draw_date: data["drawDate"],
-      winning_numbers: data["primaryNumbers"] ?? data["winningNumbers"],
-      supplementary_numbers: data["secondaryNumbers"] ?? data["supplementaryNumbers"],
-      powerball: data["powerball"],
-      jackpot: data["jackpot"],
-      prize_pools: data["prizePools"],
-      division_results: data["divisionResults"],
+      game: product,
+      draw_number: draw["DrawNumber"],
+      draw_date: draw["DrawDate"],
+      winning_numbers: draw["PrimaryNumbers"],
+      supplementary_numbers: draw["SecondaryNumbers"],
+      jackpot: draw["Jackpot"] ?? draw["Division1Amount"],
+      division_results: draw["Dividends"] ?? draw["DivisionResults"],
     }, {
       source: "The Lott",
       fetched_at: new Date().toISOString(),
@@ -97,26 +118,27 @@ export async function getLottJackpots(args: Record<string, unknown>): Promise<un
       ? (Array.isArray(args.games) ? args.games as string[] : [String(args.games)])
       : ["powerball", "oz-lotto", "tattslotto", "set-for-life"];
 
-    const results = await Promise.allSettled(
-      games.map(async (game) => {
-        const slug = resolveSlug(game);
-        const data = await lottGet(`/games/${slug}/draws/latest`) as Record<string, unknown>;
-        return {
-          game: slug,
-          draw_date: data["drawDate"],
-          jackpot: data["jackpot"],
-          next_jackpot: data["nextJackpot"],
-          jackpot_guaranteed: data["isJackpotGuaranteed"] ?? false,
-        };
-      })
-    );
+    const products = games.map((g) => resolveProduct(g));
+
+    const data = await lottPost(
+      "/sales/vmax/web/data/lotto/opendraws",
+      {
+        CompanyId: "Tattersalls",
+        MaxDrawCountPerProduct: 1,
+        OptionalProductFilter: products,
+      },
+    ) as Record<string, unknown>;
+
+    const draws = (data["Draws"] ?? data["DrawResults"] ?? []) as Array<Record<string, unknown>>;
 
     return {
-      jackpots: results.map((r, i) =>
-        r.status === "fulfilled"
-          ? r.value
-          : { game: games[i], error: r.reason instanceof Error ? r.reason.message : String(r.reason) }
-      ),
+      jackpots: draws.map((draw) => ({
+        game: draw["ProductName"] ?? draw["ProductId"],
+        draw_number: draw["DrawNumber"],
+        draw_date: draw["DrawDate"] ?? draw["CloseDate"],
+        jackpot: draw["Jackpot"] ?? draw["Division1Amount"],
+        jackpot_guaranteed: draw["IsJackpotGuaranteed"] ?? false,
+      })),
     };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };

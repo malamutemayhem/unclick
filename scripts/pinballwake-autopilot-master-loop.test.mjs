@@ -143,7 +143,7 @@ describe("PinballWake Autopilot Master Loop", () => {
     assert.match(result.job.chip, /Improve ACK handoff/);
   });
 
-  it("turns PR-scoped ACK comments into Merge Room ready without Chris chasing workers", () => {
+  it("turns PR-scoped ACK comments into Merge Room ready without the operator chasing workers", () => {
     const result = evaluateAutopilotMasterLoop({
       launchpad: readyLaunchpad(),
       ledger: readyLedger(proofJob()),

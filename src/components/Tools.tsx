@@ -442,7 +442,7 @@ const tools: Tool[] = [
       "Dark mode support and custom delay for JavaScript-rendered content",
       "Return base64-encoded PNG or a signed URL to the stored image",
     ],
-    examplePrompt: "Ask your AI to screenshot a competitor's landing page and save it for visual comparison",
+    examplePrompt: "Ask your AI to screenshot a reference landing page and save it for visual comparison",
   },
   {
     name: "OCR",
@@ -541,7 +541,7 @@ const tools: Tool[] = [
       "Registrant contact info (where not redacted by privacy protection)",
       "Detect privacy registrations and flag domains registered within the last 30 days",
     ],
-    examplePrompt: "Ask your AI to look up the owner and expiry date of a competitor's domain",
+    examplePrompt: "Ask your AI to look up the owner and expiry date of a public domain",
   },
   {
     name: "Sitemap",
@@ -1152,7 +1152,7 @@ const tools: Tool[] = [
       "Look up summoner profiles by name and region",
       "Get ranked tier, LP, wins, losses, and win rate for any player",
       "Retrieve recent match history with champion picks and KDA",
-      "Valorant agent stats, ranks, and competitive match results",
+      "Valorant agent stats, ranks, and ranked match results",
     ],
     examplePrompt: "Ask your AI to look up a League of Legends player's ranked stats and recent performance",
   },
@@ -2499,7 +2499,7 @@ const tools: Tool[] = [
   // ── AI Models ──────────────────────────────────────────────────────────────
   {
     name: "Mistral",
-    description: "Access Mistral AI models for chat completions and vector embeddings via the Mistral API. Covers the full model range from Mistral Small (fast and cheap) to Mistral Large (frontier reasoning). A strong European alternative to OpenAI with competitive performance and pricing.",
+    description: "Access Mistral AI models for chat completions and vector embeddings via the Mistral API. Covers the full model range from Mistral Small (fast and cheap) to Mistral Large (frontier reasoning), with strong performance and pricing.",
     endpoint: "/v1/mistral",
     category: "Platform",
     Icon: Brain,

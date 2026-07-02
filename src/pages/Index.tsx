@@ -1,23 +1,15 @@
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import Problem from "@/components/Problem";
-import InstallSection from "@/components/InstallSection";
-import Stats from "@/components/Stats";
-import TrustSignals from "@/components/TrustSignals";
-import FinalCTA from "@/components/FinalCTA";
-import FAQ from "@/components/FAQ";
-import Footer from "@/components/Footer";
+import BubbleHome from "@/components/home/BubbleHome";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
-import { presets } from "@/lib/design-system";
 
 /**
- * Index (Apple-inspired polish pass, 2026-05-28).
+ * Index (the bubble goes live, 2026-06-12).
  *
- *  - Dropped VantaWavesBackground from the page wrap. The single soft halo
- *    inside Hero is the only ambient effect on the homepage.
- *  - All sections inherit the design tokens from src/index.css.
- *  - Meta tags updated to match the new positioning.
+ * The homepage renders the BubbleHome scene: one glass bubble tethered
+ * to the whole team, web-slinging down the page through the story
+ * stages. Chosen from the home-preview design lane (option R); the
+ * previous Hero/Problem/TrustSignals composition remains in
+ * src/components for the other pages that use those sections.
  */
 const Index = () => {
   useCanonical("/");
@@ -31,19 +23,7 @@ const Index = () => {
     ogUrl: "https://unclick.world/",
   });
 
-  return (
-    <div className={presets.page}>
-      <Navbar />
-      <Hero />
-      <Problem />
-      <InstallSection />
-      <Stats />
-      <TrustSignals />
-      <FinalCTA />
-      <FAQ />
-      <Footer />
-    </div>
-  );
+  return <BubbleHome />;
 };
 
 export default Index;

@@ -7,7 +7,7 @@
  * their memory grow.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/auth";
 
 const API_KEY_STORAGE = "unclick_api_key";
@@ -23,10 +23,14 @@ interface HealthData {
   last_used_at: string | null;
 }
 
-type Tone = "healthy" | "warn" | "off";
+// "unknown" means the last fetch failed or has not returned yet, so we must
+// not keep claiming the old "Memory on" state. "off" means a fetch succeeded
+// and reported not connected.
+type Tone = "healthy" | "warn" | "off" | "unknown";
 
-function pickTone(data: HealthData | null): Tone {
-  if (!data) return "off";
+function pickTone(data: HealthData | null, errored: boolean): Tone {
+  if (errored) return "unknown";
+  if (!data) return "unknown";
   if (data.connected && (data.has_context || data.fact_count > 0)) return "healthy";
   if (data.connected) return "warn";
   return "off";
@@ -46,8 +50,10 @@ function shortTime(iso: string | null): string {
 
 export default function MemoryHealthPill() {
   const [data, setData] = useState<HealthData | null>(null);
+  const [errored, setErrored] = useState(false);
+  const [checking, setChecking] = useState(false);
   const { session } = useSession();
-  const apiKey = useMemo(() => {
+  const storedApiKey = useMemo(() => {
     try {
       return localStorage.getItem(API_KEY_STORAGE) ?? "";
     } catch {
@@ -55,56 +61,76 @@ export default function MemoryHealthPill() {
     }
   }, []);
 
+  const token = session?.access_token;
+  const apiKey = token ? "" : storedApiKey;
+
+  const fetchOnce = useCallback(async () => {
+    if (!apiKey && !token) return;
+    setChecking(true);
+    try {
+      let res: Response;
+      if (apiKey) {
+        res = await fetch(
+          `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
+        );
+      } else {
+        res = await fetch("/api/memory-admin?action=admin_check_connection", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      if (!res.ok) {
+        setErrored(true);
+        return;
+      }
+      const body = (await res.json()) as HealthData;
+      setData(body);
+      setErrored(false);
+    } catch {
+      // A failed fetch must not keep showing a stale green pill.
+      setErrored(true);
+    } finally {
+      setChecking(false);
+    }
+  }, [apiKey, token]);
+
   useEffect(() => {
-    const token = session?.access_token;
     if (!apiKey && !token) return;
     let cancelled = false;
-    async function fetchOnce() {
-      try {
-        let res: Response;
-        if (apiKey) {
-          res = await fetch(
-            `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`
-          );
-        } else {
-          res = await fetch("/api/memory-admin?action=admin_check_connection", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        }
-        if (!res.ok) return;
-        const body = (await res.json()) as HealthData;
-        if (!cancelled) setData(body);
-      } catch {
-        // ignore
-      }
-    }
-    fetchOnce();
-    const iv = window.setInterval(fetchOnce, REFRESH_MS);
+    const run = () => { if (!cancelled) void fetchOnce(); };
+    run();
+    const iv = window.setInterval(run, REFRESH_MS);
     return () => {
       cancelled = true;
       window.clearInterval(iv);
     };
-  }, [apiKey, session]);
+  }, [apiKey, token, fetchOnce]);
 
-  const tone = pickTone(data);
+  const tone = pickTone(data, errored);
   const label =
     tone === "healthy"
       ? "Memory on"
       : tone === "warn"
       ? "No memory yet"
-      : "Not connected";
+      : tone === "off"
+      ? "Not connected"
+      : "Checking...";
   const dotClass =
     tone === "healthy"
       ? "bg-green-500"
       : tone === "warn"
       ? "bg-[#E2B93B]"
-      : "bg-white/20";
+      : tone === "off"
+      ? "bg-white/20"
+      : "bg-white/40";
 
-  const title = data
-    ? `${label}. Identity: ${data.context_count}. Facts: ${data.fact_count}. Last session ${shortTime(
-        data.last_session ?? data.last_used_at
-      )} ago.`
-    : "Memory status unknown";
+  const title =
+    tone === "unknown"
+      ? "Memory status unknown - last check did not return. Click Check now to retry."
+      : data
+      ? `${label}. Identity: ${data.context_count}. Facts: ${data.fact_count}. Last session ${
+          data.last_session ?? data.last_used_at ? `${shortTime(data.last_session ?? data.last_used_at)} ago` : "never"
+        }.`
+      : "Memory status unknown";
 
   return (
     <span
@@ -112,8 +138,17 @@ export default function MemoryHealthPill() {
       aria-label={title}
       className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-white/70"
     >
-      <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass} ${checking ? "animate-pulse" : ""}`} />
       <span className="hidden sm:inline">{label}</span>
+      <button
+        type="button"
+        onClick={() => void fetchOnce()}
+        disabled={checking}
+        className="ml-0.5 rounded-full px-1 text-[10px] text-white/45 transition-colors hover:text-white/80 disabled:opacity-40"
+        title="Check memory status now"
+      >
+        Check now
+      </button>
     </span>
   );
 }

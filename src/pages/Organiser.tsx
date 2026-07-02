@@ -20,7 +20,7 @@ import {
 const FEATURES = [
   {
     title: "Calendar Sync",
-    desc: "Google, Outlook, Apple - unified behind a single MCP interface",
+    desc: "Google, Outlook, and Apple calendars, all in one place",
     icon: Calendar,
   },
   {
@@ -30,7 +30,7 @@ const FEATURES = [
   },
   {
     title: "Booking Pages",
-    desc: "Share your availability. Let anyone book a slot - like Calendly, but AI-native",
+    desc: "Share your availability and let anyone book a slot. Like Calendly, but your AI manages it",
     icon: LinkIcon,
   },
   {

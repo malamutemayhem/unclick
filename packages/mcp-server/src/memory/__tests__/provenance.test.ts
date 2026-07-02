@@ -86,6 +86,14 @@ describe("provenance helpers (flag off by default)", () => {
     assert.equal(sanitizeSourceRef(42), null);
   });
 
+  test("sanitizeSourceRef drops Stripe and webhook secret patterns", () => {
+    assert.equal(sanitizeSourceRef("sk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("sk_test_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("rk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("pk_live_0000000000fake"), null);
+    assert.equal(sanitizeSourceRef("whsec_0000000000fake"), null);
+  });
+
   test("sanitizeSourceRef caps very long refs", () => {
     const long = "https://example.com/" + "a".repeat(2000);
     const out = sanitizeSourceRef(long);
@@ -201,7 +209,7 @@ describe("LocalBackend provenance round-trip", () => {
     const backend = new LocalBackend();
 
     const { id } = await backend.addFact({
-      fact: "Chris ships memory provenance receipts.",
+      fact: "User ships memory provenance receipts.",
       category: "decision",
       confidence: 0.95,
       source_agent_id: "claude-worker-03-provenance",

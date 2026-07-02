@@ -26,7 +26,7 @@ const TermsPage = () => {
       <main className="mx-auto max-w-3xl px-6 pb-32 pt-28">
         <FadeIn>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Terms of Service</h1>
-          <p className="mt-3 text-sm text-muted-custom">Effective date: April 10, 2026. Last updated: April 10, 2026.</p>
+          <p className="mt-3 text-sm text-muted-custom">Effective date: April 10, 2026. Last updated: June 21, 2026.</p>
         </FadeIn>
 
         <FadeIn delay={0.05}>

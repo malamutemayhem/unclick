@@ -177,6 +177,37 @@ export function canUseTestPassPack(row: Pick<TestPassPackRow, "owner_user_id">, 
   return row.owner_user_id === null || row.owner_user_id === actorUserId;
 }
 
+interface TestPassPackListRow {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  yaml: unknown;
+  owner_user_id: string | null;
+}
+
+/**
+ * Shape a testpass_packs row into the public pack summary returned by
+ * list_packs. Mirrors the memory-admin list_testpass_packs response so
+ * the MCP tool and the admin UI render the same fields.
+ */
+export function mapTestPassPackListRows(rows: TestPassPackListRow[]): Array<Record<string, unknown>> {
+  return rows.map((p) => {
+    const yamlData = (p.yaml && typeof p.yaml === "object" ? p.yaml : {}) as Record<string, unknown>;
+    const items = Array.isArray(yamlData.items) ? yamlData.items : [];
+    const category = typeof yamlData.category === "string" ? yamlData.category : "general";
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      description: p.description,
+      check_count: items.length,
+      category,
+      is_system: p.owner_user_id === null,
+    };
+  });
+}
+
 export function testPassPackSaveConflict(
   existing: Pick<TestPassPackRow, "owner_user_id" | "slug"> | null,
   actorUserId: string,
@@ -567,6 +598,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (err) {
       return json(res, 500, { error: (err as Error).message });
     }
+  }
+
+  if (req.method === "GET" && action === "list_packs") {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/testpass_packs?or=(owner_user_id.is.null,owner_user_id.eq.${encodeURIComponent(actorUserId)})&select=id,slug,name,description,yaml,owner_user_id&order=created_at.asc`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!r.ok) {
+      const text = await r.text();
+      return json(res, 500, { error: `list_packs lookup failed: ${text}` });
+    }
+    const rows = (await r.json()) as Parameters<typeof mapTestPassPackListRows>[0];
+    return json(res, 200, { packs: mapTestPassPackListRows(rows) });
   }
 
   if (req.method === "POST" && action === "start_run") {

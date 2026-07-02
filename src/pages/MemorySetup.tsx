@@ -194,14 +194,15 @@ export default function MemorySetupPage() {
         <FadeIn>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary">
             <Sparkles className="h-3 w-3" />
-            One paste. You're done.
+            About two minutes, one paste.
           </div>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Turn on cloud memory
           </h1>
           <p className="mt-2 max-w-xl text-sm text-body">
-            Connect your own Supabase so memory syncs across every machine you use UnClick on. You own the
-            data. We never see it.
+            Your memory lives in your own free Supabase database and follows you to every machine.
+            Supabase is a database service with a free plan. The account is yours, and so is everything in it.
+            We never see your data.
           </p>
         </FadeIn>
 
@@ -301,7 +302,7 @@ export default function MemorySetupPage() {
                 Connect your Supabase
               </h2>
               <p className="mt-1 text-sm text-body">
-                Free tier works fine (500MB).{" "}
+                The free plan is plenty (500MB).{" "}
                 <a
                   href="https://supabase.com/dashboard/new"
                   target="_blank"
@@ -310,8 +311,8 @@ export default function MemorySetupPage() {
                 >
                   Create a project <ExternalLink className="h-3 w-3" />
                 </a>
-                , then grab your <span className="font-mono text-xs text-heading">service_role</span> key
-                from Settings → API.
+                , then copy the secret key called{" "}
+                <span className="font-mono text-xs text-heading">service_role</span> from Settings, then API.
               </p>
 
               <div className="mt-6 space-y-5">
@@ -331,8 +332,8 @@ export default function MemorySetupPage() {
                     className="mt-1.5 w-full resize-none rounded-md border border-border/60 bg-card/60 px-3 py-2 font-mono text-xs text-heading placeholder:text-muted-foreground/50 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    Paste the key that starts with <span className="font-mono">eyJ</span>. NOT the anon
-                    key - we need service_role to create tables.
+                    Paste the long key labelled service_role (it starts with{" "}
+                    <span className="font-mono">eyJ</span>). The shorter key on the same page will not work.
                   </p>
                 </div>
 
@@ -449,9 +450,10 @@ export default function MemorySetupPage() {
 
               {/* MCP config snippet */}
               <div className="mt-6">
-                <h3 className="text-sm font-semibold text-heading">Drop this into your MCP config</h3>
+                <h3 className="text-sm font-semibold text-heading">Add UnClick to your AI app</h3>
                 <p className="mt-1 text-xs text-body">
-                  The server will fetch your Supabase access securely using your API key.
+                  Paste this into your AI app's settings file (its MCP config). UnClick signs in to your
+                  database with your API key; nothing else can open it.
                 </p>
                 <div className="mt-3 rounded-md border border-border/40 bg-card/60">
                   <pre className="overflow-x-auto p-3 font-mono text-[11px] text-heading">
@@ -481,7 +483,7 @@ export default function MemorySetupPage() {
 
               <div className="mt-8 flex items-center justify-between rounded-lg border border-border/40 bg-card/30 p-4 text-xs text-body">
                 <span>Want to see what's in your memory?</span>
-                <a href="/memory/admin" className="text-primary hover:underline">
+                <a href="/admin/memory" className="text-primary hover:underline">
                   Open admin &rarr;
                 </a>
               </div>
@@ -492,8 +494,8 @@ export default function MemorySetupPage() {
         {/* Subtle trust footer */}
         <FadeIn delay={0.15}>
           <p className="mt-8 text-center text-[11px] text-muted-foreground">
-            Your service_role key is encrypted at rest with a key derived from your UnClick API key. Only
-            you can decrypt it.
+            We store your database key encrypted. It can only be read with your UnClick API key,
+            and only you hold that.
           </p>
         </FadeIn>
       </main>

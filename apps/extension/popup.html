@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>UnClick Local</title>
+    <style>
+      body { font-family: system-ui, sans-serif; width: 340px; margin: 0; padding: 14px; background: #0b1530; color: #e8edf7; }
+      h1 { font-size: 15px; margin: 0 0 2px; }
+      .sub { font-size: 11px; color: #93a3c4; margin: 0 0 12px; }
+      .cap { border: 1px solid #25355e; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+      .cap h2 { font-size: 13px; margin: 0 0 4px; }
+      .cap p { font-size: 11px; color: #b8c4dd; margin: 0 0 8px; }
+      .state { font-size: 11px; font-weight: 600; }
+      .state.active { color: #6fdc8c; }
+      .state.none, .state.expired { color: #f0c75e; }
+      .state.revoked { color: #ff8a8a; }
+      button { font-size: 12px; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; margin-right: 6px; margin-top: 6px; }
+      .grant { background: #2f6fed; color: #fff; }
+      .revoke { background: #5a2330; color: #ffb4b4; }
+      .run { background: #1d8a4f; color: #fff; }
+      input { width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px; border-radius: 6px; border: 1px solid #25355e; background: #101d42; color: #e8edf7; margin-top: 6px; }
+      .receipts h2 { font-size: 12px; margin: 12px 0 6px; }
+      .receipt { font-size: 10px; color: #93a3c4; border-top: 1px solid #1c2a4f; padding: 4px 0; }
+      .msg { font-size: 11px; margin-top: 6px; min-height: 14px; }
+      .msg.err { color: #ff8a8a; }
+      .msg.ok { color: #6fdc8c; }
+    </style>
+  </head>
+  <body>
+    <h1>UnClick Local</h1>
+    <p class="sub">Scoped, approved, revocable. No cookies, tokens, passkeys, or MFA ever leave this browser.</p>
+    <div id="capabilities"></div>
+    <div class="receipts">
+      <h2>Recent receipts</h2>
+      <div id="receipts"></div>
+    </div>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

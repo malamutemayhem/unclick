@@ -6,8 +6,8 @@ import { renderCvDraft } from "./renderCvDraft";
 import { collectFactIds, type MasterCvFacts } from "./cvFacts";
 
 const FACTS: MasterCvFacts = {
-  name: "Christopher Byrne",
-  contact: "chris@example.com | Victoria, Australia",
+  name: "Jane Smith",
+  contact: "jane@example.com | Victoria, Australia",
   summary: { id: "sum", text: "Designer focused on digital content." },
   experience: [
     {
@@ -45,7 +45,7 @@ const DESIGN_JD = {
 describe("renderCvDraft", () => {
   test("renders header, standard ATS headings, and MM/YYYY dates", () => {
     const result = renderCvDraft(FACTS, DESIGN_JD);
-    expect(result.draft).toContain("Christopher Byrne");
+    expect(result.draft).toContain("Jane Smith");
     expect(result.draft).toContain("Work Experience");
     expect(result.draft).toContain("Education");
     expect(result.draft).toContain("Skills");

@@ -183,7 +183,7 @@ export default function AdminAnalytics() {
         </div>
       )}
 
-      <div className="mb-6 rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+      <div className="mb-6 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-medium text-white">Reliability checklist</h2>
@@ -219,7 +219,7 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Dashboard tabs */}
-      <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111111] p-1">
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.03] p-1">
         {DASHBOARDS.map((d) => (
           <button
             key={d.key}
@@ -239,7 +239,7 @@ export default function AdminAnalytics() {
       <p className="mb-3 text-xs text-[#666]">{current.desc}</p>
 
       {/* Iframe */}
-      <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-[#111111]">
+      <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.03]">
         {current.url ? (
           <iframe
             key={`${current.key}-${iframeKey}`}

@@ -6,9 +6,9 @@ import {
 } from "../packages/mcp-server/src/memory/quota-policy.js";
 
 describe("memory quota policy", () => {
-  it("exempts the owner account from memory quotas by default", () => {
-    expect(isMemoryQuotaExemptEmail("creativelead@malamutemayhem.com")).toBe(true);
-    expect(isMemoryQuotaExemptEmail(" CreativeLead@MalamuteMayhem.com ")).toBe(true);
+  it("exempts accounts listed in the env-var allowlist from memory quotas", () => {
+    expect(isMemoryQuotaExemptEmail("owner@example.com", "owner@example.com")).toBe(true);
+    expect(isMemoryQuotaExemptEmail(" Owner@Example.com ", "owner@example.com")).toBe(true);
   });
 
   it("does not exempt unrelated accounts unless explicitly allowlisted", () => {
@@ -16,8 +16,8 @@ describe("memory quota policy", () => {
     expect(isMemoryQuotaExemptEmail("user@example.com", "user@example.com")).toBe(true);
   });
 
-  it("reports owner as the effective memory tier without changing other tiers", () => {
-    expect(effectiveMemoryTier("free", "creativelead@malamutemayhem.com")).toBe("owner");
+  it("reports owner as the effective memory tier for exempt accounts", () => {
+    expect(effectiveMemoryTier("free", "owner@example.com", "owner@example.com")).toBe("owner");
     expect(effectiveMemoryTier("pro", "user@example.com")).toBe("pro");
     expect(effectiveMemoryTier(null, "user@example.com")).toBe("free");
   });
@@ -35,7 +35,8 @@ describe("memory quota policy", () => {
       shouldEnforceManagedMemoryCaps({
         tenancyMode: "managed",
         tier: "free",
-        accountEmail: "creativelead@malamutemayhem.com",
+        accountEmail: "owner@example.com",
+        quotaExemptAllowlist: "owner@example.com",
       }),
     ).toBe(false);
 

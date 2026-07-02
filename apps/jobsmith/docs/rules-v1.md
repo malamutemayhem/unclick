@@ -1,6 +1,6 @@
 # JobSmith Universal Rules v1
 
-JobSmith now loads the canonical 229-rule pack from `apps/jobsmith/rules/jobsmith-universal-rules-v1.yaml`.
+JobSmith now loads the canonical 232-rule pack from `apps/jobsmith/rules/jobsmith-universal-rules-v1.yaml`.
 
 The engine validates:
 

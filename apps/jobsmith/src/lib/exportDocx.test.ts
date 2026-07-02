@@ -11,12 +11,12 @@ const COVER_LETTER = [
   "I am pleased to express my interest in the Digital Media Designer position.",
   "",
   "Sincerely,",
-  "Christopher Byrne",
+  "Jane Smith",
 ].join("\n");
 
 const CV = [
-  "Christopher Byrne",
-  "chris@example.com | Victoria, Australia",
+  "Jane Smith",
+  "jane@example.com | Victoria, Australia",
   "",
   "Work Experience",
   "",

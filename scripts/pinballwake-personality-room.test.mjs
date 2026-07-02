@@ -15,7 +15,7 @@ describe("PinballWake Personality Room", () => {
     const result = evaluatePersonalityRoom({
       identity: "UnClick is an AI-native infrastructure ecosystem.",
       audience: "Founder/operator using AI agents and automation.",
-      memoryNotes: ["Chris prefers simple English.", "Use analogies when the system gets complex."],
+      memoryNotes: ["User prefers simple English.", "Use analogies when the system gets complex."],
       writingStyle: "friendly_builder",
       responseLength: "short",
       complexity: "very_simple_with_analogies",

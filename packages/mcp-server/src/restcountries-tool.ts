@@ -45,6 +45,22 @@ async function rcFetch(path: string, fields?: string): Promise<unknown> {
   return response.json();
 }
 
+// --- Shape guard ---
+// The API contract is "array of countries", but upstream has started answering
+// some requests with a bare object (an error/notice body under HTTP 200). That
+// used to crash as "countries.map is not a function". Surface the upstream
+// message as a clean error instead, so the caller sees what actually happened.
+function toCountryArray(data: unknown): Array<Record<string, unknown>> {
+  if (Array.isArray(data)) return data as Array<Record<string, unknown>>;
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    const message = typeof obj.message === "string" ? obj.message : null;
+    const status = obj.status !== undefined ? ` (status ${String(obj.status)})` : "";
+    throw new Error(`REST Countries API error${status}: ${message ?? "unexpected non-array response."}`);
+  }
+  throw new Error("REST Countries API returned an unexpected response shape.");
+}
+
 // --- Normalizer ---
 
 function normalizeCountry(c: Record<string, unknown>) {
@@ -93,7 +109,7 @@ export async function countryAll(args: Record<string, unknown>): Promise<unknown
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  const countries = data as Array<Record<string, unknown>>;
+  const countries = toCountryArray(data);
   return {
     count: countries.length,
     countries: countries.map(normalizeCountry),
@@ -108,7 +124,7 @@ export async function countryByName(args: Record<string, unknown>): Promise<unkn
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  const countries = data as Array<Record<string, unknown>>;
+  const countries = toCountryArray(data);
   return stampMeta({
     count: countries.length,
     countries: countries.map(normalizeCountry),
@@ -127,11 +143,16 @@ export async function countryByCode(args: Record<string, unknown>): Promise<unkn
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  // /alpha/{code} can return a single object or array
-  const arr = Array.isArray(data) ? data : [data];
+  // /alpha/{code} can return a single country object or an array; anything
+  // else (error/notice bodies) goes through the shape guard.
+  const arr = Array.isArray(data)
+    ? (data as Array<Record<string, unknown>>)
+    : data && typeof data === "object" && "name" in (data as Record<string, unknown>)
+      ? [data as Record<string, unknown>]
+      : toCountryArray(data);
   return {
     count: arr.length,
-    countries: (arr as Array<Record<string, unknown>>).map(normalizeCountry),
+    countries: arr.map(normalizeCountry),
   };
 }
 
@@ -144,7 +165,7 @@ export async function countryByRegion(args: Record<string, unknown>): Promise<un
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  const countries = data as Array<Record<string, unknown>>;
+  const countries = toCountryArray(data);
   return {
     region,
     count: countries.length,
@@ -160,7 +181,7 @@ export async function countryByCurrency(args: Record<string, unknown>): Promise<
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  const countries = data as Array<Record<string, unknown>>;
+  const countries = toCountryArray(data);
   return {
     currency,
     count: countries.length,
@@ -176,7 +197,7 @@ export async function countryByLanguage(args: Record<string, unknown>): Promise<
 
   if (data && typeof data === "object" && "results" in data) return data;
 
-  const countries = data as Array<Record<string, unknown>>;
+  const countries = toCountryArray(data);
   return {
     language,
     count: countries.length,

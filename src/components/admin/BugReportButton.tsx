@@ -94,7 +94,7 @@ export default function BugReportButton() {
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md overflow-hidden rounded-xl border border-white/[0.08] bg-[#111] shadow-2xl"
+            className="w-full max-w-md overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.03] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3">
@@ -140,7 +140,7 @@ export default function BugReportButton() {
                     required
                     rows={3}
                     placeholder="What went wrong?"
-                    className="w-full rounded-md border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#61C1C4]/60 focus:outline-none"
+                    className="w-full rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#61C1C4]/60 focus:outline-none"
                   />
                 </div>
 
@@ -153,7 +153,7 @@ export default function BugReportButton() {
                     onChange={(e) => setSteps(e.target.value)}
                     rows={3}
                     placeholder="Optional. How can we reproduce it?"
-                    className="w-full rounded-md border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#61C1C4]/60 focus:outline-none"
+                    className="w-full rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc] placeholder:text-[#555] focus:border-[#61C1C4]/60 focus:outline-none"
                   />
                 </div>
 
@@ -164,7 +164,7 @@ export default function BugReportButton() {
                   <select
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value as Severity)}
-                    className="w-full rounded-md border border-white/[0.08] bg-[#0A0A0A] px-3 py-2 text-sm text-[#ccc] focus:border-[#61C1C4]/60 focus:outline-none"
+                    className="w-full rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-sm text-[#ccc] focus:border-[#61C1C4]/60 focus:outline-none"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>

@@ -10,7 +10,7 @@
 Every job in this lane lands on a safety surface that the handover (`20260527 UnClick
 Detailed Handover Notes` section 81, re-stated in the cowork audit
 `docs/audit/2026-05-28-missing-jobs-cowork-lane.md`) says must never be touched without
-explicit Chris approval: secrets, API keys, billing, DNS, production deploy settings, and
+explicit operator approval: secrets, API keys, billing, DNS, production deploy settings, and
 the workflow broad-execute switch. So the deliverable is a verdict per job, backed by
 read-only proof, plus a ready-to-apply artifact where one is safe. No DNS, secret, billing,
 network-policy, or workflow-execute change was made.
@@ -48,7 +48,7 @@ attribution would be NULL. It is neither. The var is present and working in **Pr
 
 **Human note (optional, not blocking):** Preview deployments do not run the production cron,
 so a Preview value is non-blocking. If Prod+Preview parity is wanted for manual Preview runs,
-Chris can confirm the Preview-scoped value in the Vercel dashboard. No secret value is needed
+The operator can confirm the Preview-scoped value in the Vercel dashboard. No secret value is needed
 to confirm presence.
 
 ---
@@ -68,8 +68,8 @@ Read-only proof:
 
 | Var | Kind | Notes |
 |---|---|---|
-| `TELEGRAM_BOT_TOKEN` | secret | Chris-only |
-| `VAPID_PRIVATE_KEY` | secret | Chris-only |
+| `TELEGRAM_BOT_TOKEN` | secret | Operator-only |
+| `VAPID_PRIVATE_KEY` | secret | Operator-only |
 | `VAPID_PUBLIC_KEY` (+ `VITE_VAPID_PUBLIC_KEY`) | public | only useful once code consumes it |
 | `VAPID_SUBJECT` | config | defaults to `mailto:signals@unclick.world` |
 
@@ -78,7 +78,7 @@ Read-only proof:
 
 Conclusion: setting these now adds 2 standing secrets with nothing reading them. The correct
 order is to re-land Phase 2 in a fresh, non-dirty PR first, then set the 4 env vars at deploy
-time (the 2 secrets are a Chris action). Until then this job is blocked on a product decision,
+time (the 2 secrets are an operator action). Until then this job is blocked on a product decision,
 not on env work.
 
 ---
@@ -114,7 +114,7 @@ Recommended path (all human-gated, none performed here):
 ```
 
 Step 4 is a one-line PR a normal lane can ship once steps 1-3 are done. Steps 1-3 are DNS and
-registrar writes and stay with Chris.
+registrar writes and stay with the operator.
 
 ---
 
@@ -137,7 +137,7 @@ Research:
 - Scope to that host + 443 if the platform supports per-host allowlists. No wildcard egress is
   required for the UnClick MCP path.
 
-Conclusion: this is a real network decision for Chris/platform owner. The packet documents the
+Conclusion: this is a real network decision for the operator/platform owner. The packet documents the
 exact, minimal allowlist so the change is a narrow one-host rule rather than open egress. No
 network policy was changed.
 
@@ -161,8 +161,8 @@ Research proof:
   `repository_dispatch`. The Smart Timer (`8dbbb4de`) sits on top of that.
 
 Adding a `repository_dispatch` trigger that can reach the OpenHands execute bridge is the
-"workflow broad-execute switch" the handover reserves for Chris. Recommended gated rollout when
-Chris approves:
+"workflow broad-execute switch" the handover reserves for the operator. Recommended gated rollout when
+the operator approves:
 
 1. Land `62ac75aa` first (accept `repository_dispatch`, default mode `dry-run`).
 2. Keep the `ENABLE_OPENHANDS_EXECUTE` confirmation gate on the execute path.
@@ -175,7 +175,7 @@ No workflow trigger was changed.
 
 ## 6. `f8ccad72` - Vercel notification backlog triage for missed crash signals
 
-**Verdict: no crash backlog visible in readable surfaces. Vercel bell needs Chris or a token.**
+**Verdict: no crash backlog visible in readable surfaces. Vercel bell needs the operator or a token.**
 
 Read-only proof:
 
@@ -187,22 +187,22 @@ Read-only proof:
   team for the available token, and the UnClick Vercel connector is the known-broken one.
 
 Conclusion: the two surfaces that are readable show no critical crash backlog. The Vercel bell
-remains unverified and needs either (a) a one-time human sweep by Chris, or (b) a fixed,
+remains unverified and needs either (a) a one-time human sweep by the operator, or (b) a fixed,
 read-only Vercel token so this triage can be automated next round. The 212 unread `mc_signals`
 are read-state noise, not crashes; that belongs to the Boardroom noise lane (Worker 7), flagged
 here as FYI only.
 
 ---
 
-## Human decisions surfaced (for Chris)
+## Human decisions surfaced (for the operator)
 
 | Job | Decision needed | Owner | Blocking? |
 |---|---|---|---|
-| `1f76c665` | None for Prod. Optional: confirm Preview parity in Vercel | Chris | No |
-| `ac61a52b` | Re-land Signals Phase 2 PR first; then set 4 env vars (2 secret) | Chris | Yes, product decision |
-| `684887e1` | Confirm registrar control + auto-renew; add domain + DNS to Vercel | Chris | Yes, DNS write |
-| `9a4eb279` | Approve a one-host egress allowlist (`unclick.world:443`) | Chris/platform | Yes, network policy |
-| `8dbbb4de` | Approve `repository_dispatch` execute switch (after `62ac75aa`) | Chris | Yes, risky switch |
-| `f8ccad72` | One-time Vercel bell sweep, or provision read-only Vercel token | Chris | Partial |
+| `1f76c665` | None for Prod. Optional: confirm Preview parity in Vercel | Operator | No |
+| `ac61a52b` | Re-land Signals Phase 2 PR first; then set 4 env vars (2 secret) | Operator | Yes, product decision |
+| `684887e1` | Confirm registrar control + auto-renew; add domain + DNS to Vercel | Operator | Yes, DNS write |
+| `9a4eb279` | Approve a one-host egress allowlist (`unclick.world:443`) | Operator/platform | Yes, network policy |
+| `8dbbb4de` | Approve `repository_dispatch` execute switch (after `62ac75aa`) | Operator | Yes, risky switch |
+| `f8ccad72` | One-time Vercel bell sweep, or provision read-only Vercel token | Operator | Partial |
 
 No secrets, DNS, billing, network-policy, or workflow-execute changes were made by this seat.

@@ -25,6 +25,13 @@ export interface SkillPackage {
   reuse: string;
   unclickUsefulness: number;
   nativeMode: SkillNativeMode;
+  /**
+   * Derived "leave this on" flag. These are the native rails UnClick leans on
+   * every session (routing, memory, safety, heartbeat, proof), so the UI groups
+   * them as recommended rather than exposing the raw hardwired/hybrid/skill
+   * taxonomy. Everything else is optional. All skills are on by default.
+   */
+  recommended: boolean;
   requiredWorkerRoles: string[];
   requiredMcpTools: string[];
   requiredApps: string[];
@@ -38,6 +45,10 @@ export interface SkillPackage {
 
 export interface SkillLibrarySummary {
   total: number;
+  /** Native rails the UI surfaces as "recommended, leave on". */
+  recommended: number;
+  /** Everything else: on by default, safe to turn off. */
+  optional: number;
   hardwired: number;
   hybrid: number;
   skillOnly: number;
@@ -74,6 +85,7 @@ export function parseSkillMarkdown(markdown: string): SkillPackage {
     reuse: readRequiredString(frontmatter.reuse, sourceKind === "original" ? "Original UnClick-native skill" : "Rewritten summary"),
     unclickUsefulness: clampNumber(readNumber(frontmatter.unclick_usefulness, 3), 1, 5),
     nativeMode,
+    recommended: isRecommendedMode(nativeMode),
     requiredWorkerRoles: readStringList(frontmatter.required_worker_roles),
     requiredMcpTools: readStringList(frontmatter.required_mcp_tools),
     requiredApps: readStringList(frontmatter.required_apps),
@@ -134,6 +146,8 @@ export function buildSkillLibrarySummary(skills: SkillPackage[]): SkillLibrarySu
   const categories = [...new Set(skills.map((skill) => skill.category))].sort();
   return {
     total: skills.length,
+    recommended: skills.filter((skill) => skill.recommended).length,
+    optional: skills.filter((skill) => !skill.recommended).length,
     hardwired: skills.filter((skill) => skill.nativeMode === "hardwired").length,
     hybrid: skills.filter((skill) => skill.nativeMode === "hybrid").length,
     skillOnly: skills.filter((skill) => skill.nativeMode === "skill").length,
@@ -147,12 +161,10 @@ export function filterSkills(
   skills: SkillPackage[],
   query: string,
   category = "all",
-  nativeMode: SkillNativeMode | "all" = "all",
 ): SkillPackage[] {
   const needle = query.trim().toLowerCase();
   return skills.filter((skill) => {
     if (category !== "all" && skill.category !== category) return false;
-    if (nativeMode !== "all" && skill.nativeMode !== nativeMode) return false;
     if (!needle) return true;
     const haystack = [
       skill.slug,
@@ -166,6 +178,45 @@ export function filterSkills(
     ].join(" ").toLowerCase();
     return haystack.includes(needle);
   });
+}
+
+// The native rails (routing, memory, safety, heartbeat, proof) are the ones we
+// recommend leaving on. We derive this from the underlying native mode so the
+// friendlier two-way grouping stays in sync with the seed metadata, without
+// surfacing the raw hardwired/hybrid/skill jargon in the UI.
+export function isRecommendedMode(mode: SkillNativeMode): boolean {
+  return mode === "hardwired";
+}
+
+// Human-friendly label for a skill category slug (e.g. "agent-orchestration" ->
+// "Agent orchestration", "github-pr" -> "GitHub PR"). Falls back to a tidy
+// title-case of the slug so new categories read well without a code change.
+const SKILL_CATEGORY_LABELS: Record<string, string> = {
+  "agent-orchestration": "Agent orchestration",
+  "browser-automation": "Browser automation",
+  "code-review": "Code review",
+  "content": "Content & SEO",
+  "data": "Data",
+  "debugging": "Debugging",
+  "developer": "Developer",
+  "documents": "Documents",
+  "frontend": "Frontend",
+  "github-pr": "GitHub PR",
+  "memory-km": "Memory & KM",
+  "productivity": "Productivity",
+  "research": "Research",
+  "safety": "Safety",
+  "security": "Security",
+  "testing-qa": "Testing & QA",
+};
+
+export function skillCategoryLabel(category: string): string {
+  const known = SKILL_CATEGORY_LABELS[category];
+  if (known) return known;
+  return category
+    .split("-")
+    .map((word, i) => (i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+    .join(" ");
 }
 
 export function sortSkillsForLibrary(skills: SkillPackage[]): SkillPackage[] {

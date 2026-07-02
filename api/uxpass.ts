@@ -5,6 +5,7 @@
  *   POST ?action=start_run                            - create run, execute deterministic checks, return summary
  *   POST ?action=run                                  - alias of start_run with flat body shape used by the MCP tool
  *   GET  ?action=status&run_id=<uuid>                 - fetch run + findings count
+ *   GET  ?action=list_runs&limit=<n>                  - newest-first recorded runs for the caller
  *   GET  ?action=report_html&run_id=<uuid>            - self-contained HTML report
  *   GET  ?action=report_json&run_id=<uuid>            - JSON dump of run + findings
  *   GET  ?action=report_md&run_id=<uuid>              - markdown fix list
@@ -144,6 +145,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       finding_count: data.findings.length,
       error: data.run.error,
     });
+  }
+
+  if (req.method === "GET" && action === "list_runs") {
+    const rawLimit = Number(req.query.limit ?? 20);
+    const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 20, 1), 100);
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/uxpass_runs?actor_user_id=eq.${encodeURIComponent(actorUserId)}` +
+        `&select=id,target_url,status,ux_score,started_at,completed_at,breakdown&order=started_at.desc&limit=${limit}`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+    );
+    if (!r.ok) return json(res, 502, { error: "Could not read UXPass run history" });
+    const rows = (await r.json().catch(() => null)) as unknown;
+    return json(res, 200, { runs: Array.isArray(rows) ? rows : [] });
   }
 
   if (req.method === "GET" && action === "report_json") {

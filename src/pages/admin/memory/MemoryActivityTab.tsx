@@ -39,6 +39,8 @@ interface ActivityData {
     inspected_top_of_mind_candidates?: number;
     background_heavy_count: number;
     background_heavy_candidate_count?: number;
+    zero_access_count?: number;
+    zero_access_candidate_count?: number;
   };
 }
 
@@ -56,10 +58,22 @@ function formatDate(iso: string): string {
 }
 
 function RecallFactRow({ fact, showSignal = false }: { fact: RecallFact; showSignal?: boolean }) {
+  const hasDirectRecall = Number(fact.access_count ?? 0) > 0;
   return (
     <div className="flex items-start gap-3">
-      <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-mono text-white/40">
-        {fact.access_count}x
+      <span
+        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-mono ${
+          hasDirectRecall
+            ? "bg-white/[0.06] text-white/40"
+            : "bg-[#61C1C4]/10 text-[#61C1C4]/70"
+        }`}
+        title={
+          hasDirectRecall
+            ? "Targeted recall count"
+            : "Not specifically searched or opened yet. Startup loads no longer inflate this count."
+        }
+      >
+        {hasDirectRecall ? `${fact.access_count}x` : "new"}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-white/60 line-clamp-1">{fact.fact}</p>
@@ -126,9 +140,27 @@ export default function MemoryActivityTab({ apiKey }: { apiKey: string }) {
   const sortedDays = Object.entries(data.facts_by_day).sort(([a], [b]) => a.localeCompare(b));
   const maxCount = Math.max(1, ...sortedDays.map(([, c]) => c));
   const topOfMindFacts = data.top_of_mind_facts ?? [];
+  const zeroCount = data.recall_diagnostics?.zero_access_count ?? 0;
+  const inspectedCount = data.recall_diagnostics?.inspected_top_facts ?? 0;
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.04] p-4">
+        <h3 className="flex items-center gap-2 text-xs font-semibold text-[#61C1C4]/80 uppercase tracking-wider">
+          <Activity className="h-3.5 w-3.5" />
+          Recall Counter Meaning
+        </h3>
+        <p className="mt-2 text-xs leading-relaxed text-white/55">
+          Startup memory loads are not counted anymore. A <span className="text-[#61C1C4]">new</span> badge means
+          the fact can still be valid memory, but it has not been specifically searched or opened yet.
+        </p>
+        {inspectedCount > 0 && (
+          <p className="mt-2 text-[10px] text-white/35">
+            Current sample: {zeroCount} of {inspectedCount} most-accessed facts have no targeted recall count yet.
+          </p>
+        )}
+      </div>
+
       {/* Facts per day */}
       {sortedDays.length > 0 && (
         <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-4">

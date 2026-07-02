@@ -95,7 +95,7 @@ describe("pinballwake-buildbait-room contract", () => {
     const result = await room.postCrumb({
       todoId: "11957893",
       step: 1,
-      body: "Pure reading — listing actionable todos, no commitment yet.",
+      body: "Pure reading - listing actionable todos, no commitment yet.",
       seatId: "test-seat",
     });
     assert.equal(typeof result.commentId, "string");

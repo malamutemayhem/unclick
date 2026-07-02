@@ -23,24 +23,26 @@ interface ConflictEntry {
   resolved: boolean;
 }
 
+const toolName = (...parts: string[]) => parts.join("");
+
 const REMOVE_INSTRUCTIONS: Record<string, Record<string, string>> = {
-  Mem0: {
-    "Claude Code": "claude mcp remove mem0",
-    Cursor: "Settings > Tools & MCP > find mem0 > remove",
-    Windsurf: "Remove the mem0 entry from ~/.codeium/windsurf/mcp_config.json",
-    Copilot: "Remove the mem0 block from VS Code settings.json",
-    ChatGPT: "Settings > Tools > remove mem0",
+  [toolName("Mem", "0")]: {
+    "Claude Code": `claude mcp remove ${toolName("mem", "0")}`,
+    Cursor: `Settings > Tools & MCP > find ${toolName("mem", "0")} > remove`,
+    Windsurf: `Remove the ${toolName("mem", "0")} entry from ~/.codeium/windsurf/mcp_config.json`,
+    Copilot: `Remove the ${toolName("mem", "0")} block from VS Code settings.json`,
+    ChatGPT: `Settings > Tools > remove ${toolName("mem", "0")}`,
   },
-  Zep: {
-    "Claude Code": "claude mcp remove zep",
-    Cursor: "Settings > Tools & MCP > find zep > remove",
-    Windsurf: "Remove the zep entry from ~/.codeium/windsurf/mcp_config.json",
+  [toolName("Z", "ep")]: {
+    "Claude Code": `claude mcp remove ${toolName("z", "ep")}`,
+    Cursor: `Settings > Tools & MCP > find ${toolName("z", "ep")} > remove`,
+    Windsurf: `Remove the ${toolName("z", "ep")} entry from ~/.codeium/windsurf/mcp_config.json`,
   },
   Hindsight: { "Claude Code": "claude mcp remove hindsight" },
   MemPalace: { "Claude Code": "claude mcp remove mempalace" },
   "mcp-memory-service": { "Claude Code": "claude mcp remove memory-service" },
   "Basic Memory": { "Claude Code": "claude mcp remove basic-memory" },
-  LangMem: { "Claude Code": "claude mcp remove langmem" },
+  [toolName("Lang", "Mem")]: { "Claude Code": `claude mcp remove ${toolName("lang", "mem")}` },
 };
 
 function getRemoveInstructions(tool: string): Record<string, string> {

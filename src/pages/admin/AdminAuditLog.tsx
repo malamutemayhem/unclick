@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { ScrollText } from "lucide-react";
 
 export default function AdminAuditLog() {
@@ -11,10 +12,21 @@ export default function AdminAuditLog() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-6">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">
         <p className="text-sm leading-relaxed text-[#ccc]">
           A record of every admin action taken inside UnClick. Helps answer the question "who
           changed what and when" and keeps things transparent for GDPR and compliance reviews.
+        </p>
+        <p className="mt-4 text-sm leading-relaxed text-[#ccc]">
+          Until this page is built, the same questions are answered by{" "}
+          <Link to="/admin/activity" className="font-medium text-[#61C1C4] hover:opacity-80">
+            Activity
+          </Link>{" "}
+          (what happened and when) and the{" "}
+          <Link to="/admin/orchestrator/log" className="font-medium text-[#61C1C4] hover:opacity-80">
+            Orchestrator log
+          </Link>{" "}
+          (the raw event record).
         </p>
       </div>
     </div>

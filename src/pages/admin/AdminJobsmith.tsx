@@ -835,7 +835,7 @@ export default function AdminJobsmith() {
         <Metric icon={ShieldCheck} label="Truth ledger" value={truthStatus} />
       </div>
 
-      <section className="mb-6 rounded-lg border border-white/[0.06] bg-[#111] p-5" aria-label="ATS and format risk preview">
+      <section className="mb-6 rounded-lg border border-white/[0.06] bg-white/[0.03] p-5" aria-label="ATS and format risk preview">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-[#E2B93B]" />
@@ -886,7 +886,7 @@ export default function AdminJobsmith() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6">
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <LinkIcon className="h-4 w-4 text-[#61C1C4]" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Job Source</h2>
@@ -946,7 +946,7 @@ export default function AdminJobsmith() {
             )}
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <BriefcaseBusiness className="h-4 w-4 text-[#E2B93B]" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Role Facts</h2>
@@ -964,7 +964,7 @@ export default function AdminJobsmith() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <NotebookTabs className="h-4 w-4 text-fuchsia-300" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Source Materials</h2>
@@ -990,7 +990,7 @@ export default function AdminJobsmith() {
                         [key]: event.target.checked,
                       })
                     }
-                    className="h-4 w-4 rounded border-white/20 bg-black text-[#61C1C4]"
+                    className="h-4 w-4 rounded border-white/20 bg-white/[0.02] text-[#61C1C4]"
                   />
                   <span>{MATERIAL_LABELS[key]}</span>
                 </label>
@@ -998,7 +998,7 @@ export default function AdminJobsmith() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-300" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Source Facts</h2>
@@ -1022,7 +1022,7 @@ export default function AdminJobsmith() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <ClipboardCheck className="h-4 w-4 text-[#61C1C4]" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Application Claims</h2>
@@ -1087,7 +1087,7 @@ export default function AdminJobsmith() {
                             type="checkbox"
                             checked={draft.claimSources[claimKey]?.includes(sourceKey) ?? false}
                             onChange={(event) => updateClaimSource(claimKey, sourceKey, event.target.checked)}
-                            className="h-3.5 w-3.5 rounded border-white/20 bg-black text-[#61C1C4]"
+                            className="h-3.5 w-3.5 rounded border-white/20 bg-white/[0.02] text-[#61C1C4]"
                           />
                           <span>{SOURCE_FACT_LABELS[sourceKey]}</span>
                         </label>
@@ -1102,7 +1102,7 @@ export default function AdminJobsmith() {
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5" aria-label="Dogfood outcome">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5" aria-label="Dogfood outcome">
             <div className="mb-4 flex items-center gap-2">
               <ClipboardCheck className="h-4 w-4 text-emerald-300" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Dogfood Outcome</h2>
@@ -1117,7 +1117,7 @@ export default function AdminJobsmith() {
                   className="w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-[#61C1C4]/45"
                 >
                   {(Object.keys(OUTCOME_LABELS) as ApplicationOutcomeStatus[]).map((status) => (
-                    <option key={status} value={status} className="bg-[#111] text-white">
+                    <option key={status} value={status} className="bg-white/[0.03] text-white">
                       {OUTCOME_LABELS[status]}
                     </option>
                   ))}
@@ -1183,7 +1183,7 @@ export default function AdminJobsmith() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5" aria-label="Application packet">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5" aria-label="Application packet">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-fuchsia-300" />
@@ -1239,7 +1239,7 @@ export default function AdminJobsmith() {
             </button>
           </section>
 
-          <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+          <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
             <div className="mb-4 flex items-center gap-2">
               <Clipboard className="h-4 w-4 text-[#61C1C4]" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Manual Plan</h2>

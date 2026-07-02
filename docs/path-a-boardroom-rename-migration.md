@@ -81,7 +81,26 @@ A legacy name is removed only when ALL hold:
 
 ## Status of this slice
 
-Shipped here: the alarmed-redirect helper + tests (additive, no behavior change,
-no legacy file edited yet) and this plan. NOT done here: wiring aliases into the
-load-bearing `fishbowl-*` files, or any DB/env/route change. Those are the
-staged PRs above, to be run when the relevant lanes are quiet.
+Shipped earlier: the alarmed-redirect helper + tests (`api/lib/boardroom-compat.ts`,
+additive, no behavior change) and this plan.
+
+Shipped 2026-06-11 (stage 1 + enforcement):
+
+- **Stage 1 (UI) is done.** `src/pages/admin/Fishbowl.tsx` -> `Boardroom.tsx`,
+  `src/pages/admin/fishbowl/` -> `boardroom/`, all `Fishbowl*` React components
+  and types renamed to `Boardroom*`, user-visible strings in
+  `systemCredentialInventory.ts` reworded. The `/admin/fishbowl` ->
+  `/admin/boardroom` route redirect stays. Wire-format `fishbowl_*` action
+  names, `signal.tool === "fishbowl"`, and the
+  `unclick.fishbowl.heartbeat.settings` localStorage key are intentionally
+  unchanged (stage 4 contract surfaces).
+- **The audit is now a CI gate.** `scripts/audit-fishbowl-naming.mjs --check`
+  compares substring-accurate per-file counts against
+  `scripts/boardroom-naming-baseline.json` and fails on any growth (new legacy
+  references banned) or any un-ratcheted shrink. Wired into `ci.yml` (root job).
+  This is what stops the retired name from reappearing.
+
+NOT done yet: stage 2/3 test+lib renames outside `src/`, wiring alarmed aliases
+into the load-bearing `api/fishbowl-*` files, the `fishbowl_*` wire-format
+aliases, the room metadata `name: "Fishbowl"` row, and any DB/env/route change.
+Those are the staged PRs above, to be run when the relevant lanes are quiet.

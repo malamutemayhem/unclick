@@ -25,11 +25,11 @@ describe("XPassPage", () => {
   it("explains XPass as the public AutoPilot proof doorway", () => {
     renderXPassPage();
 
-    expect(screen.getByRole("heading", { name: "XPass" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Proof before it ships/i })).toBeInTheDocument();
     expect(screen.getByText(/AutoPilot's quality-control checklist/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /View public receipt/i })).toHaveAttribute("href", "/dogfood");
     expect(screen.getByRole("link", { name: /Open XPass in Admin/i })).toHaveAttribute("href", "/admin/checks");
-    expect(screen.getByRole("heading", { name: "XPass family" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /The XPass family/i })).toBeInTheDocument();
     expect(screen.getAllByText("UIPass").length).toBeGreaterThan(0);
     expect(screen.getAllByText("UXPass").length).toBeGreaterThan(0);
   });

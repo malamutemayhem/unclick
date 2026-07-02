@@ -333,7 +333,7 @@ describe("QueuePush PR classifier", () => {
       statuses: greenStatus,
     });
 
-    assert.equal(result.state, "blocked_chris_only");
+    assert.equal(result.state, "blocked_human_only");
   });
 
   it("does not treat blocker-fix updates as new active blockers", () => {
@@ -371,7 +371,7 @@ describe("QueuePush PR classifier", () => {
       statuses: greenStatus,
     });
 
-    assert.equal(result.state, "blocked_chris_only");
+    assert.equal(result.state, "blocked_human_only");
   });
 
   for (const body of [
@@ -395,7 +395,7 @@ describe("QueuePush PR classifier", () => {
         statuses: greenStatus,
       });
 
-      assert.equal(result.state, "blocked_chris_only");
+      assert.equal(result.state, "blocked_human_only");
     });
   }
 
@@ -435,7 +435,7 @@ describe("QueuePush PR classifier", () => {
       statuses: greenStatus,
     });
 
-    assert.equal(result.state, "blocked_chris_only");
+    assert.equal(result.state, "blocked_human_only");
   });
 
   it("keeps exact HOLD missing Reviewer plus another unresolved concern as an active blocker", () => {
@@ -454,7 +454,7 @@ describe("QueuePush PR classifier", () => {
       statuses: greenStatus,
     });
 
-    assert.equal(result.state, "blocked_chris_only");
+    assert.equal(result.state, "blocked_human_only");
   });
 
   it("keeps overlap blockers ahead of missing final QC routing", () => {
@@ -553,7 +553,7 @@ describe("QueuePush PR classifier", () => {
     assert.equal(result.state, "ready_for_qc");
   });
 
-  it("keeps Chris-only decisions out of worker coding lanes", () => {
+  it("keeps human-only decisions out of worker coding lanes", () => {
     const result = classifyPullRequest({
       pr: pr({ number: 72, title: "Bump marked", draft: false }),
       files: [{ filename: "package.json" }],
@@ -567,7 +567,7 @@ describe("QueuePush PR classifier", () => {
       statuses: greenStatus,
     });
 
-    assert.equal(result.state, "blocked_chris_only");
+    assert.equal(result.state, "blocked_human_only");
   });
 });
 

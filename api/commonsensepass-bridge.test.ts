@@ -259,6 +259,22 @@ describe("commonsensepass-bridge / inspectMergeReadyClaim", () => {
     expect(verdict.next_action).toBe("re_run_safety_check_on_current_head");
   });
 
+  it("BLOCKER when checks_state is startup_failure", () => {
+    const verdict = inspectMergeReadyClaim({
+      pr: {
+        number: 890,
+        head_sha: headSha,
+        mergeable: true,
+        checks_state: "startup_failure",
+        reviewer_pass: { verdict: "PASS", sha: headSha },
+        safety_pass: { verdict: "PASS", sha: headSha },
+      },
+      now_ms: NOW,
+    });
+    expect(verdict.verdict).toBe("BLOCKER");
+    expect(verdict.rule_id).toBe("R5");
+  });
+
   it("PASS when merge-ready proof is current and complete", () => {
     const verdict = inspectMergeReadyClaim({
       pr: {

@@ -1,6 +1,8 @@
 // BoardGameGeek XML API2 integration.
 // Docs: https://boardgamegeek.com/wiki/page/BGG_XML_API2
-// No authentication required.
+// Auth: BGG now requires a Bearer token for API access. Register at
+// boardgamegeek.com to get a token. Set BGG_API_TOKEN env var or pass
+// api_token per call. Without a token, requests return 401.
 // Base URL: https://boardgamegeek.com/xmlapi2
 
 import { XMLParser } from "fast-xml-parser";
@@ -13,16 +15,25 @@ const parser = new XMLParser({
   attributeNamePrefix: "@_",
 });
 
+function bggToken(): string {
+  return (process.env.BGG_API_TOKEN ?? "").trim();
+}
+
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 async function bggFetch(path: string): Promise<Record<string, unknown>> {
   const BGG_TIMEOUT_MS = Number(process.env.BGG_TIMEOUT_MS) || 15000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BGG_TIMEOUT_MS);
+  const headers: Record<string, string> = {
+    "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+  };
+  const token = bggToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   let res: Response;
   try {
     res = await fetch(`${BGG_BASE}${path}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers,
       signal: controller.signal,
     });
   } catch (err) {
@@ -32,6 +43,9 @@ async function bggFetch(path: string): Promise<Record<string, unknown>> {
     throw new Error(`BGG API network error: ${err instanceof Error ? err.message : String(err)}`);
   } finally {
     clearTimeout(timer);
+  }
+  if (res.status === 401) {
+    throw new Error("BGG API requires authentication. Register at boardgamegeek.com and set BGG_API_TOKEN.");
   }
   if (res.status === 429) throw new Error("BGG API rate limit reached. Please wait and retry.");
   if (!res.ok) throw new Error(`BGG API HTTP ${res.status}`);
@@ -51,8 +65,13 @@ async function bggFetchWithRetry(
     const timer = setTimeout(() => controller.abort(), BGG_TIMEOUT_MS);
     let res: Response;
     try {
+      const retryHeaders: Record<string, string> = {
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      };
+      const retryToken = bggToken();
+      if (retryToken) retryHeaders["Authorization"] = `Bearer ${retryToken}`;
       res = await fetch(`${BGG_BASE}${path}`, {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: retryHeaders,
         signal: controller.signal,
       });
     } catch (err) {
@@ -62,6 +81,9 @@ async function bggFetchWithRetry(
       throw new Error(`BGG API network error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       clearTimeout(timer);
+    }
+    if (res.status === 401) {
+      throw new Error("BGG API requires authentication. Register at boardgamegeek.com and set BGG_API_TOKEN.");
     }
     if (res.status === 202) {
       if (attempt < maxRetries - 1) {

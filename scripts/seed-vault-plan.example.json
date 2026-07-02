@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy this file to seed-vault-plan.local.json and fill in real values. The .local.json suffix is gitignored.",
+  "_comment": "Duplicate this file as seed-vault-plan.local.json and fill in real values. The .local.json suffix is gitignored.",
   "api_key": "uc_REPLACE_ME",
   "api_base": "https://unclick.world",
   "credentials": [

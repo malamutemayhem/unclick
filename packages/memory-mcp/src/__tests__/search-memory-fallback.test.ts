@@ -327,7 +327,20 @@ describe("keywordFallback tokenization", () => {
           startup_fact_kind: "durable",
         },
       ],
-      sessionsRows: [],
+      sessionsRows: [
+        {
+          id: "session-1",
+          summary: "Session results pass through.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "active",
+        },
+        {
+          id: "session-2",
+          summary: "Archived session should stay hidden.",
+          created_at: "2026-05-01T00:00:00Z",
+          status: "archived",
+        },
+      ],
       calls,
     });
     const backend = await loadBackendWithFake(client, { mode: "byod" });
@@ -338,6 +351,7 @@ describe("keywordFallback tokenization", () => {
         { id: "operational-memory-fact", source: "fact", content: "heartbeat self-report Memory note should stay hidden." },
         { id: "future-memory-fact", source: "fact", content: "Future Memory fact should wait for its valid window." },
         { id: "session-1", source: "session", content: "Session results pass through." },
+        { id: "session-2", source: "session", content: "Archived session should stay hidden." },
       ],
       "2026-05-28T00:00:00Z",
     ) as Array<{ id: string }>;
@@ -362,7 +376,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
     const { createClient } = await import("@supabase/supabase-js");
     const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    const factText = "Test owner is Chris Byrne for memory-mcp keyword-fallback regression";
+    const factText = "Test owner is Jane Smith for memory-mcp keyword-fallback regression";
     const { data: inserted, error: insertErr } = await supabase
       .from("extracted_facts")
       .insert({
@@ -384,7 +398,7 @@ describe("acceptance: keyword fallback restores search when hybrid returns []", 
       try {
         const { SupabaseBackend } = await import("../supabase.js");
         const backend = new SupabaseBackend({ url, serviceRoleKey: key, tenancy: { mode: "byod" } });
-        const results = (await backend.searchMemory("Chris", 10)) as Array<{ id: string }>;
+        const results = (await backend.searchMemory("User", 10)) as Array<{ id: string }>;
         expect(Array.isArray(results)).toBe(true);
         const ids = results.map((r) => r.id);
         expect(

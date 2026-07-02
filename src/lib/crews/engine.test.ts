@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { supabaseUpdates, makeBuilder } = vi.hoisted(() => {
+const { supabaseUpdates, supabaseQueries, makeBuilder } = vi.hoisted(() => {
   const updates: { table: string; patch: Record<string, unknown> }[] = [];
+  const queries: { table: string; op: string; filters: Record<string, unknown>; inFilter: { col: string; vals: string[] } | null; orFilter: string | null }[] = [];
 
   function makeBuilder(table: string) {
     const state: {
@@ -9,9 +10,11 @@ const { supabaseUpdates, makeBuilder } = vi.hoisted(() => {
       patch: Record<string, unknown> | undefined;
       filters: Record<string, unknown>;
       inFilter: { col: string; vals: string[] } | null;
-    } = { op: "select", patch: undefined, filters: {}, inFilter: null };
+      orFilter: string | null;
+    } = { op: "select", patch: undefined, filters: {}, inFilter: null, orFilter: null };
 
     const resolve = async () => {
+      queries.push({ table, op: state.op, filters: { ...state.filters }, inFilter: state.inFilter, orFilter: state.orFilter });
       if (state.op === "update") {
         updates.push({ table, patch: state.patch ?? {} });
         return { data: null, error: null };
@@ -62,6 +65,7 @@ const { supabaseUpdates, makeBuilder } = vi.hoisted(() => {
       insert: (_rows: unknown) => { state.op = "insert"; return b; },
       eq: (col: string, val: unknown) => { state.filters[col] = val; return b; },
       in: (col: string, vals: string[]) => { state.inFilter = { col, vals }; return b; },
+      or: (filter: string) => { state.orFilter = filter; return b; },
       order: () => b,
       limit: () => b,
       single: () => resolve(),
@@ -72,7 +76,7 @@ const { supabaseUpdates, makeBuilder } = vi.hoisted(() => {
     return b;
   }
 
-  return { supabaseUpdates: updates, makeBuilder };
+  return { supabaseUpdates: updates, supabaseQueries: queries, makeBuilder };
 });
 
 vi.mock("@supabase/supabase-js", () => ({
@@ -83,6 +87,7 @@ import { runCouncilEngine, reorderAgentsByIds, computeConfigHash } from "./engin
 
 beforeEach(() => {
   supabaseUpdates.length = 0;
+  supabaseQueries.length = 0;
 });
 
 describe("reorderAgentsByIds", () => {
@@ -160,5 +165,29 @@ describe("runCouncilEngine roster snapshot", () => {
     expect(snapshot!.patch.template_key).toBe("council");
     expect(snapshot!.patch.template_version).toBe("1.0.0");
     expect(snapshot!.patch.config_hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it("applies tenant filter when fetching agents to prevent cross-tenant leaks", async () => {
+    const sampler = vi.fn(async () => ({ content: "ok", tokensIn: 10, tokensOut: 10 }));
+
+    await runCouncilEngine({
+      runId: "run-1",
+      crewId: "crew-1",
+      apiKeyHash: "tenant-hash-abc",
+      taskPrompt: "test prompt",
+      tokenBudget: 100000,
+      supabaseUrl: "http://stub",
+      serviceRoleKey: "stub",
+      sampler,
+      supportsSampling: true,
+    });
+
+    const agentFetch = supabaseQueries.find(
+      (q) => q.table === "mc_agents" && q.inFilter !== null,
+    );
+    expect(agentFetch, "mc_agents .in() query must exist").toBeDefined();
+    expect(agentFetch!.orFilter).toBe(
+      "is_system.eq.true,api_key_hash.eq.tenant-hash-abc",
+    );
   });
 });

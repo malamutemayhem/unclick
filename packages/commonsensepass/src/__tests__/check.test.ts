@@ -30,6 +30,22 @@ describe("commonsensepassCheck - R1 active-state mismatch", () => {
     expect(result.evidence.map((e) => e.ref)).toContain("t1");
   });
 
+  it("BLOCKER when claiming quiet with Boardroom-style open and queued todos", () => {
+    const result = commonsensepassCheck({
+      claim: "quiet",
+      context: ctx({
+        todos: [
+          { id: "open-1", status: "open" },
+          { id: "queued-1", status: "queued" },
+        ],
+        active_jobs: 0,
+      }),
+    });
+    expect(result.verdict).toBe("BLOCKER");
+    expect(result.rule_id).toBe("R1");
+    expect(result.evidence.map((e) => e.ref)).toContain("open-1");
+  });
+
   it("BLOCKER when active_jobs=0 but in-progress todos have fresh owners", () => {
     const result = commonsensepassCheck({
       claim: "quiet",

@@ -110,7 +110,7 @@ export default function AdminCodebase() {
           const current = valueFor(key);
           const isEditing = editKey === key;
           return (
-            <div key={key} className="rounded-xl border border-white/[0.06] bg-[#111] p-4">
+            <div key={key} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-white">{label}</h3>
                 {!isEditing && (
@@ -126,7 +126,7 @@ export default function AdminCodebase() {
                     onChange={(e) => setDraft(e.target.value)}
                     rows={3}
                     placeholder={placeholder}
-                    className="w-full rounded-md border border-white/[0.06] bg-[#0A0A0A] px-3 py-2 font-mono text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/50 focus:outline-none"
+                    className="w-full rounded-md border border-white/[0.06] bg-white/[0.02] px-3 py-2 font-mono text-xs text-white placeholder:text-white/30 focus:border-[#61C1C4]/50 focus:outline-none"
                   />
                   <div className="flex gap-2">
                     <button onClick={() => saveEdit(key)} className="rounded-md bg-[#61C1C4] px-3 py-1.5 text-xs font-semibold text-black hover:opacity-90">Save</button>
@@ -157,7 +157,7 @@ export default function AdminCodebase() {
           <button
             key={agent}
             onClick={() => handleGenerate(agent)}
-            className="rounded-md border border-white/[0.06] bg-[#111] px-4 py-2 text-sm text-white/80 hover:border-[#61C1C4]/40 hover:text-white"
+            className="rounded-md border border-white/[0.06] bg-white/[0.03] px-4 py-2 text-sm text-white/80 hover:border-[#61C1C4]/40 hover:text-white"
           >
             {AGENT_LABELS[agent]}
           </button>
@@ -165,7 +165,7 @@ export default function AdminCodebase() {
       </div>
 
       {generated && (
-        <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#111] p-4">
+        <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="rounded bg-white/[0.06] px-2 py-1 font-mono text-xs text-[#61C1C4]">{generated.filename}</span>
             <button onClick={handleCopy} className="flex items-center gap-1 rounded-md border border-white/[0.06] px-3 py-1.5 text-xs text-white/70 hover:border-[#61C1C4]/40 hover:text-white">
@@ -173,7 +173,7 @@ export default function AdminCodebase() {
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
-          <pre className="overflow-x-auto rounded-md bg-[#0A0A0A] p-3 font-mono text-xs text-white/80">{generated.content}</pre>
+          <pre className="overflow-x-auto rounded-md bg-white/[0.02] p-3 font-mono text-xs text-white/80">{generated.content}</pre>
         </div>
       )}
     </>

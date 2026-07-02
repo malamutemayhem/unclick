@@ -18,7 +18,7 @@ required_apps: [GitHub]
 
 # GitHub PR summariser
 
-Use this when Chris needs the state of a pull request without reading every file.
+Use this when the operator needs the state of a pull request without reading every file.
 
 ## Summarise
 

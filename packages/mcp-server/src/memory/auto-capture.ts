@@ -94,6 +94,23 @@ export interface CodeCaptureCandidate {
   content: string;
 }
 
+const COMMENT_PREFIX_RE = /^(\s*(\/\/|#|--|\*|\/\*+)\s*)+/;
+
+/**
+ * Deterministic short label for a captured code block. Stored as the code dump
+ * description and shown as the admin-facing reference title.
+ */
+export function deriveCodeDescription(block: CodeCaptureCandidate): string {
+  const language = block.language && block.language !== "text" ? block.language : "code";
+  const firstLine =
+    block.content
+      .split(/\r?\n/)
+      .map((line) => line.replace(COMMENT_PREFIX_RE, "").trim())
+      .find((line) => line.length > 0) ?? "";
+  const title = firstLine.length > 0 ? firstLine : "captured code block";
+  return `${language}: ${title.length > 90 ? `${title.slice(0, 87)}...` : title}`;
+}
+
 /**
  * Extract fenced code blocks worth storing. Doc-fenced blocks (md/note/...) are
  * left for the library extractor. Untagged fences are kept only when they look
@@ -241,7 +258,7 @@ export async function autoCaptureFromTurn(
           session_id: turn.session_id,
           language: block.language,
           content: block.content,
-          description: "Auto-captured from conversation",
+          description: deriveCodeDescription(block),
         });
         result.code_captured += 1;
       } catch {

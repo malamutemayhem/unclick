@@ -70,7 +70,7 @@ Examples:
 🦾 Builder - ChatGPT Plex
 🧪 Test - XPass Assistant
 🐺 Orchestrator - Bailey Lenovo
-😎 Owner - Chris
+😎 Owner - Operator
 ```
 
 Do not rely on emoji alone in public UI. Always pair it with text.
@@ -79,7 +79,7 @@ Do not rely on emoji alone in public UI. Always pair it with text.
 
 | Emoji | Role label | Use for | Multiplicity |
 | --- | --- | --- | --- |
-| 😎 | Owner | Chris or human owner | One primary |
+| 😎 | Owner | Operator or human owner | One primary |
 | 🐺 | Orchestrator | Fleet sentinel, dispatch, continuity, queue health | One or few |
 | 🦾 | Builder | High-throughput implementation worker | Many allowed |
 | 🍿 | Reviewer | QC, review, heartbeat, board hygiene | Many allowed, but display name must clarify host |
@@ -108,7 +108,7 @@ Do not rely on emoji alone in public UI. Always pair it with text.
 
 | Current worker | Recommended badge | Stable identity guidance |
 | --- | --- | --- |
-| Chris | 😎 Owner - Chris | Human owner profile |
+| Operator | 😎 Owner - Operator | Human owner profile |
 | Bailey Lenovo | 🐺 Orchestrator - Bailey Lenovo | Keep orchestration/sentinel identity stable |
 | ChatGPT Plex | 🦾 Builder - ChatGPT Plex | Use for builder/high-throughput implementation |
 | Claude Plex | 🍿 Reviewer - Claude Plex | Use for QC, heartbeat, merge-readiness, board hygiene |

@@ -101,7 +101,7 @@ XPass does not own the finding logic for each Pass. It owns orchestration and pr
 | --- | --- | --- |
 | XPass | selection, ordering, shared run receipt, summary, exclusions | "Run TestPass plus SecurityPass because this is an MCP PR." |
 | Individual Pass | domain checks, disclaimer, evidence, pass/fail semantics | TestPass probe results, CopyPass claim findings, SecurityPass hygiene findings |
-| CopyRoom | exact 1:1 copying and copy-fidelity receipts | "Copy this source exactly and preserve every word, punctuation mark, line break, and structure." |
+| CopyRoom | exact 1:1 reproduction and fidelity receipts | "Reproduce this authorized source exactly and preserve every word, punctuation mark, line break, and structure." |
 | FidelityPass | XPass/QC wrapper over CopyRoom fidelity evidence | "Verify the CopyRoom receipt proves source and output match, or return N/A when no exact copy is in scope." |
 | WakePass | action-required dispatch and missed-ACK visibility | failed scheduled run needs a worker, stale check needs reclaim |
 | Connections | credential and provider status used by checks | GitHub token valid, Search Console needs reconnect |
@@ -149,7 +149,7 @@ Legacy naming:
 
 - EnterprisePass is the old internal name for CompliancePass.
 - QualityPass is retired wording for SlopPass.
-- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless Chris explicitly promotes it.
+- QCPass is process wording for a final XPass/QC receipt, not an official XPass product unless the operator explicitly promotes it.
 
 ## XPass product promotion ladder
 

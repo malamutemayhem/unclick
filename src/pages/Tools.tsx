@@ -30,37 +30,33 @@ import {
 } from "lucide-react";
 
 /**
- * Tools (Apple-inspired polish pass 1, 2026-05-28)
- *
- *  - Wrapped in PageShell so hero, halo, eyebrow, headline, lede, CTA
- *    all come from the locked design system.
- *  - animated-grid removed from the hero. Calm.
- *  - One CTA at the top, one at the bottom. Strip the duplicates.
- *  - Sentence case throughout.
- *  - Category data preserved exactly. Featured tables preserved exactly.
+ * Tools page. Composes from PageShell and the design canon: one hero, one
+ * CTA top and bottom, sentence case. Category tiles carry curated example
+ * actions only; per-category counts were hand-set, drifted from the
+ * measured catalog, and were removed (2026-06-11).
  */
 
 const CATEGORIES = [
-  { id: "email", name: "Email", icon: Mail, count: 6, desc: "Send, search, read, and manage emails.", tools: ["email_send", "email_search", "email_read_inbox"], featured: true },
-  { id: "finance", name: "Finance", icon: TrendingUp, count: 20, desc: "Crypto prices, stock quotes, forex rates, and financial data.", tools: ["crypto_price", "stock_quote", "forex_convert"], featured: true },
-  { id: "security", name: "Security", icon: Shield, count: 10, desc: "Threat intel, CVE scanning, breach checks, and IP analysis.", tools: ["virustotal_scan_url", "hibp_check_account", "shodan_search"], featured: true },
-  { id: "social-media", name: "Social media", icon: Share2, count: 15, desc: "Post, read, and manage across Reddit, Discord, Telegram, Mastodon, Bluesky.", tools: ["reddit_search", "discord_send", "telegram_send"] },
-  { id: "weather", name: "Weather", icon: Cloud, count: 8, desc: "Current conditions, forecasts, surf, and tide data.", tools: ["weather_forecast", "tomorrow_realtime", "willyweather_surf"] },
-  { id: "events", name: "Events and tickets", icon: Ticket, count: 12, desc: "Find events on Ticketmaster, SeatGeek, Eventbrite, Bandsintown.", tools: ["tm_search_events", "seatgeek_search_events", "eventbrite_search_events"] },
-  { id: "music", name: "Music", icon: Music, count: 15, desc: "Discover music across Deezer, Last.fm, Genius, MusicBrainz, Discogs.", tools: ["deezer_search", "genius_search", "lastfm_chart_top_tracks"] },
-  { id: "gaming", name: "Gaming", icon: Gamepad2, count: 15, desc: "Game stats, reviews, and data from RAWG, BGG, Riot, Bungie.", tools: ["rawg_search_games", "bgg_search", "riot_summoner"] },
-  { id: "sports", name: "Sports", icon: Trophy, count: 20, desc: "Live scores, F1 data, fantasy football, esports.", tools: ["espn_nfl_scores", "f1_drivers", "fpl_player"] },
-  { id: "news", name: "News", icon: Newspaper, count: 8, desc: "Multi-source headlines from NewsAPI, The Guardian, Hacker News.", tools: ["news_top_headlines", "guardian_search_articles", "hn_top_stories"] },
-  { id: "shopping", name: "Shopping", icon: ShoppingCart, count: 8, desc: "Amazon search, Shopify store management.", tools: ["amazon_search", "shopify_products"] },
-  { id: "books", name: "Books and libraries", icon: BookOpen, count: 6, desc: "Search OpenLibrary, Trove, and discover trending books.", tools: ["openlibrary_search", "trove_search"] },
-  { id: "food", name: "Food and drink", icon: UtensilsCrossed, count: 10, desc: "Recipe search, nutrition data, beer ratings.", tools: ["meal_search", "food_search", "untappd_search_beer"] },
-  { id: "location", name: "Location and places", icon: MapPin, count: 8, desc: "Find places, read reviews, get recommendations.", tools: ["yelp_search_businesses", "foursquare_search_places"] },
-  { id: "podcasts", name: "Podcasts", icon: Headphones, count: 6, desc: "Search, discover, and get episode details.", tools: ["podcast_search", "podcast_trending"] },
-  { id: "space", name: "Space", icon: Rocket, count: 4, desc: "NASA APOD, Mars photos, asteroid tracking, Earth imagery.", tools: ["nasa_apod", "nasa_mars_photos"] },
-  { id: "dev", name: "Developer and infra", icon: Terminal, count: 8, desc: "GitHub, Vercel, Cloudflare. Manage repos, deployments, and infrastructure.", tools: ["github_list_repos", "vercel_list_projects"] },
-  { id: "australia", name: "Australian services", icon: Flag, count: 10, desc: "Amber Electric, AusPost, PTV, Domain, The Lott, Sendle.", tools: ["amber_current_price", "auspost_track_parcel", "ptv_departures"], featured: true },
-  { id: "smarthome", name: "Smart home", icon: Home, count: 87, desc: "Home Assistant control. Lights, locks, thermostats, cameras, automations, and 2,000+ device integrations.", tools: ["control_device", "get_entity_state", "trigger_automation"], featured: true },
-  { id: "utilities", name: "Utilities", icon: Wrench, count: 15, desc: "Text processing, unit conversion, calculations, random generation, datetime.", tools: ["text_analyse", "convert_weight", "calc_mortgage"] },
+  { id: "email", name: "Email", icon: Mail, desc: "Send, search, read, and manage emails.", tools: ["email_send", "email_search", "email_read_inbox"], featured: true },
+  { id: "finance", name: "Finance", icon: TrendingUp, desc: "Crypto prices, stock quotes, forex rates, and financial data.", tools: ["crypto_price", "stock_quote", "forex_convert"], featured: true },
+  { id: "security", name: "Security", icon: Shield, desc: "Threat intel, CVE scanning, breach checks, and IP analysis.", tools: ["virustotal_scan_url", "hibp_check_account", "shodan_search"], featured: true },
+  { id: "social-media", name: "Social media", icon: Share2, desc: "Post, read, and manage across Reddit, Discord, Telegram, Mastodon, Bluesky.", tools: ["reddit_search", "discord_send", "telegram_send"] },
+  { id: "weather", name: "Weather", icon: Cloud, desc: "Current conditions, forecasts, surf, and tide data.", tools: ["weather_forecast", "tomorrow_realtime", "willyweather_surf"] },
+  { id: "events", name: "Events and tickets", icon: Ticket, desc: "Find events on Ticketmaster, SeatGeek, Eventbrite, Bandsintown.", tools: ["tm_search_events", "seatgeek_search_events", "eventbrite_search_events"] },
+  { id: "music", name: "Music", icon: Music, desc: "Discover music across Deezer, Last.fm, Genius, MusicBrainz, Discogs.", tools: ["deezer_search", "genius_search", "lastfm_chart_top_tracks"] },
+  { id: "gaming", name: "Gaming", icon: Gamepad2, desc: "Game stats, reviews, and data from RAWG, BGG, Riot, Bungie.", tools: ["rawg_search_games", "bgg_search", "riot_summoner"] },
+  { id: "sports", name: "Sports", icon: Trophy, desc: "Live scores, F1 data, fantasy football, esports.", tools: ["espn_nfl_scores", "f1_drivers", "fpl_player"] },
+  { id: "news", name: "News", icon: Newspaper, desc: "Multi-source headlines from NewsAPI, The Guardian, Hacker News.", tools: ["news_top_headlines", "guardian_search_articles", "hn_top_stories"] },
+  { id: "shopping", name: "Shopping", icon: ShoppingCart, desc: "Amazon search, Shopify store management.", tools: ["amazon_search", "shopify_products"] },
+  { id: "books", name: "Books and libraries", icon: BookOpen, desc: "Search OpenLibrary, Trove, and discover trending books.", tools: ["openlibrary_search", "trove_search"] },
+  { id: "food", name: "Food and drink", icon: UtensilsCrossed, desc: "Recipe search, nutrition data, beer ratings.", tools: ["meal_search", "food_search", "untappd_search_beer"] },
+  { id: "location", name: "Location and places", icon: MapPin, desc: "Find places, read reviews, get recommendations.", tools: ["yelp_search_businesses", "foursquare_search_places"] },
+  { id: "podcasts", name: "Podcasts", icon: Headphones, desc: "Search, discover, and get episode details.", tools: ["podcast_search", "podcast_trending"] },
+  { id: "space", name: "Space", icon: Rocket, desc: "NASA APOD, Mars photos, asteroid tracking, Earth imagery.", tools: ["nasa_apod", "nasa_mars_photos"] },
+  { id: "dev", name: "Developer and infra", icon: Terminal, desc: "GitHub, Vercel, Cloudflare. Manage repos, deployments, and infrastructure.", tools: ["github_list_repos", "vercel_list_projects"] },
+  { id: "australia", name: "Australian services", icon: Flag, desc: "Amber Electric, AusPost, PTV, Domain, The Lott, Sendle.", tools: ["amber_current_price", "auspost_track_parcel", "ptv_departures"], featured: true },
+  { id: "smarthome", name: "Smart home", icon: Home, desc: "Home Assistant control. Lights, locks, thermostats, cameras, and automations across the Home Assistant integration library.", tools: ["control_device", "get_entity_state", "trigger_automation"], featured: true },
+  { id: "utilities", name: "Utilities", icon: Wrench, desc: "Text processing, unit conversion, calculations, random generation, datetime.", tools: ["text_analyse", "convert_weight", "calc_mortgage"] },
 ];
 
 const EMAIL_TOOLS = [
@@ -199,13 +195,8 @@ const Tools = () => {
                   }}
                   className={presets.tile + " cursor-pointer"}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={presets.tileIcon}>
-                      <cat.icon className="h-5 w-5" />
-                    </div>
-                    <span className="font-mono text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                      {cat.count}
-                    </span>
+                  <div className={presets.tileIcon}>
+                    <cat.icon className="h-5 w-5" />
                   </div>
                   <h3 className="text-sm font-semibold text-heading">{cat.name}</h3>
                   <p className="mt-1 text-xs text-body leading-relaxed">{cat.desc}</p>
@@ -272,8 +263,8 @@ const Tools = () => {
               <h2 className={presets.h2}>Smart home</h2>
             </div>
             <p className="text-body mt-2 max-w-2xl">
-              Control your whole home through Home Assistant. 87 tools across 23 categories,
-              supporting 2,000+ device integrations.
+              Control your whole home through Home Assistant: lights, locks, climate, cameras,
+              and automations across its community integration library.
             </p>
           </FadeIn>
 

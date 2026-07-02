@@ -160,5 +160,6 @@ function pct(n: number): string {
   return `${(n * 100).toFixed(1)}%`;
 }
 function round(n: number): number {
+  if (!Number.isFinite(n)) return 0;
   return Math.round(n * 1e6) / 1e6;
 }

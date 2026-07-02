@@ -10,6 +10,7 @@ type XPassResult = {
   missing_checks?: string[];
   stale_checks?: string[];
   unscoped_checks?: string[];
+  selected_checks?: Array<{ check?: string; reasons?: string[] }>;
   auto_merge_gate?: {
     merge_ready?: boolean;
     verdict_matches_head?: boolean;
@@ -75,6 +76,106 @@ describe("xpass_aggregated_verdict", () => {
     expect(result.receipt?.full_checklist?.some((item) => item.check === "uipass" && item.status === "MISSING")).toBe(true);
     expect(result.receipt?.full_checklist?.some((item) => item.check === "uxpass" && item.status === "MISSING")).toBe(true);
     expect(result.receipt?.full_checklist?.some((item) => item.check === "fidelitypass" && item.status === "N/A")).toBe(true);
+  });
+
+  it("routes connector OAuth work through ConnectorPass readiness proof", async () => {
+    const result = await xpassAggregatedVerdict({
+      target: { type: "pr", id: "1522", sha: "connector-head" },
+      title: "Supabase Vercel app connection rollout",
+      description: "Provider login, token fallback, connected badge, and keychain parity must agree.",
+      changed_files: [
+        "src/lib/connectors.ts",
+        "api/oauth-init.ts",
+        "src/pages/Connect.tsx",
+        "packages/mcp-server/src/keychain-tool.ts",
+        "scripts/check-app-connection-readiness.mjs",
+      ],
+    }) as XPassResult;
+
+    expect(result.verdict).toBe("pending");
+    expect(result.missing_checks).toContain("connectorpass");
+    expect(result.missing_checks).toContain("uxpass");
+    expect(result.missing_checks).toContain("flowpass");
+    expect(result.missing_checks).toContain("securitypass");
+    expect(result.missing_checks).toContain("rotatepass");
+    expect(result.missing_checks).toContain("copypass");
+    expect(result.missing_checks).toContain("commonsensepass");
+    expect(result.missing_checks).toContain("sloppass");
+    expect(result.receipt?.full_checklist?.some((item) => item.check === "connectorpass" && item.status === "MISSING")).toBe(true);
+    expect(result.receipt?.action_needed?.join("\n")).toMatch(/Run ConnectorPass/);
+  });
+
+  it("routes provider-hosted MCP bridge learnings through connector lifecycle proof", async () => {
+    const result = await xpassAggregatedVerdict({
+      target: { type: "pr", id: "1547", sha: "provider-mcp-head" },
+      title: "Provider-hosted MCP bridge",
+      description: [
+        "Native MCP params wrapping, tool result parsing, token refresh retry, expired token reconnect state,",
+        "subscription credits, cloud API fallback, OAuth popup, connected badge, and customer-facing copy must agree.",
+      ].join(" "),
+      changed_files: [
+        "packages/mcp-server/src/provider-hosted-media-tool.ts",
+        "packages/mcp-server/src/provider-hosted-media-tool.test.ts",
+        "src/components/apps/ConnectAppModal.tsx",
+        "api/oauth-init.ts",
+        "api/oauth-callback.ts",
+      ],
+    }) as XPassResult;
+
+    expect(result.verdict).toBe("pending");
+    expect(result.missing_checks).toEqual(expect.arrayContaining([
+      "testpass",
+      "uxpass",
+      "flowpass",
+      "securitypass",
+      "rotatepass",
+      "connectorpass",
+      "copypass",
+      "commonsensepass",
+      "sloppass",
+    ]));
+    expect(result.selected_checks?.find((item) => item.check === "connectorpass")?.reasons?.join("\n"))
+      .toMatch(/native provider MCP bridge proof/);
+    expect(result.selected_checks?.find((item) => item.check === "rotatepass")?.reasons?.join("\n"))
+      .toMatch(/provider token expiry, refresh, reconnect, and revocation/);
+    expect(result.receipt?.action_needed?.join("\n")).toMatch(/Run ConnectorPass/);
+  });
+
+  it("routes stored-but-unproven connector states through proof and setup gates", async () => {
+    const result = await xpassAggregatedVerdict({
+      target: { type: "pr", id: "1550", sha: "connector-proof-head" },
+      title: "Connection truthfulness hardening",
+      description: [
+        "Stored credential rows, is_valid flags, last_tested_at null values, stale live proof,",
+        "token scope errors, expired access tokens, duplicate MCP registration, stale MCP server config,",
+        "and missing callable data-plane tools must not show a customer-facing connected badge.",
+      ].join(" "),
+      changed_files: [
+        "packages/mcp-server/src/keychain-tool.ts",
+        "api/memory-admin.ts",
+        "src/components/apps/appLenses.ts",
+        "src/pages/admin/AdminTools.tsx",
+      ],
+    }) as XPassResult;
+
+    expect(result.verdict).toBe("pending");
+    expect(result.missing_checks).toEqual(expect.arrayContaining([
+      "connectorpass",
+      "testpass",
+      "uxpass",
+      "flowpass",
+      "securitypass",
+      "rotatepass",
+      "wakepass",
+      "commonsensepass",
+      "sloppass",
+    ]));
+    expect(result.selected_checks?.find((item) => item.check === "connectorpass")?.reasons?.join("\n"))
+      .toMatch(/readiness proof/);
+    expect(result.selected_checks?.find((item) => item.check === "wakepass")?.reasons?.join("\n"))
+      .toMatch(/registration|hydration/);
+    expect(result.selected_checks?.find((item) => item.check === "commonsensepass")?.reasons?.join("\n"))
+      .toMatch(/connected\/status badge must match live/);
   });
 
   it("fails stale receipts generated for an older head", async () => {

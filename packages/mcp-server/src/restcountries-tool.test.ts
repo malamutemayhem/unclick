@@ -38,6 +38,18 @@ describe("rest countries connector resilience (L2)", () => {
     await expect(countryByName({})).rejects.toThrow(/name is required/i);
   });
 
+  it("surfaces the upstream message when the API answers with a non-array body", async () => {
+    // Observed live 2026-06-11: HTTP 200 with an object body crashed every
+    // list operation as "countries.map is not a function".
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ message: "'fields' query not specified", status: 400 }),
+    })));
+    await expect(countryByName({ name: "Australia" })).rejects.toThrow(/REST Countries API error.*fields/i);
+    await expect(countryByCode({ code: "AU" })).rejects.toThrow(/REST Countries API error/i);
+  });
+
   it("normalizes a returned country", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true,

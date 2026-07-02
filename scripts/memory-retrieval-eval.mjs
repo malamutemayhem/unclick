@@ -15,7 +15,7 @@ export const DEFAULT_TYPED_LINK_REPLAY_FIXTURES = [
   },
   {
     id: "todo-recall",
-    query: "Find the gbrain parent todo for typed-link graph work.",
+    query: "Find the memory-retrieval parent todo for typed-link graph work.",
     expected_refs: ["todo:6e125b76-3238-4425-940f-28a287d85f51"],
     expected_relation: "parent",
   },

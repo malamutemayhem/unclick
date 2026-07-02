@@ -7,7 +7,7 @@
  * BackstagePass stores encrypted credentials in the `user_credentials`
  * table. The encryption scheme (AES-256-GCM, PBKDF2-derived key,
  * per-row salt) uses the user's plaintext UnClick API key as the only
- * input to PBKDF2 — there is no server-side master key. That means
+ * input to PBKDF2; there is no server-side master key. That means
  * any reveal / rotate-values flow REQUIRES the caller to supply the
  * plaintext api_key. We accept it in the request body, then verify
  *   sha256(body.api_key) === api_keys.key_hash (for session.user.id)
@@ -27,7 +27,7 @@
  * reveals are especially worth logging because they are the primary
  * signal of a compromised session.
  *
- * CORS is strict — unclick.world only. Admin surface should never
+ * CORS is strict (unclick.world only). Admin surface should never
  * talk to this from a preview/3p origin.
  *
  * Action catalog
@@ -41,12 +41,12 @@
  *     Audited with success flag. Touches `last_used_at`.
  *
  *   POST   ?action=update        body: { id, label?, values?, api_key? }
- *     Label-only change (no api_key needed) — rename a credential.
- *     Values change  (api_key REQUIRED) — re-encrypt with new data.
+ *     Label-only change (no api_key needed) - rename a credential.
+ *     Values change  (api_key REQUIRED) - re-encrypt with new data.
  *     Returns the updated metadata row. Audited.
  *
  *   POST   ?action=delete        body: { id }
- *     Hard-delete the row. No soft-delete for now — the audit log
+ *     Hard-delete the row. No soft-delete for now; the audit log
  *     preserves the existence + platform/label forever. Audited.
  *
  *   GET    ?action=audit[&credential_id=UUID][&limit=N]
@@ -62,9 +62,9 @@ import * as crypto from "crypto";
 import {
   decideBackstagePassConnectionProbeProviderCall,
   type BackstagePassConnectionProbeProvider,
-} from "./lib/ai-provider-inventory";
+} from "./lib/ai-provider-inventory.js";
 
-// ─── Crypto helpers (mirror api/credentials.ts exactly) ───────────────────
+// ─── Crypto helpers (mirror api/credentials.ts exactly) ─────────────────
 
 const PBKDF2_ITERATIONS = 100_000;
 const KEY_BYTES         = 32;
@@ -120,7 +120,7 @@ function decrypt(
   ]).toString("utf8");
 }
 
-// ─── Connection probes ───────────────────────────────────────────────────
+// ─── Connection probes ───────────────────────────────────────────
 //
 // Lightweight authenticated GET per platform. The action=testConnection
 // handler decrypts the stored credential, looks up the probe by platform
@@ -293,7 +293,7 @@ function credentialRotationNote(row: Record<string, unknown>, metadata: Credenti
   return metadata.rotationNote;
 }
 
-// ─── Supabase REST helper ────────────────────────────────────────
+// ─── Supabase REST helper ──────────────────────────────────
 
 function supaHeaders(serviceRoleKey: string): Record<string, string> {
   return {
@@ -319,7 +319,7 @@ async function supaFetch(
   return { ok: res.ok, status: res.status, data };
 }
 
-// ─── Auth: Supabase JWT + api_keys row resolution ───────────────────────
+// ─── Auth: Supabase JWT + api_keys row resolution ──────────────────────
 
 interface Tenant {
   userId:      string;
@@ -330,7 +330,7 @@ interface Tenant {
 /**
  * Verify the Bearer token is a valid Supabase Auth JWT and look up the
  * single api_keys row for the owning user. Returns null if either step
- * fails — the caller should respond with 401.
+ * fails. The caller should respond with 401.
  */
 async function resolveTenant(
   req:             VercelRequest,
@@ -340,7 +340,7 @@ async function resolveTenant(
   const authHeader = req.headers.authorization ?? "";
   const token      = authHeader.replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
-  // Bearer tokens beginning with uc_/agt_ are UnClick api_keys — valid
+  // Bearer tokens beginning with uc_/agt_ are UnClick api_keys, valid
   // for /api/credentials but NOT for this endpoint. Reject up front so
   // we don't treat an api_key as a JWT.
   if (token.startsWith("uc_") || token.startsWith("agt_")) return null;
@@ -353,16 +353,31 @@ async function resolveTenant(
   const user = (await userRes.json()) as { id?: string; email?: string | null };
   if (!user.id) return null;
 
-  // Look up the user's api_keys row. Support both new-shape (key_hash
-  // column, Phase-2) and legacy (api_key plaintext column, Phase-1).
-  const qUrl = `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}&select=key_hash,api_key&limit=1`;
+  // Look up the user's api_keys row. public.api_keys stores only the SHA-256
+  // key_hash (the legacy plaintext api_key column was dropped), so select
+  // key_hash only - selecting a non-existent column 400s the whole request
+  // and would strand the tenant with zero connections.
+  // Pick the SAME active key every other surface resolves to (mirror
+  // validateSessionCookie() in api/mcp.ts): without an is_active filter and
+  // a deterministic order, a user with more than one api_keys row could
+  // resolve to a different key_hash here than in /api/mcp or memory-admin,
+  // stranding their credentials in a separate tenant lane.
+  const qUrl =
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(user.id)}` +
+    `&is_active=eq.true&order=last_used_at.desc.nullslast&select=key_hash&limit=1`;
   const { ok, data } = await supaFetch(qUrl, "GET", supaHeaders(serviceRoleKey));
   if (!ok) return null;
-  const rows = (data as Array<{ key_hash?: string | null; api_key?: string | null }>) ?? [];
+  const rows = (data as Array<{ key_hash?: string | null }>) ?? [];
   const row  = rows[0];
   if (!row) return null;
 
-  const keyHash = row.key_hash ?? (row.api_key ? sha256hex(row.api_key) : null);
+  // Credentials are bound to the CURRENT key, NOT the memory lane: values are
+  // encrypted with a key derived from the raw api_key, and reveal/test do
+  // proof-of-possession against this hash. So this MUST stay key_hash (never
+  // lane_hash) - otherwise a rotated account fails proof-of-possession and
+  // cannot decrypt. Memory follows the stable account lane; secrets are
+  // re-entered after a key rotation by design.
+  const keyHash = row.key_hash ?? null;
   if (!keyHash) return null;
 
   return { userId: user.id, email: user.email ?? null, apiKeyHash: keyHash };
@@ -380,7 +395,7 @@ function clientUa(req: VercelRequest): string | null {
   return typeof ua === "string" ? ua : null;
 }
 
-// ─── Audit writer ────────────────────────────────────────────────
+// ─── Audit writer ───────────────────────────────────────
 
 async function writeAudit(params: {
   supabaseUrl:    string;
@@ -459,9 +474,21 @@ async function fetchConnectorMap(
   }
 }
 
-// ─── Handler ───────────────────────────────────────────────────────
+// ─── Handler ─────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    return await handleBackstagePass(req, res);
+  } catch (err) {
+    // Crash safety: without this, an upstream throw (Supabase hiccup, network
+    // timeout) becomes a naked non-JSON 500 and the admin page can only show
+    // "List failed with 500". Always hand the UI a readable error instead.
+    console.error("backstagepass: unhandled error:", err instanceof Error ? err.message : String(err));
+    return res.status(500).json({ error: "Temporary error loading your connections. Please retry." });
+  }
+}
+
+async function handleBackstagePass(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin",  "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
@@ -494,7 +521,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Not signed in." });
   }
 
-  // ── GET actions ─────────────────────────────────────────────────
+  // ── GET actions ─────────────────────────────────────
 
   if (req.method === "GET" && action === "list") {
     const url = `${supabaseUrl}/rest/v1/user_credentials`
@@ -557,7 +584,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ data: data ?? [] });
   }
 
-  // ── POST actions ────────────────────────────────────────────────
+  // ── POST actions ────────────────────────────────────
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed." });
@@ -630,7 +657,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: "Failed to decrypt credential." });
     }
 
-    // Touch last_used_at. Fire-and-forget — a failed write shouldn't
+    // Touch last_used_at. Fire-and-forget: a failed write shouldn't
     // block the reveal.
     supaFetch(
       `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(id)}`,
@@ -808,13 +835,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
     if (newLabel !== undefined) {
-      // Label-only change — no decrypt required. Empty string → NULL.
+      // Label-only change, no decrypt required. Empty string → NULL.
       patch.label = newLabel.trim() === "" ? null : newLabel.trim();
     }
 
     let valuesRotated = false;
     if (newValues !== undefined) {
-      // Values change — require proof-of-possession api_key, derive a
+      // Values change: require proof-of-possession api_key, derive a
       // fresh salt/iv and re-encrypt. Verify the submitted key hashes
       // to the session's api_key_hash first.
       if (!apiKey) {

@@ -228,10 +228,11 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
   },
   higgsfield: {
     displayName: "Higgsfield",
-    credential:  "API key",
+    credential:  "account login or API key",
     arg:         "api_key",
     envVar:      "HIGGSFIELD_API_KEY",
-    setupUrl:    "https://higgsfield.ai/",
+    setupUrl:    "https://unclick.world/admin/apps?lens=signin",
+    note:        "Connect Higgsfield from UnClick Apps to use your Higgsfield account, plan, and credits. A Cloud API key is optional fallback only.",
   },
   kling: {
     displayName: "Kling",
@@ -552,10 +553,19 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
   },
   vercel: {
     displayName: "Vercel",
-    credential:  "access token",
+    credential:  "OAuth login",
     arg:         "api_key",
     envVar:      "VERCEL_TOKEN",
-    setupUrl:    "https://vercel.com/account/tokens",
+    setupUrl:    "https://vercel.com/oauth/authorize",
+    note:        "Connect Vercel with provider login for UnClick's built-in Vercel actions. Use the token fallback only if OAuth is unavailable. Vercel's hosted MCP at https://mcp.vercel.com is a separate OAuth sign-in path outside UnClick. Billing, projects, and team permissions stay in Vercel.",
+  },
+  supabase: {
+    displayName: "Supabase",
+    credential:  "OAuth login",
+    arg:         "access_token",
+    envVar:      "SUPABASE_ACCESS_TOKEN",
+    setupUrl:    "https://api.supabase.com/v1/oauth/authorize",
+    note:        "Connect Supabase with provider login for UnClick's Supabase Management API access. Use the token fallback only if OAuth is unavailable. Supabase's hosted MCP at https://mcp.supabase.com/mcp is a separate developer sign-in path; scope it with project_ref and read_only when possible, and do not hand that developer MCP connection to app customers.",
   },
   render: {
     displayName: "Render",
@@ -894,7 +904,7 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     credential:  "app id",
     arg:         "app_id",
     envVar:      "BANDSINTOWN_APP_ID",
-    setupUrl:    "https://www.artists.bandsintown.com/support/api-installation",
+    setupUrl:    "https://www.artists.bandsintown.com/bandsintown-api",
   },
 
   // ─── Finance / data feeds ─────────────────────────────────────────────────
@@ -956,7 +966,19 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     credential:  "API key",
     arg:         "api_key",
     envVar:      "OPENAQ_API_KEY",
-    setupUrl:    "https://explore.openaq.org/account",
+    setupUrl:    "https://explore.openaq.org/register",
+  },
+  bgg: {
+    displayName: "BoardGameGeek",
+    credential:  "API token",
+    envVar:      "BGG_API_TOKEN",
+    setupUrl:    "https://boardgamegeek.com/wiki/page/BGG_XML_API2",
+  },
+  tab: {
+    displayName: "TAB Australia",
+    credential:  "API base URL",
+    envVar:      "TAB_API_BASE",
+    setupUrl:    "https://www.studio.tab.com.au/docs",
   },
   steam: {
     displayName: "Steam",
@@ -1217,6 +1239,30 @@ export const CONNECTOR_SETUP: Record<string, ConnectorSetup> = {
     arg:         "access_token",
     envVar:      "DROPBOX_ACCESS_TOKEN",
     setupUrl:    "https://www.dropbox.com/developers/apps",
+  },
+  gmail: {
+    displayName: "Gmail",
+    credential:  "access token",
+    arg:         "access_token",
+    envVar:      "GMAIL_ACCESS_TOKEN",
+    setupUrl:    "https://unclick.world/connect/gmail",
+    note:        "Prefer the Gmail login flow. Token entry is only a fallback.",
+  },
+  "google-drive": {
+    displayName: "Google Drive",
+    credential:  "access token",
+    arg:         "access_token",
+    envVar:      "GOOGLE_DRIVE_ACCESS_TOKEN",
+    setupUrl:    "https://unclick.world/connect/google-drive",
+    note:        "Prefer the Google Drive login flow. Token entry is only a fallback.",
+  },
+  onedrive: {
+    displayName: "OneDrive",
+    credential:  "access token",
+    arg:         "access_token",
+    envVar:      "ONEDRIVE_ACCESS_TOKEN",
+    setupUrl:    "https://unclick.world/connect/onedrive",
+    note:        "Prefer the OneDrive login flow. Token entry is only a fallback.",
   },
   bitbucket: {
     displayName: "Bitbucket",

@@ -8,11 +8,13 @@ This playbook preserves the proven trigger methods in one durable place so they 
 
 Hard rule: keep only one Codex or local heartbeat schedule. Everything else should run inside UnClick native jobs, receipts, PinballWake, QueuePush, WakePass, or GitHub plumbing.
 
+Hard rule: DraftRoom is the first station for warm subscription chat work. When a capable chat seat has fresh build context, build or fit the smallest safe draft now, then capture it in DraftRoom. Do not park fresh build context for a low-capacity unattended runner unless the exact blocker and next build step are recorded.
+
 ## Ranking
 
 | Rank | Method | Best use | Effectiveness | Worker rule |
 | --- | --- | --- | --- | --- |
-| 1 | Human typing or subscription chat trigger | Chris is present, a decision is needed, or a live chat wake is already happening | Very high | Save the turn first, read Orchestrator, then act. Do not ask Chris to run scripts. |
+| 1 | Human typing or subscription chat trigger | The operator is present, a decision is needed, or a live chat wake is already happening | Very high | Save the turn first, read Orchestrator, then act. Do not ask the operator to run scripts. |
 | 2 | Single heartbeat tether | Regular unattended progress, queue health, and one safe useful step per wake | Very high | Use the existing UnClick Heartbeat only. Do not create more local schedules. |
 | 3 | Exact ScopePack | Turning vague jobs into buildable work | Very high | Include owned files, protected surfaces, smallest next step, proof, tests, and stop conditions. |
 | 4 | Proof receipt | Closing loops after a PR, test, review, merge, or blocker check | Very high | Post the proof where the job lives. Include PR, SHA, run id, or exact blocker. |
@@ -29,20 +31,21 @@ Hard rule: keep only one Codex or local heartbeat schedule. Everything else shou
 Use this order when a job is not moving:
 
 1. Refresh live state: Memory, Orchestrator, Boardroom, Jobs, then repo or PR state if needed.
-2. If there is a critical safety or production blocker, handle only the safe read-only step unless owner approval is explicit.
-3. If the job is vague, add an exact ScopePack instead of trying to build from loose text.
-4. If the job is stale but scoped, claim it, do one bounded step, and post proof.
-5. If another worker owns it and the claim is fresh, leave a narrow handoff or choose another job.
-6. If proof is missing, request the smallest proof: PR link, commit SHA, run id, check result, or blocker line.
-7. If a wake is needed, use NudgeOnly first, IgniteOnly only after verification, and PushOnly only for a compact worker push envelope.
-8. If the job is safe and the checks are green, merge only under the gated autopilot policy.
-9. If blocked, try one safe unblock, then write the blocker in plain English and move down the queue.
+2. If a warm chat seat has fresh build context, build or fit the smallest safe draft in DraftRoom before queueing it for unattended runners.
+3. If there is a critical safety or production blocker, handle only the safe read-only step unless owner approval is explicit.
+4. If the job is vague, add an exact ScopePack instead of trying to build from loose text.
+5. If the job is stale but scoped, claim it, do one bounded step, and post proof.
+6. If another worker owns it and the claim is fresh, leave a narrow handoff or choose another job.
+7. If proof is missing, request the smallest proof: PR link, commit SHA, run id, check result, or blocker line.
+8. If a wake is needed, use NudgeOnly first, IgniteOnly only after verification, and PushOnly only for a compact worker push envelope.
+9. If the job is safe and the checks are green, merge only under the gated autopilot policy.
+10. If blocked, try one safe unblock, then write the blocker in plain English and move down the queue.
 
 ## Trigger Patterns
 
 ### Live Chat Trigger
 
-Use when Chris is actively steering, confused, or making a decision. This is the strongest signal because it has human context.
+Use when the operator is actively steering, confused, or making a decision. This is the strongest signal because it has human context.
 
 Required receipt:
 
@@ -73,7 +76,7 @@ Bad heartbeat steps:
 
 - repeating the same blocked status every cycle
 - creating new schedules
-- making Chris run local commands
+- making the operator run local commands
 - touching secrets, billing, DNS, auth, production data, or migrations without explicit approval
 
 ### ScopePack
@@ -84,6 +87,7 @@ Minimum fields:
 
 ```text
 ScopePack
+warm_chat_build_rule:
 todo_id:
 lane:
 owned_files:

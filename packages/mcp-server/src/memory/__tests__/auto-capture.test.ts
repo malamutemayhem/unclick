@@ -5,6 +5,7 @@ import {
   autoCaptureFromTurn,
   captureSlug,
   codeAutoCaptureEnabled,
+  deriveCodeDescription,
   deriveTags,
   deriveTitle,
   extractCodeBlocks,
@@ -130,6 +131,20 @@ describe("helpers", () => {
     assert.notEqual(a, c);
     assert.match(a, /^auto-doc-[0-9a-f]{12}$/);
   });
+
+  test("deriveCodeDescription creates a useful reference title", () => {
+    assert.equal(
+      deriveCodeDescription({
+        language: "ts",
+        content: "// save the current turn\nconst receipt = await saveTurn();",
+      }),
+      "ts: save the current turn",
+    );
+    assert.equal(
+      deriveCodeDescription({ language: "text", content: "\n\nfunction run() {\n  return true;\n}" }),
+      "code: function run() {",
+    );
+  });
 });
 
 describe("autoCaptureFromTurn", () => {
@@ -156,6 +171,7 @@ describe("autoCaptureFromTurn", () => {
     assert.equal(codes.length, 1);
     assert.equal(codes[0].session_id, "s1");
     assert.equal(codes[0].language, "ts");
+    assert.equal(codes[0].description, "ts: const x = 1;");
   });
 
   test("captures a library doc from a user turn when the library flag is on", async () => {

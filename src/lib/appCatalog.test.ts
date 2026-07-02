@@ -17,7 +17,18 @@ describe("app catalog integrity", () => {
       expect(app.category, `category for ${app.slug}`).toBeTruthy();
       expect(app.blurb, `blurb for ${app.slug}`).toBeTruthy();
       expect(app.toolCount, `toolCount for ${app.slug}`).toBe(app.tools.length);
+      expect(["offline", "online", "hybrid"], `network for ${app.slug}`).toContain(app.network);
     }
+  });
+
+  it("never ships the internal 'local' marker as a domain (it breaks the icon)", () => {
+    const bad = APP_CATALOG.filter((a) => a.domain === "local").map((a) => a.slug);
+    expect(bad, `apps with domain "local": ${bad.join(", ")}`).toEqual([]);
+  });
+
+  it("keeps the offline bucket honest: offline apps have no brand domain", () => {
+    const suspicious = APP_CATALOG.filter((a) => a.network === "offline" && a.domain).map((a) => a.slug);
+    expect(suspicious, `offline apps with a domain: ${suspicious.join(", ")}`).toEqual([]);
   });
 
   it("classifies every app into a real, user-facing category (none fall to Other)", () => {
@@ -33,5 +44,32 @@ describe("app catalog integrity", () => {
   it("can look up an app by slug", () => {
     expect(getApp("github")?.name).toBe("GitHub");
     expect(getApp("not-a-real-app")).toBeUndefined();
+  });
+
+  it("uses the real Higgsfield brand domain for its app icon", () => {
+    expect(getApp("higgsfield")?.domain).toBe("higgsfield.ai");
+  });
+
+  it("describes Higgsfield actions as using the connected MCP login with API fallback", () => {
+    const higgsfield = getApp("higgsfield");
+    const actionCopy = higgsfield?.tools.map((tool) => tool.description).join(" ") ?? "";
+    expect(actionCopy).toContain("connected Higgsfield MCP account login");
+    expect(actionCopy).toContain("Cloud API fallback");
+    expect(actionCopy).not.toContain("mcp.higgsfield.ai");
+  });
+
+  it("lists Supabase with first-party read actions", () => {
+    const supabase = getApp("supabase");
+    expect(supabase?.name).toBe("Supabase");
+    expect(supabase?.category).toBe("Developer & infra");
+    expect(supabase?.toolCount).toBeGreaterThanOrEqual(3);
+    expect(supabase?.domain).toBe("supabase.com");
+    expect(supabase?.tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining([
+        "supabase_list_projects",
+        "supabase_get_project",
+        "supabase_list_organizations",
+      ]),
+    );
   });
 });

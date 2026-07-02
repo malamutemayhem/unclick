@@ -36,10 +36,10 @@ export const supabase = createClient(
   },
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // SQL MIGRATIONS: run in Supabase dashboard (SQL Editor)
 //
-// ── Table 1: api_keys (existing) ─────────────────────────────────────────────
+// ── Table 1: api_keys (existing) ────────────────────────────────────
 // Run this SQL in your Supabase dashboard (SQL Editor) to set up the table:
 //
 // CREATE TABLE api_keys (
@@ -52,15 +52,20 @@ export const supabase = createClient(
 //
 // ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 //
-// -- Allow anyone to insert a new key
-// CREATE POLICY "Allow inserts" ON api_keys
-//   FOR INSERT WITH CHECK (true);
+// SECURITY: the api_key column holds the user's raw UnClick key, which is
+// ALSO the vault decryption key (see user_credentials below). It must never
+// be publicly readable. The DEPLOYED setup grants access to the service_role
+// ONLY - all reads/writes go through server-side API functions using
+// SUPABASE_SERVICE_ROLE_KEY; the anon and authenticated roles have no access:
 //
-// -- Allow reading only by matching email (filtered client-side too)
-// CREATE POLICY "Allow select by email" ON api_keys
-//   FOR SELECT USING (true);
+// CREATE POLICY "service_role_all" ON api_keys
+//   FOR ALL TO service_role USING (true) WITH CHECK (true);
 //
-// ── Table 2: user_credentials (new, OAuth credential broker) ─────────────────
+// Do NOT add a public "USING (true)" read policy - that would expose every
+// user's master key. (An earlier draft of this comment showed permissive
+// insert/select policies; that does NOT match the deployed, locked-down setup.)
+//
+// ── Table 2: user_credentials (new, OAuth credential broker) ──────────────
 // Stores platform OAuth tokens and API keys encrypted with AES-256-GCM.
 // The user's UnClick API key is the encryption key (PBKDF2 derived).
 // Only the SHA-256 hash of the API key is stored; the key itself is never stored.

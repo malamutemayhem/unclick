@@ -103,7 +103,7 @@ export default function DogfoodReportPage() {
   const xpassIndex = report.xpassIndex?.length ? report.xpassIndex : fallbackReport.xpassIndex;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Navbar />
 
       <main className="overflow-hidden px-4 pt-28 pb-16 sm:px-6">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 type RunStatus = "pending" | "running" | "complete" | "failed";
 type AgentStatus = "idle" | "thinking" | "done" | "failed";

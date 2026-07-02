@@ -136,7 +136,9 @@ function thompsonSample(stats: ArmStats, random: () => number): number {
 function sampleBeta(a: number, b: number, random: () => number): number {
   const x = sampleGamma(a, random);
   const y = sampleGamma(b, random);
-  return x / (x + y);
+  const total = x + y;
+  if (!Number.isFinite(total) || total === 0) return 0.5;
+  return x / total;
 }
 
 function sampleGamma(k: number, random: () => number): number {

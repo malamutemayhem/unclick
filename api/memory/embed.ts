@@ -18,7 +18,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   decideAiProviderCall,
   type AiProviderCallDecision,
-} from "../lib/ai-provider-inventory";
+} from "../lib/ai-provider-inventory.js";
 
 const ALLOWED_TABLES = new Set([
   "mc_extracted_facts",

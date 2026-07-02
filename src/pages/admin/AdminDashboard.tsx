@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useJobsQueueMetrics } from "@/hooks/useJobsQueueMetrics";
 import {
   AppWindow,
   Brain,
@@ -38,11 +39,70 @@ const overview = [
   },
 ];
 
-const needsYou = [
+const standingHabits = [
   "Review apps that need login or an API key",
   "Check Autopilot blockers before merge or publish",
   "Run Recall Check when an AI forgets important context",
 ];
+
+/**
+ * Live "what needs you" rows from the real Jobs queue. Falls back to the
+ * standing habits list (clearly labelled) when no live data is available,
+ * so the panel never dresses static advice up as a live queue.
+ */
+function NeedsYouPanel() {
+  const metrics = useJobsQueueMetrics();
+
+  if (!metrics) {
+    return (
+      <section className="rounded-2xl border border-[#86dadd]/15 bg-white/[0.04] p-6 backdrop-blur-sm">
+        <h2 className="text-sm font-semibold text-white">Standing habits</h2>
+        <p className="mt-1 text-xs text-white/40">Live queue numbers appear here once UnClick can read the Jobs board.</p>
+        <ul className="mt-4 space-y-3">
+          {standingHabits.map((item) => (
+            <li key={item} className="flex gap-2 text-sm text-white/60">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E2B93B]" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
+  const rows = [
+    {
+      label: metrics.active === 1 ? "job in progress right now" : "jobs in progress right now",
+      value: metrics.active,
+    },
+    {
+      label: metrics.open_backlog === 1 ? "open job waiting in the backlog" : "open jobs waiting in the backlog",
+      value: metrics.open_backlog,
+    },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-[#86dadd]/15 bg-white/[0.04] p-6 backdrop-blur-sm" data-testid="needs-you-live">
+      <h2 className="text-sm font-semibold text-white">What needs you</h2>
+      <p className="mt-1 text-xs text-white/40">Live from the Jobs queue.</p>
+      <ul className="mt-4 space-y-3">
+        {rows.map((row) => (
+          <li key={row.label}>
+            <Link to="/admin/jobs" className="flex gap-2 text-sm text-white/60 transition-colors hover:text-white">
+              <span className="font-semibold text-white">{row.value.toLocaleString()}</span>
+              {row.label}
+            </Link>
+          </li>
+        ))}
+        <li>
+          <Link to="/admin/apps" className="flex gap-2 text-sm text-white/60 transition-colors hover:text-white">
+            Review apps that need login or an API key
+          </Link>
+        </li>
+      </ul>
+    </section>
+  );
+}
 
 export default function AdminDashboard() {
   return (
@@ -83,17 +143,7 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/[0.06] bg-[#111] p-6">
-          <h2 className="text-sm font-semibold text-white">What needs you</h2>
-          <ul className="mt-4 space-y-3">
-            {needsYou.map((item) => (
-              <li key={item} className="flex gap-2 text-sm text-white/60">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E2B93B]" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <NeedsYouPanel />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -103,7 +153,7 @@ export default function AdminDashboard() {
             <Link
               key={item.title}
               to={item.href}
-              className="rounded-2xl border border-white/[0.06] bg-[#111] p-5 transition-colors hover:border-[#61C1C4]/30 hover:bg-white/[0.04]"
+              className="rounded-2xl border border-[#86dadd]/15 bg-white/[0.04] p-5 backdrop-blur-sm transition-colors hover:border-[#61C1C4]/40 hover:bg-white/[0.07]"
             >
               <div className="mb-3 flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#61C1C4]/10 text-[#61C1C4]">

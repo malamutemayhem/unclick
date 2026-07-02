@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
 import FadeIn from "@/components/FadeIn";
 import { AppWindow, Brain, Link2, BadgeCheck, ArrowRight, Plane } from "lucide-react";
+import { Eyebrow, GradientText, GlassCard, IconChip } from "@/components/brand";
 import { presets } from "@/lib/design-system";
 
 /**
  * Public-facing product tiles.
  *
- * Notes (2026-05-28 Apple polish pass):
- *  - All icons are monochrome on a single primary tint. No rainbow.
+ * Notes (2026-06-07 deck-aligned restyle):
+ *  - Navy aurora canvas + teal accent. Copy and links unchanged.
+ *  - All icons are monochrome on a single teal tint. No rainbow.
  *  - AutoPilot is surfaced as the simple work hub, with XPass as its proof layer.
- *    The developer marketplace remains hidden until that chapter is ready.
  *  - Connections currently points at /admin/keychain to match the Footer.
- *    Promote to a public landing if/when one ships.
  */
 const PRODUCTS = [
   {
@@ -51,19 +51,17 @@ const Hero = () => {
     <>
       {/* Hero */}
       <section className={presets.heroSection}>
-        <div className={presets.halo} aria-hidden="true" />
-
         <div className={presets.heroInner}>
           <FadeIn>
-            <div className={presets.eyebrow}>
-              <span className={presets.eyebrowText}>Universal remote for AI</span>
+            <div className="flex justify-center">
+              <Eyebrow>Universal remote for AI</Eyebrow>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.05}>
-            <h1 className={presets.h1}>
+            <h1 className="mt-6 text-5xl font-extrabold leading-[1.03] tracking-[-0.025em] text-heading sm:text-6xl md:text-7xl">
               Every tool.{" "}
-              <span className="text-primary">One install.</span>
+              <GradientText>One install.</GradientText>
             </h1>
           </FadeIn>
 
@@ -84,7 +82,7 @@ const Hero = () => {
                     .getElementById("install")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className={presets.ctaPrimary}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_14px_40px_-12px_hsl(182_46%_57%/0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_-12px_hsl(182_46%_57%/0.7)]"
               >
                 Get started
               </a>
@@ -98,7 +96,9 @@ const Hero = () => {
         <div className={presets.sectionInner}>
           <FadeIn>
             <div className={presets.sectionHeader}>
-              <h2 className={presets.h2}>The rails your agent plugs into.</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-heading sm:text-4xl">
+                The <GradientText>rails</GradientText> your agent plugs into.
+              </h2>
               <p className="mt-3 text-body">
                 One layer that sits behind Claude, ChatGPT, Cursor, and every MCP client.
                 Tools to act. Memory to remember. Connections to sign in. AutoPilot to move work. XPass to prove it.
@@ -109,17 +109,19 @@ const Hero = () => {
           <div className="mt-16 grid gap-4 sm:grid-cols-2">
             {PRODUCTS.map((product, i) => (
               <FadeIn key={product.title} delay={0.05 * i}>
-                <Link to={product.href} className={presets.tile}>
-                  <div className={presets.tileIcon}>
-                    <product.icon className="h-5 w-5" />
-                  </div>
-                  <h3 className={presets.h3}>{product.title}</h3>
-                  <p className="mt-2 text-sm text-body leading-relaxed">
-                    {product.description}
-                  </p>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                    Learn more <ArrowRight className="h-3.5 w-3.5" />
-                  </div>
+                <Link to={product.href} className="group block h-full">
+                  <GlassCard className="h-full transition-all duration-300 group-hover:border-primary/40 group-hover:bg-white/[0.07] group-hover:shadow-[0_20px_60px_-24px_rgba(97,193,196,0.35)]">
+                    <IconChip className="mb-4">
+                      <product.icon className="h-5 w-5" />
+                    </IconChip>
+                    <h3 className="text-lg font-semibold text-heading">{product.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-body">
+                      {product.description}
+                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-sm text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                      Learn more <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </GlassCard>
                 </Link>
               </FadeIn>
             ))}

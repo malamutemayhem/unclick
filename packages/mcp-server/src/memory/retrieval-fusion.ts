@@ -29,12 +29,15 @@ import { scoreLocalMemoryContent, tokenizeLocalMemoryQuery } from "./supabase.js
 import type { MemorySearchResultRow, MemorySearchSource } from "./types.js";
 
 /**
- * Lane-01 flag gate. Treats "1" or "true" (any case) as enabled, mirroring the
- * existing embeddings flag idiom (see embeddings.ts). Default off.
+ * Lane-01 flag gate. Default ON since 2026-06-11: the eval harness scored the
+ * fused configuration at or above the frozen lane-10 baseline on every metric
+ * (latest-value fixed by the write-gate value-change supersede and the
+ * valid_from-aware recency in orderByEffectiveScore). Setting the env var to
+ * "0" or "false" is the kill switch that restores keyword-first short-circuit.
  */
 export function isFusedRetrievalEnabled(): boolean {
-  const raw = process.env.MEMORY_FUSED_RETRIEVAL_ENABLED ?? "";
-  return raw === "1" || raw.toLowerCase() === "true";
+  const raw = (process.env.MEMORY_FUSED_RETRIEVAL_ENABLED ?? "").trim().toLowerCase();
+  return raw !== "0" && raw !== "false";
 }
 
 /**
@@ -220,6 +223,12 @@ export interface EffectiveScoreRow {
   source: string;
   final_score: number;
   created_at?: string | null;
+  /**
+   * Declared validity start. When present it outranks created_at as the
+   * recency signal: two writes seconds apart can describe values that became
+   * true days apart, and "latest value" queries care about the latter.
+   */
+  valid_from?: string | null;
   effective_score?: number;
   scope_weight?: number;
 }
@@ -236,6 +245,10 @@ export interface EffectiveScoreRow {
  * The computed composite is written back to effective_score so Worker 10's eval
  * harness can read exactly what we ordered on. Terminal step: call once.
  */
+function finiteOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
 export function orderByEffectiveScore<T extends EffectiveScoreRow>(
   rows: T[],
   maxResults: number,
@@ -243,14 +256,17 @@ export function orderByEffectiveScore<T extends EffectiveScoreRow>(
 ): T[] {
   return rows
     .map((row) => {
-      const base = typeof row.effective_score === "number" ? row.effective_score : row.final_score;
-      const weight = typeof row.scope_weight === "number" ? row.scope_weight : scopeWeightForSource(row.source);
-      const effective = base * weight * recencyWeight(row.created_at, asOf);
+      const base = finiteOr(row.effective_score, finiteOr(row.final_score, 0));
+      const weight = finiteOr(row.scope_weight, scopeWeightForSource(row.source));
+      const effective = base * weight * recencyWeight(row.valid_from ?? row.created_at, asOf);
       return { ...row, effective_score: effective } as T;
     })
     .sort((a, b) => {
-      const diff = (b.effective_score ?? 0) - (a.effective_score ?? 0);
-      return diff !== 0 ? diff : (b.created_at ?? "").localeCompare(a.created_at ?? "");
+      const sa = finiteOr(a.effective_score, 0);
+      const sb = finiteOr(b.effective_score, 0);
+      const diff = sb - sa;
+      if (diff !== 0) return diff;
+      return (b.valid_from ?? b.created_at ?? "").localeCompare(a.valid_from ?? a.created_at ?? "");
     })
     .slice(0, maxResults);
 }

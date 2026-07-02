@@ -52,7 +52,7 @@ export const CURATED_SKILL_PREVIEWS: CuratedSkillPreview[] = [
     id: "pr-review-compat",
     name: "PR Monitor and Reviewer",
     category: "Review",
-    source: "OpenClaw compatibility input",
+    source: "community compatibility input",
     provenance: "External SKILL.md pattern, quarantined for UnClick review",
     license: "License review required",
     version: "upstream preview",

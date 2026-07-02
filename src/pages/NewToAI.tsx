@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import ExpandableImage from "@/components/ExpandableImage";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { presets } from "@/lib/design-system";
@@ -8,7 +9,6 @@ import {
   Brain,
   Calendar,
   Users,
-  Trophy,
   ArrowRight,
   CheckCircle2,
   MessageSquare,
@@ -64,7 +64,7 @@ const FAQ = [
   },
   {
     q: "Is it free?",
-    a: "Yes. The free plan gives you the full toolbox. Paid options will come later.",
+    a: "Yes. The free plan gives you the full toolbox for everyday use. If you need more, Pro starts at $29 a month. See the pricing page for details.",
   },
   {
     q: "What AI does it work with?",
@@ -126,12 +126,6 @@ const PRODUCTS = [
     link: "/crews",
     icon: Users,
   },
-  {
-    name: "Arena",
-    desc: "Test and compare different AI models side by side.",
-    link: "/arena",
-    icon: Trophy,
-  },
 ];
 
 const NewToAI = () => {
@@ -144,6 +138,18 @@ const NewToAI = () => {
       lede="UnClick gives AI assistants the tools they need to help you. Like giving a new employee the keys to the office, a phone, and a filing cabinet."
       cta={{ label: "See what is possible", href: "#how" }}
     >
+      {/* Overview infographic (tap to expand). Asset: public/UnClick_Overview_web.jpg */}
+      <section className="px-6 pt-2">
+        <div className="mx-auto max-w-4xl">
+          <FadeIn>
+            <ExpandableImage
+              src="/UnClick_Overview_web.jpg"
+              alt="How UnClick fits together: your private data island, development autopilot, connected apps, secure connections, the orchestrator, the AI memory engine, and your AI agent subscriptions across every device."
+            />
+          </FadeIn>
+        </div>
+      </section>
+
       {/* What is UnClick? */}
       <section id="how" className={presets.section}>
         <div className="mx-auto max-w-4xl">

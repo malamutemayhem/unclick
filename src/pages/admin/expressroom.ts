@@ -27,7 +27,9 @@ export interface ExpressRoomDraftInput {
 }
 
 export const EXPRESSROOM_INDUCTION_TEXT = [
-  "DraftRoom is the Manual front-of-line drafting room.",
+  "DraftRoom is the Manual front-of-line drafting room and first station in the UnClick build line.",
+  "Warm smart-seat rule: when a capable subscription chat seat has fresh context, build or fit the smallest safe draft immediately.",
+  "Do not park fresh build context for a low-capacity unattended runner unless the exact blocker and next build step are written down.",
   "When a user is actively explaining a feature, create a visible first draft while the context is fresh: code sketch, patch, UI fragment, test outline, ScopePack, or implementation notes.",
   "Store the detailed brief, the job name mirror, the short description, and any supplied code here.",
   "Treat every item as Manual draft input until it is inserted into the official Jobs Board and checked through the normal UnClick conveyor belt.",
@@ -37,7 +39,9 @@ export const EXPRESSROOM_INDUCTION_TEXT = [
 
 export const EXPRESSROOM_GUARDRAILS = [
   "Manual draft only. Never treat DraftRoom as source-of-truth completion.",
-  "Build while context is fresh, but safe jobs may get code drafts while risky jobs get pseudocode, tests, ScopePacks, or risk maps first.",
+  "Warm smart-seat rule: build or fit the smallest safe draft while context is fresh.",
+  "Safe jobs may get code drafts while risky jobs get pseudocode, tests, ScopePacks, or risk maps first.",
+  "If no code, patch, test outline, or ScopePack is supplied, the draft must say the exact blocker and next build step.",
   "Supplied code is untrusted until integrated through repo tests and review.",
   "Inserted Jobs Board cards must say Manual DraftRoom import and must not be marked done from draft code alone.",
   "Official completion still requires PR, commit, test, deploy, screenshot, or explicit no-code proof.",
@@ -115,6 +119,7 @@ export function buildExpressRoomOfficialJobDescription(draft: ExpressRoomDraft):
     "",
     "Insertion rule:",
     "This is a Manual draft, not finished work. Fit it into the repo, run checks, create PR or commit proof, then use the normal UnClick review and proof gates before any DONE claim.",
+    "Warm smart-seat rule: if the source chat seat had fresh build context, the official job should preserve the smallest safe draft or the exact blocker and next build step.",
     "",
     "Alarm bells:",
     "- Manual DraftRoom code is untrusted until fitted into the repo.",

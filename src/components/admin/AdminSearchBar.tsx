@@ -17,6 +17,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Brain, FileText, Zap, Loader2 } from "lucide-react";
+import { useSession } from "@/lib/auth";
 
 const API_KEY_STORAGE = "unclick_api_key";
 
@@ -46,11 +47,17 @@ const TARGETS: Record<SearchHit["type"], string> = {
 
 export default function AdminSearchBar() {
   const navigate = useNavigate();
+  const { session } = useSession();
+  // Depend on the token string, never the session object: providers (and test
+  // mocks) may return a fresh object per render, and an object dep here turns
+  // the debounce effect into an infinite re-render loop.
+  const accessToken = session?.access_token ?? null;
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
+  const [authMissing, setAuthMissing] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -91,16 +98,21 @@ export default function AdminSearchBar() {
     }
     setLoading(true);
     const timer = setTimeout(async () => {
-      const apiKey = localStorage.getItem(API_KEY_STORAGE) ?? "";
-      if (!apiKey) {
+      // Same auth as every other admin surface: the signed-in session token.
+      // The legacy localStorage api key remains a fallback for keyed setups.
+      // (The old key-only path made search silently dead for normal sign-ins.)
+      const token = accessToken ?? localStorage.getItem(API_KEY_STORAGE) ?? "";
+      if (!token) {
         setResults([]);
+        setAuthMissing(true);
         setLoading(false);
         return;
       }
+      setAuthMissing(false);
       try {
         const res = await fetch(
           `/api/memory-admin?action=admin_search&query=${encodeURIComponent(q)}`,
-          { headers: { Authorization: `Bearer ${apiKey}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) {
           setResults([]);
@@ -116,7 +128,7 @@ export default function AdminSearchBar() {
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, accessToken]);
 
   const pick = useCallback(
     (hit: SearchHit) => {
@@ -164,7 +176,7 @@ export default function AdminSearchBar() {
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search facts, sessions, context..."
-          className="w-full rounded-lg border border-white/[0.08] bg-[#111] px-9 py-2 text-sm text-[#ccc] placeholder:text-[#666] focus:border-[#61C1C4]/60 focus:outline-none focus:ring-1 focus:ring-[#61C1C4]/40"
+          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-9 py-2 text-sm text-[#ccc] placeholder:text-[#666] focus:border-[#61C1C4]/60 focus:outline-none focus:ring-1 focus:ring-[#61C1C4]/40"
         />
         <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 font-mono text-[10px] text-[#888]">
           {shortcutHint}
@@ -172,7 +184,7 @@ export default function AdminSearchBar() {
       </div>
 
       {showDropdown && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-lg border border-white/[0.08] bg-[#111] shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.03] shadow-2xl">
           {loading && (
             <div className="flex items-center gap-2 px-4 py-3 text-xs text-[#888]">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -180,7 +192,9 @@ export default function AdminSearchBar() {
             </div>
           )}
           {!loading && results.length === 0 && (
-            <div className="px-4 py-3 text-xs text-[#666]">No matches</div>
+            <div className="px-4 py-3 text-xs text-[#666]">
+              {authMissing ? "Sign in to search your memory." : "No matches"}
+            </div>
           )}
           {!loading && results.length > 0 && (
             <ul className="max-h-80 overflow-y-auto py-1">

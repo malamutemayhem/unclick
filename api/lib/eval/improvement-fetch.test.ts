@@ -29,6 +29,21 @@ describe("groupCommentsByTodo", () => {
     expect(grouped.get("t2")?.[0].is_pass_proof).toBe(false);
   });
 
+  it("negates proof inference when failure signals accompany positive keywords", () => {
+    const grouped = groupCommentsByTodo([
+      { target_id: "t1", author_agent_id: "a", text: "playwright tests are failing" },
+      { target_id: "t2", author_agent_id: "a", text: "deployment failed" },
+      { target_id: "t3", author_agent_id: "a", text: "screenshot shows it is broken" },
+      { target_id: "t4", author_agent_id: "a", text: "deployed but then reverted" },
+      { target_id: "t5", author_agent_id: "a", text: "CI red after deploy" },
+    ]);
+    expect(grouped.get("t1")?.[0].is_pass_proof).toBe(false);
+    expect(grouped.get("t2")?.[0].is_pass_proof).toBe(false);
+    expect(grouped.get("t3")?.[0].is_pass_proof).toBe(false);
+    expect(grouped.get("t4")?.[0].is_pass_proof).toBe(false);
+    expect(grouped.get("t5")?.[0].is_pass_proof).toBe(false);
+  });
+
   it("honors an explicit is_pass_proof flag over inference", () => {
     const grouped = groupCommentsByTodo([
       { target_id: "t1", author_agent_id: "rev", text: "no proof keywords", is_pass_proof: true },

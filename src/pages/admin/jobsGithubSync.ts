@@ -31,6 +31,13 @@ export interface JobGithubSyncSignal {
   detail: string;
   tone: "quiet" | "linked" | "done" | "alert";
   href?: string;
+  /**
+   * True only when the alert is about proof itself (missing, partial, stale,
+   * blocked, reset, wrong scope). Deploy failures and other alerts must not
+   * set this, so callers can hold done jobs for proof without misfiling
+   * unrelated issues as proof holds.
+   */
+  proofHold?: boolean;
 }
 
 const GITHUB_PULL_URL_RE = /https:\/\/github\.com\/([^\s/)]+\/[^\s/)]+)\/pull\/(\d+)/gi;
@@ -159,7 +166,13 @@ function buildProofStateSignal(job: JobGithubSyncInput): JobGithubSyncSignal | n
   return {
     ...signal,
     detail: job.proof_state_reason?.trim() || signal.detail,
+    proofHold: signal.tone === "alert",
   };
+}
+
+/** The backend proof check has already cleared this job. */
+function hasVerifiedProofState(job: JobGithubSyncInput): boolean {
+  return job.proof_state === "live" || job.proof_state === "close_eligible";
 }
 
 export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSyncSignal {
@@ -186,6 +199,7 @@ export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSync
       label: "Proof reset",
       detail: "This job was reopened or blocked because proof is stale or missing.",
       tone: "alert",
+      proofHold: true,
     };
   }
 
@@ -198,10 +212,18 @@ export function buildJobGithubSyncSignal(job: JobGithubSyncInput): JobGithubSync
         href: firstLink.url,
       };
     }
+    if (hasVerifiedProofState(job)) {
+      return {
+        label: "Proof saved",
+        detail: job.proof_state_reason?.trim() || "The backend proof check cleared this completed job.",
+        tone: "done",
+      };
+    }
     return {
       label: "Proof missing",
       detail: "Completed job needs a PR, run, or deployment link.",
       tone: "alert",
+      proofHold: true,
     };
   }
 

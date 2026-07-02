@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
 import {
@@ -34,9 +35,28 @@ interface CompliancePassMcpReceipt {
   boundaries: string[];
 }
 
+interface CompliancePassScanRoot {
+  kind: "explicit_repo_path" | "server_working_directory";
+  is_repository_root: boolean;
+  warning?: string;
+}
+
+const SCAN_ROOT_WARNING =
+  "Scan root has no .git directory, so repo-level files such as SECURITY.md, .github/workflows, and docs/* are invisible to this run and their missing-file gaps may be false. Rerun with repo_path pointing at a full repository checkout before trusting missing-file gaps.";
+
+function resolveScanRoot(repoPath: string, explicit: boolean): CompliancePassScanRoot {
+  const isRepositoryRoot = fs.existsSync(path.join(repoPath, ".git"));
+  return {
+    kind: explicit ? "explicit_repo_path" : "server_working_directory",
+    is_repository_root: isRepositoryRoot,
+    ...(isRepositoryRoot ? {} : { warning: SCAN_ROOT_WARNING }),
+  };
+}
+
 interface CompliancePassRunRecord {
   report: CompliancePassReport;
   target_sha?: string;
+  scan_root: CompliancePassScanRoot;
   receipt: CompliancePassMcpReceipt;
 }
 
@@ -84,6 +104,7 @@ function buildReceipt(
   runId: string,
   report: CompliancePassReport,
   targetSha?: string,
+  scanRoot?: CompliancePassScanRoot,
 ): CompliancePassMcpReceipt {
   return {
     kind: "compliancepass_receipt_v1",
@@ -106,7 +127,9 @@ function buildReceipt(
     gap_severity_counts: report.summary.gap_severity_counts,
     blocking_gap_count: report.summary.blocking_gap_count,
     evidence_sources: receiptEvidence(report),
-    action_needed: receiptActions(report),
+    action_needed: scanRoot?.warning
+      ? [scanRoot.warning, ...receiptActions(report)].slice(0, 12)
+      : receiptActions(report),
     boundaries: [
       "CompliancePass is readiness guidance, not a compliance certification.",
       "CompliancePass receipts are evidence summaries and do not replace legal, security, privacy, or compliance review.",
@@ -138,18 +161,20 @@ function receiptActions(report: CompliancePassReport): string[] {
 export async function compliancepassRun(args: Record<string, unknown>): Promise<unknown> {
   const targetSha = parseTargetSha(args.target_sha);
   if (typeof targetSha === "object") return targetSha;
-  const repoPath = typeof args.repo_path === "string" && args.repo_path.trim()
-    ? path.resolve(args.repo_path)
+  const explicitRepoPath = typeof args.repo_path === "string" && args.repo_path.trim().length > 0;
+  const repoPath = explicitRepoPath
+    ? path.resolve((args.repo_path as string).trim())
     : process.cwd();
   const targetName = typeof args.target_name === "string" && args.target_name.trim()
     ? args.target_name.trim()
     : "UnClick";
+  const scanRoot = resolveScanRoot(repoPath, explicitRepoPath);
 
   try {
     const report = await runCompliancePass({ repoPath, targetName });
     const runId = runIdFor(report);
-    const receipt = buildReceipt(runId, report, targetSha);
-    RUNS.set(runId, { report, target_sha: targetSha, receipt });
+    const receipt = buildReceipt(runId, report, targetSha, scanRoot);
+    RUNS.set(runId, { report, target_sha: targetSha, scan_root: scanRoot, receipt });
     return {
       run_id: runId,
       status: "complete",
@@ -157,6 +182,7 @@ export async function compliancepassRun(args: Record<string, unknown>): Promise<
       product: report.product,
       legacy_aliases: report.legacy_aliases,
       target_sha: targetSha,
+      scan_root: scanRoot,
       readiness_score: report.readiness_score,
       summary: report.summary,
       categories: report.categories.map(
@@ -192,6 +218,7 @@ export async function compliancepassStatus(args: Record<string, unknown>): Promi
     status: "complete",
     pass: "compliancepass",
     target_sha: record.target_sha,
+    scan_root: record.scan_root,
     readiness_score: report.readiness_score,
     summary: report.summary,
     generated_at: report.generated_at,

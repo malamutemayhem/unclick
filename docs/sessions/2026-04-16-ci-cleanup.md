@@ -1,7 +1,7 @@
 # CI cleanup - follow-up from Phase 2 session
 
 **Date:** 2026-04-16
-**Context:** Logged during Phase 2 PR #15 (`claude/phase-2-auth-foundation`). Both GitHub Actions jobs are failing red on this PR, but they were already failing red when Phase 1 PR #14 merged, so the failures are pre-existing and were explicitly left alone per Chris's call on this session. Not a Phase 2 regression.
+**Context:** Logged during Phase 2 PR #15 (`claude/phase-2-auth-foundation`). Both GitHub Actions jobs are failing red on this PR, but they were already failing red when Phase 1 PR #14 merged, so the failures are pre-existing and were explicitly left alone per the operator's call on this session. Not a Phase 2 regression.
 
 ## Failing checks (both pre-existing)
 

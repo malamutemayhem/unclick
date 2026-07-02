@@ -15,11 +15,12 @@ describe("heartbeat_protocol payload", () => {
     expect(first).toEqual(second);
     first.procedure[0] = "mutated by caller";
     expect(getHeartbeatProtocol().procedure[0]).toContain("full heartbeat policy");
-    expect(getHeartbeatProtocol().procedure[6]).toContain("save_conversation_turn");
-    expect(getHeartbeatProtocol().procedure[7]).toContain("nudgeonly_receipt_bridge");
-    expect(getHeartbeatProtocol().procedure[10]).toContain("igniteonly_receipt_consumer");
-    expect(getHeartbeatProtocol().procedure[10]).toContain("pushonly_wake_pusher");
-    expect(getHeartbeatProtocol().procedure[11]).toContain("admin_conversation_turn_ingest");
+    expect(getHeartbeatProtocol().procedure[6]).toContain("Warm chat build rule");
+    expect(getHeartbeatProtocol().procedure[7]).toContain("save_conversation_turn");
+    expect(getHeartbeatProtocol().procedure[8]).toContain("nudgeonly_receipt_bridge");
+    expect(getHeartbeatProtocol().procedure[11]).toContain("igniteonly_receipt_consumer");
+    expect(getHeartbeatProtocol().procedure[11]).toContain("pushonly_wake_pusher");
+    expect(getHeartbeatProtocol().procedure[12]).toContain("admin_conversation_turn_ingest");
   });
 
   it("keeps the public payload schema stable", () => {
@@ -33,7 +34,7 @@ describe("heartbeat_protocol payload", () => {
       "watch_state_key",
     ]);
     expect(protocol.version).toMatch(/^\d{4}-\d{2}-\d{2}\.v\d+$/);
-    expect(protocol.procedure).toHaveLength(19);
+    expect(protocol.procedure).toHaveLength(20);
     expect(protocol.procedure[0]).toContain("full heartbeat policy");
     expect(protocol.procedure[1]).toContain("continuity receipts");
     expect(protocol.procedure[2]).toContain("unclick-builder-tether-seat");
@@ -53,21 +54,24 @@ describe("heartbeat_protocol payload", () => {
     expect(protocol.procedure[5]).toContain("free API classifiers may only classify or nudge");
     expect(protocol.procedure[5]).toContain("PushOnly");
     expect(protocol.procedure[5]).toContain("must not create duplicate jobs");
-    expect(protocol.procedure[6]).toContain("After check_signals");
-    expect(protocol.procedure[7]).toContain("compact public fields");
-    expect(protocol.procedure[7]).toContain("owner_silent_minutes");
-    expect(protocol.procedure[7]).toContain("expired ownership lease");
-    expect(protocol.procedure[8]).toContain("smallest safe source text");
-    expect(protocol.procedure[9]).toContain("receipt_line");
-    expect(protocol.procedure[9]).toContain("bridge gap");
-    expect(protocol.procedure[9]).toContain("owner lease expiry");
-    expect(protocol.procedure[10]).toContain("ignite_id");
-    expect(protocol.procedure[10]).toContain("push_id");
-    expect(protocol.procedure[10]).toContain("Do not stop at NudgeOnly alone");
-    expect(protocol.procedure[11]).toContain("read UI");
-    expect(protocol.procedure[16]).toContain("missing capability");
-    expect(protocol.procedure[18]).toContain("memory.consolidate");
-    expect(protocol.procedure[18]).toContain("source: 'heartbeat'");
+    expect(protocol.procedure[6]).toContain("Warm chat build rule");
+    expect(protocol.procedure[6]).toContain("DraftRoom is the first station");
+    expect(protocol.procedure[6]).toContain("low-capacity unattended runner");
+    expect(protocol.procedure[7]).toContain("After check_signals");
+    expect(protocol.procedure[8]).toContain("compact public fields");
+    expect(protocol.procedure[8]).toContain("owner_silent_minutes");
+    expect(protocol.procedure[8]).toContain("expired ownership lease");
+    expect(protocol.procedure[9]).toContain("smallest safe source text");
+    expect(protocol.procedure[10]).toContain("receipt_line");
+    expect(protocol.procedure[10]).toContain("bridge gap");
+    expect(protocol.procedure[10]).toContain("owner lease expiry");
+    expect(protocol.procedure[11]).toContain("ignite_id");
+    expect(protocol.procedure[11]).toContain("push_id");
+    expect(protocol.procedure[11]).toContain("Do not stop at NudgeOnly alone");
+    expect(protocol.procedure[12]).toContain("read UI");
+    expect(protocol.procedure[17]).toContain("missing capability");
+    expect(protocol.procedure[19]).toContain("memory.consolidate");
+    expect(protocol.procedure[19]).toContain("source: 'heartbeat'");
     expect(protocol.alert_format).toEqual({
       heading: "UnClick alert",
       line_template: "owner -- target -- status -- next safe action",
@@ -91,9 +95,9 @@ describe("heartbeat_protocol payload", () => {
       procedure: [...protocol.procedure, "new instruction"],
     };
 
-    expect(formatHeartbeatProtocolVersion(15)).toBe("2026-06-02.v15");
-    expect(protocol.version).toBe("2026-06-02.v15");
-    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("65c8ca2fb099b26b");
+    expect(formatHeartbeatProtocolVersion(16)).toBe("2026-06-02.v16");
+    expect(protocol.version).toBe("2026-06-02.v16");
+    expect(heartbeatProtocolContentFingerprint(protocol)).toBe("2367132433c023f4");
     expect(heartbeatProtocolContentFingerprint(changed)).not.toBe(
       heartbeatProtocolContentFingerprint(protocol),
     );

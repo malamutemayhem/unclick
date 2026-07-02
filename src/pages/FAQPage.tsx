@@ -9,7 +9,7 @@ const FAQPage = () => {
     title: "FAQ - UnClick",
     ogTitle: "FAQ - UnClick",
     ogDescription:
-      "Answers to common questions about UnClick, MCP tools, the Arena, and how to get started.",
+      "Answers to common questions about UnClick, its tools, and how to get started.",
     ogUrl: "https://unclick.world/faq",
   });
 
@@ -17,7 +17,7 @@ const FAQPage = () => {
     <PageShell
       eyebrow="FAQ"
       title="Frequently asked."
-      lede="Common questions about UnClick, MCP tools, the Arena, and getting started."
+      lede="Common questions about UnClick, its tools, and getting started."
     >
       <FAQ />
     </PageShell>

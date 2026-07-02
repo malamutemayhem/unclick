@@ -406,7 +406,7 @@ export default function PassportPage() {
           </p>
         </FadeIn>
         <FadeIn delay={0.06}>
-          <div className="mt-8 overflow-hidden rounded-xl border border-border/40 bg-[#0d0d0d]">
+          <div className="mt-8 overflow-hidden rounded-xl border border-border/40 bg-white/[0.03]">
             <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
               <span className="font-mono text-xs text-muted-foreground">my-github-tool.ts</span>
               <CopyButton
@@ -545,7 +545,7 @@ export const githubTools = [
             <p className="mx-auto mt-3 max-w-lg text-body">
               Install UnClick, then tell your agent to connect your platforms. Takes under 2 minutes.
             </p>
-            <div className="mx-auto mt-8 w-fit overflow-hidden rounded-xl border border-border/40 bg-[#0d0d0d]">
+            <div className="mx-auto mt-8 w-fit overflow-hidden rounded-xl border border-border/40 bg-white/[0.03]">
               <div className="flex items-center justify-between border-b border-border/30 px-4 py-2">
                 <span className="font-mono text-xs text-muted-foreground">terminal</span>
                 <CopyButton code={INSTALL_CMD} />

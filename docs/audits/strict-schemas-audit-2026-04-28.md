@@ -1,7 +1,7 @@
 # Strict Tool Schemas Audit (Tier 1, Chip 3)
 
 **Date:** 2026-04-28
-**Scope:** `packages/mcp-server/src/` — all MCP tool schema definitions
+**Scope:** `packages/mcp-server/src/`: all MCP tool schema definitions
 **Mode:** Audit only. No code changes in this PR.
 
 ## What was checked
@@ -9,7 +9,7 @@
 For every tool with an `inputSchema`, verify three properties of strict MCP schemas:
 
 1. `additionalProperties: false` declared at the top level of the schema.
-2. `required: [...]` correctness — every name in `required` exists as a key in `properties`; no missing or stale names.
+2. `required: [...]` correctness: every name in `required` exists as a key in `properties`; no missing or stale names.
 3. Enums use `enum: [...]` rather than describing allowed values in prose.
 
 ## Where schemas live
@@ -42,18 +42,18 @@ This is a systemic gap rather than a per-tool defect. A single codemod can fix i
 |---|---|---|---|
 | `save_fact` | server.ts:282 | enum-as-prose: `category` description "preference, decision, technical, contact, project, general" not encoded as `enum` | yes |
 | `save_identity` | server.ts:344 | enum-as-prose: `category` description "identity, preference, client, workflow, technical, standing_rule" not encoded as `enum` | yes |
-| `unclick_json_format` | server.ts:897 | `indent` field has no `type:` (description "2, 4, or 'tab'") — intentional any-typed but should at minimum be `oneOf`/enum | yes |
-| `unclick_color_convert` | server.ts:976 | `color` field has no `type:` (intentional polymorphic) — document via `oneOf` for strict clients | yes |
-| `unclick_timestamp_convert` | server.ts:1001 | `timestamp` field has no `type:` (intentional polymorphic) — document via `oneOf` | yes |
-| `unclick_kv_set` | server.ts:1027 | `value` field has no `type:` (intentional any-typed) — acceptable but worth annotating | informational |
+| `unclick_json_format` | server.ts:897 | `indent` field has no `type:` (description "2, 4, or 'tab'"): intentional any-typed but should at minimum be `oneOf`/enum | yes |
+| `unclick_color_convert` | server.ts:976 | `color` field has no `type:` (intentional polymorphic). Document via `oneOf` for strict clients | yes |
+| `unclick_timestamp_convert` | server.ts:1001 | `timestamp` field has no `type:` (intentional polymorphic). Document via `oneOf` | yes |
+| `unclick_kv_set` | server.ts:1027 | `value` field has no `type:` (intentional any-typed): acceptable but worth annotating | informational |
 
-All other server.ts tools (`load_memory`, `search_memory`, `save_session`, `invalidate_fact`, `check_signals`, `set_my_emoji`, `post_message`, `set_my_status`, `read_messages`, all 11 Fishbowl todo/idea/comment tools, `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call`, all 21 direct tools) are clean on `required` and `enum` axes — only the systemic `additionalProperties` gap applies.
+All other server.ts tools (`load_memory`, `search_memory`, `save_session`, `invalidate_fact`, `check_signals`, `set_my_emoji`, `post_message`, `set_my_status`, `read_messages`, all 11 Fishbowl todo/idea/comment tools, `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call`, all 21 direct tools) are clean on `required` and `enum` axes. Only the systemic `additionalProperties` gap applies.
 
-### tool-wiring.ts — enum-as-prose hotspots (~50 tools)
+### tool-wiring.ts: enum-as-prose hotspots (~50 tools)
 
 Description text lists allowed values but no `enum: [...]` is declared. Fixing the two clusters below covers ~25 of these.
 
-**Action-dispatcher cluster (lines 7331-7498)** — `action` parameter drives routing logic. Encoding as enum prevents typo-based silent failures.
+**Action-dispatcher cluster (lines 7331-7498)**: `action` parameter drives routing logic. Encoding as enum prevents typo-based silent failures.
 
 | tool_name | file:line |
 |---|---|
@@ -66,7 +66,7 @@ Description text lists allowed values but no `enum: [...]` is declared. Fixing t
 | `sentry_action_dispatcher` | tool-wiring.ts:7477 |
 | `postman_action_dispatcher` | tool-wiring.ts:7498 |
 
-**Payment-integration cluster (lines 6755-7150)** — `action`, `status`, `intent` parameters.
+**Payment-integration cluster (lines 6755-7150)**: `action`, `status`, `intent` parameters.
 
 | tool_name | file:line |
 |---|---|
@@ -132,7 +132,7 @@ A separate informational pattern: integrations with action-dispatchers (e.g. `pa
 ## Recommended fix order (separate PR)
 
 1. Codemod: add `additionalProperties: false` to every `inputSchema` block. Mechanical, low risk.
-2. Convert action-dispatcher and payment cluster `action`/`status` enums (lines 6795-7498). Highest leverage — these are routing keys.
+2. Convert action-dispatcher and payment cluster `action`/`status` enums (lines 6795-7498). Highest leverage: these are routing keys.
 3. Sweep remaining ~27 one-off enum-as-prose cases.
 4. Tighten the two server.ts memory `category` fields.
 5. Decide whether the 4 polymorphic any-typed fields in `DIRECT_TOOLS` (`indent`, `color`, `timestamp`, `value`) should be encoded as `oneOf` or annotated as intentional any-types.

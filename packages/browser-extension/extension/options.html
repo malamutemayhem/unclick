@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>UnClick Local - Settings</title>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; max-width: 520px; margin: 24px auto; padding: 0 16px; color: #111; }
+      h1 { font-size: 18px; }
+      label { display: block; margin: 14px 0 4px; font-weight: 600; }
+      input { width: 100%; padding: 8px; font: inherit; box-sizing: border-box; }
+      .hint { color: #666; font-size: 12px; margin-top: 4px; }
+      button { margin-top: 16px; padding: 8px 14px; font: inherit; cursor: pointer; }
+      .saved { color: #0a7d2c; margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <h1>UnClick Local settings</h1>
+    <p>Connect this extension to your UnClick account so it can save facts to your Memory and read your connection status. Your key is stored locally in this browser and sent only to UnClick over HTTPS.</p>
+
+    <label for="key">UnClick API key</label>
+    <input id="key" type="password" placeholder="uc_..." autocomplete="off" />
+    <div class="hint">Find or create a key in your UnClick dashboard.</div>
+
+    <label for="endpoint">MCP endpoint</label>
+    <input id="endpoint" type="text" placeholder="https://unclick.world/api/mcp" />
+    <div class="hint">Leave as the default unless you self-host.</div>
+
+    <div>
+      <button id="save">Save</button>
+      <span id="status" class="saved"></span>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

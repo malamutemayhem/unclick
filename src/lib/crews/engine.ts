@@ -176,7 +176,8 @@ export async function runCouncilEngine(ctx: EngineCtx): Promise<void> {
     const { data: rawAgents } = await sb
       .from("mc_agents")
       .select("id,slug,name,category,seed_prompt")
-      .in("id", agentIds);
+      .in("id", agentIds)
+      .or(`is_system.eq.true,api_key_hash.eq.${apiKeyHash}`);
     // Postgres returns .in() rows in arbitrary order; restore the stored
     // order so advisor labels (Opinion A/B/C) are stable across runs.
     const agents: AgentRow[] = reorderAgentsByIds(

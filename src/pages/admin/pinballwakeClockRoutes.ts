@@ -141,7 +141,7 @@ export const PINBALLWAKE_CLOCK_ROUTES: PinballWakeClockRoute[] = [
     status: "candidate",
     automationLevel: "manual fallback",
     technique: "Windows Task Scheduler",
-    role: "Local backup clock for Chris's own machines.",
+    role: "Local backup clock for the operator's own machines.",
     userRequired: "Machine must be awake, synced, and configured.",
     safety: "Useful fallback, but not a public-product foundation.",
     nextStep: "Keep as emergency redundancy only.",

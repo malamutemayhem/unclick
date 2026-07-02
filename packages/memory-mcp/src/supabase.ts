@@ -238,6 +238,7 @@ export class SupabaseBackend implements MemoryBackend {
       let sessQ = this.sb
         .from(this.tables.session_summaries)
         .select("id, summary, created_at")
+        .eq("status", "active")
         .lte("created_at", effectiveAsOf);
 
       if (mode === "and") {
@@ -330,45 +331,82 @@ export class SupabaseBackend implements MemoryBackend {
     const factIds = rows
       .filter((row) => row.source === "fact" && typeof row.id === "string")
       .map((row) => row.id as string);
-    if (factIds.length === 0) return results;
+    const sessionIds = rows
+      .filter((row) => row.source === "session" && typeof row.id === "string")
+      .map((row) => row.id as string);
+    if (factIds.length === 0 && sessionIds.length === 0) return results;
 
-    let query = this.sb
-      .from(this.tables.extracted_facts)
-      .select("id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at")
-      .in("id", factIds);
-    if (this.tenancy.mode === "managed") {
-      query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+    let visibleFactIds: Set<string> | null = null;
+    if (factIds.length > 0) {
+      let query = this.sb
+        .from(this.tables.extracted_facts)
+        .select("id, fact, category, source_type, startup_fact_kind, valid_from, valid_to, invalidated_at, created_at")
+        .in("id", factIds);
+      if (this.tenancy.mode === "managed") {
+        query = query.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("[search_memory] recall-visibility filter failed:", error.message);
+        visibleFactIds = new Set(
+          rows
+            .filter((row) => {
+              if (row.source !== "fact" || typeof row.id !== "string") return false;
+              return !isMemoryFactOperational({
+                category: typeof row.category === "string" ? row.category : undefined,
+                fact: typeof row.content === "string" ? row.content : undefined,
+              });
+            })
+            .map((row) => row.id as string)
+        );
+      } else {
+        visibleFactIds = new Set(
+          ((data ?? []) as Array<{
+            id: string;
+            fact?: string | null;
+            category?: string | null;
+            source_type?: string | null;
+            startup_fact_kind?: string | null;
+            valid_from?: string | null;
+            valid_to?: string | null;
+            invalidated_at?: string | null;
+            created_at?: string | null;
+          }>)
+            .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
+            .map((row) => row.id)
+        );
+      }
     }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error("[search_memory] recall-visibility filter failed:", error.message);
-      return rows.filter((row) => {
-        if (row.source !== "fact") return true;
-        return !isMemoryFactOperational({
-          category: typeof row.category === "string" ? row.category : undefined,
-          fact: typeof row.content === "string" ? row.content : undefined,
-        });
-      });
+    let visibleSessionIds: Set<string> | null = null;
+    if (sessionIds.length > 0) {
+      let sessionQuery = this.sb
+        .from(this.tables.session_summaries)
+        .select("id, status, created_at")
+        .in("id", sessionIds)
+        .lte("created_at", asOf);
+      if (this.tenancy.mode === "managed") {
+        sessionQuery = sessionQuery.eq("api_key_hash", this.tenancy.apiKeyHash);
+      }
+      const { data, error } = await sessionQuery;
+      if (error) {
+        console.error("[search_memory] session recall-visibility filter failed:", error.message);
+        visibleSessionIds = new Set();
+      } else {
+        visibleSessionIds = new Set(
+          ((data ?? []) as Array<{ id: string; status?: string | null }>)
+            .filter((row) => (row.status ?? "active") === "active")
+            .map((row) => row.id)
+        );
+      }
     }
 
-    const visibleFactIds = new Set(
-      ((data ?? []) as Array<{
-        id: string;
-        fact?: string | null;
-        category?: string | null;
-        source_type?: string | null;
-        startup_fact_kind?: string | null;
-        valid_from?: string | null;
-        valid_to?: string | null;
-        invalidated_at?: string | null;
-        created_at?: string | null;
-      }>)
-        .filter((row) => isMemoryFactVisibleAt(row, asOf) && !isMemoryFactOperational(row))
-        .map((row) => row.id)
-    );
-
-    return rows.filter((row) => row.source !== "fact" || (typeof row.id === "string" && visibleFactIds.has(row.id)));
+    return rows.filter((row) => {
+      if (row.source === "fact") return typeof row.id === "string" && Boolean(visibleFactIds?.has(row.id));
+      if (row.source === "session") return typeof row.id === "string" && Boolean(visibleSessionIds?.has(row.id));
+      return true;
+    });
   }
 
   async searchFacts(query: string): Promise<unknown> {

@@ -103,6 +103,21 @@ describe("agent obligations", () => {
     });
   });
 
+  it("rejects receipts that describe failures despite containing positive keywords", () => {
+    const failureCases = [
+      "PASS: PR #695 merged but deployment failed; proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/695",
+      "PASS: PR #695 deployed but then reverted due to errors; proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/695",
+      "PASS: PR #695 review complete but build is broken; proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/695",
+      "ACK wake-pull_request-pr-695-6ca75834776e. Errored on staging; proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/695",
+      "PASS: PR #695 shipped then rolled back after customer reports; proof: https://github.com/malamutemayhem/unclick-agent-native-endpoints/pull/695",
+    ];
+    for (const text of failureCases) {
+      const result = validateAgentObligationReceipt(obligation, { text });
+      expect(result.accepted, `should reject: "${text}"`).toBe(false);
+      expect(result.reason).toBe("failure_receipt_rejected");
+    }
+  });
+
   it("marks stale TTL debt with visible fallback ownership", () => {
     const result = evaluateAgentObligationState(obligation, new Date("2026-05-10T15:45:00.000Z"));
 

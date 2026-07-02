@@ -83,7 +83,7 @@ The Admin XPass page should feel like a large QC checklist, not an engineering d
 | --- | --- | --- |
 | EnterprisePass | Historical | CompliancePass |
 | QualityPass | Retired | SlopPass |
-| QCPass | Process wording | XPass final QC receipt unless Chris promotes it as its own product |
+| QCPass | Process wording | XPass final QC receipt unless the operator promotes it as its own product |
 | BackstagePass | Parked | Connections or Connectors |
 
 ## Checklist Rule For Each XPass Run

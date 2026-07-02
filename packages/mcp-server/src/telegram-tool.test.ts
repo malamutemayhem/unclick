@@ -32,7 +32,7 @@ describe("telegram connector resilience (L2)", () => {
       json: async () => ({ ok: true, result: { message_id: 42, chat: { id: "c" }, date: 0 } }),
     })));
     const result = await telegramSend({ bot_token: "t", chat_id: "c", text: "hi" }) as Record<string, unknown>;
-    expect(result).toBeTruthy();
+    expect(result).toBeDefined();
     expect(result.error).toBeUndefined();
   });
 });

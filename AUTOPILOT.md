@@ -1,6 +1,6 @@
 # UnClick Autopilot
 
-This file defines what workers may do without waiting for Chris, what needs one approval, and what remains gated. It is the shared decision matrix for Fishbowl handoffs, scheduled workers, and async coding agents.
+This file defines what workers may do without waiting for the operator, what needs one approval, and what remains gated. It is the shared decision matrix for Fishbowl handoffs, scheduled workers, and async coding agents.
 
 Read `FLEET_SYNC.md` first. It is the current cross-PC fleet alignment layer and defines source-of-truth order, worker lanes, no-stomp rules, and continuity expectations. This file only defines autonomy tiers.
 
@@ -109,6 +109,15 @@ Enforcement path:
 - Phase 2: enforce completed Passes only. A missing incomplete Pass is a recorded skip, not a blocker.
 - Phase 3: enforce all relevant completed Passes before merge for Autopilot, admin UI, public pages, tools/connectors, and security-sensitive surfaces.
 
+**Current phase: Phase 2 (operator-approved 2026-06-11).** For passes with a
+stable runner (TestPass, UXPass, FlowPass, SecurityPass, CopyPass,
+FidelityPass, SEOPass, GEOPass, LegalPass, CompliancePass, CommonSensePass,
+SlopPass), a BLOCKER receipt on the current head SHA stops the merge unless
+the operator explicitly overrides. Passes without a runner (UIPass) or
+boundary-only passes (WakePass, RotatePass) remain recorded skips, never
+silent passes. Use `xpass_aggregated_verdict` with `available_checks` to
+compute the gate.
+
 This project should bias toward fixing real user-visible confusion over inventing new dashboards. When in doubt, dogfood the current product, write down the friction, and ship the smallest improvement that removes it.
 
 ## Autonomy Tiers
@@ -116,8 +125,8 @@ This project should bias toward fixing real user-visible confusion over inventin
 | Tier | Meaning | Worker action |
 | --- | --- | --- |
 | Ship without ask | Low-risk, reversible, already aligned with standing direction | Do the work, open a PR, post the result |
-| Ask once, then ship | Valuable but policy-shaped or user-visible enough to need one clear yes | Ask Chris or Bailey for the rule, then keep applying it |
-| Gated | Risky, irreversible, security-sensitive, billing-sensitive, or public-positioning sensitive | Do not act without explicit Chris approval |
+| Ask once, then ship | Valuable but policy-shaped or user-visible enough to need one clear yes | Ask the operator or Bailey for the rule, then keep applying it |
+| Gated | Risky, irreversible, security-sensitive, billing-sensitive, or public-positioning sensitive | Do not act without explicit operator approval |
 
 ## Ship Without Ask
 
@@ -155,7 +164,7 @@ After the answer is recorded, future matching work can follow that rule without 
 
 ## Gated
 
-Only Chris can approve these:
+Only the operator can approve these:
 
 - Secrets, tokens, environment variables, billing, domains, or Vercel project settings.
 - Auth, OAuth, RLS, CSP, security headers, migrations, or database policy changes.
@@ -174,14 +183,14 @@ Use this routing when deciding what to do next:
 | High confidence, low risk | Ship without ask |
 | High confidence, medium risk | Ask once, then ship |
 | Medium confidence, low risk | Comment with plan, then ship if no blocker is visible |
-| Medium confidence, medium risk | Ask Bailey or Chris |
-| Low confidence or high risk | Stop and ask Chris |
+| Medium confidence, medium risk | Ask Bailey or the operator |
+| Low confidence or high risk | Stop and ask the operator |
 
 Examples:
 
 - A stale todo says a merged PR is still open: ship without ask by closing or clarifying the card.
 - A draft PR is green but marked draft on purpose: ask before marking ready.
-- A missing env var blocks production: gated, Chris action required.
+- A missing env var blocks production: gated, operator action required.
 - A docs file names retired tools: ship without ask if current code is clear.
 - A new cron will make changes on a schedule: ask once, then ship after approval.
 
@@ -269,6 +278,10 @@ Before opening a PR:
 
 - Pull from the latest main branch.
 - Keep the change to one chip.
+- Keep the diff proportional to the chip. The `pr-scope-guard` gate fails grossly
+  oversized PRs (stale-base bloat, bulk generation); a genuinely large change
+  carries the `large-change-ok` label. If your "one chip" is touching hundreds of
+  files, the branch is wrong, not the gate.
 - Run the smallest useful verification.
 - Run `/review` when available.
 - Mention whether the change is ship-without-ask, ask-once, or gated.
@@ -276,9 +289,12 @@ Before opening a PR:
 
 Before merging:
 
-- Checks must be green unless Chris explicitly overrides.
+- Checks must be green unless the operator explicitly overrides.
 - Draft PRs must be marked ready by the owner or by explicit instruction.
-- Security, auth, env, migration, and billing changes need Chris approval.
+- Security, auth, env, migration, and billing changes need operator approval.
+- Shipping proof is a wired, cataloged, TestPass-green surface, not a count of
+  new files, tests, or commits. Activity is not proof (see
+  `docs/autopilot-zero-touch-scoreboard.md`).
 
 ## Current Priority Rule
 

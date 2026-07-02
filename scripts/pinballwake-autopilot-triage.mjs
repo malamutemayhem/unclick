@@ -26,6 +26,9 @@ const ROUTES = new Set([
 
 const DIFF_BUCKETS = new Set(["under-50", "under-200", "under-500", "over-500"]);
 
+export const WARM_CHAT_BUILD_RULE =
+  "Warm chat build rule: if a capable subscription chat seat has fresh context, build or fit the smallest safe draft in DraftRoom before parking work for unattended runners; if blocked, record the blocker and next build step.";
+
 function getArg(name, fallback = "") {
   const prefix = `--${name}=`;
   const found = process.argv.find((arg) => arg.startsWith(prefix));
@@ -593,6 +596,7 @@ export function createInlineScopePack(job = {}, route = chooseAutopilotRoute(job
     scopepack_id: job.scopepack_id || `inline:${compactText(job.source || "manual", 40)}:${Date.now()}`,
     route: route.route,
     tier: "inline",
+    warm_chat_build_rule: WARM_CHAT_BUILD_RULE,
     chip_title: compactText(job.title || job.chip || "Untitled Autopilot chip", 120),
     problem_statement: compactText(
       job.problem_statement || job.description || job.context || "Small low-risk chip routed directly to Coding Room.",

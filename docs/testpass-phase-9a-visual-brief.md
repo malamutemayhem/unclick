@@ -1,7 +1,7 @@
-# TestPass Phase 9A — Visual Overhaul Brief
+# TestPass Phase 9A: Visual Overhaul Brief
 
 **Status:** Draft, ready for review
-**Owner:** Chris Byrne / Malamute Mayhem
+**Owner:** UnClick Core Team
 **Implementer:** 🍿 Plex (Claude on Plex PC, todo `c116075a`)
 **Related:** TestPass Phase 9 plan (`agent/memory/project-testpass-phase-9.md`), Idiot-proof examples (`agent/memory/feedback-idiot-proof-examples.md`), UnClick brand copy (`agent/memory/reference-unclick-brand-copy.md`)
 
@@ -109,9 +109,9 @@ interface ScoreBadgeProps {
 - Shareable variant: clicking copies the share URL to clipboard, brief toast "Link copied"
 
 **States:**
-- `loading` — pulsing skeleton placeholder
-- `idle` — full badge
-- `copied` — green flash on click for 800 ms
+- `loading`: pulsing skeleton placeholder
+- `idle`: full badge
+- `copied`: green flash on click for 800 ms
 
 ### 4.2 RunButton
 
@@ -252,7 +252,7 @@ The starter pack list is hardcoded for Phase 9A; pack discovery via API ships in
 
 ### 5.3 Share URL
 
-Each run gets a deterministic shareable URL: `https://unclick.world/testpass/run/{run_id}/share` — public read, no auth required, anonymised (no api_key visible). The ScoreBadge's share button copies this URL.
+Each run gets a deterministic shareable URL: `https://unclick.world/testpass/run/{run_id}/share`. Public read, no auth required, anonymised (no api_key visible). The ScoreBadge's share button copies this URL.
 
 ## 6. Visual standards
 
@@ -307,7 +307,7 @@ Phase 9A is complete when ALL of these are true:
 - **Unit tests:** ScoreBadge severity logic, RunButton state transitions, CheckCard expanded/collapsed states, PackPicker selection
 - **Integration tests:** End-to-end run flow on a mock server, shareable URL accessibility
 - **Visual tests:** Storybook stories for each component, all four CheckCard states, ScoreBadge in all severity buckets
-- **Manual QA:** Mobile layout at 375 px, copy review by Bailey/Chris before merge
+- **Manual QA:** Mobile layout at 375 px, copy review by Bailey/the operator before merge
 
 ## 10. Estimated effort
 
@@ -318,13 +318,13 @@ Phase 9A is complete when ALL of these are true:
 
 ## 11. Open decisions
 
-None blocking. The pack picker behaviour for a single pack (lock as label, no dropdown) is the only call worth flagging. If you (Chris) prefer "always show dropdown for consistency," call it. Default in this brief is single-pack-as-label.
+None blocking. The pack picker behaviour for a single pack (lock as label, no dropdown) is the only call worth flagging. If the operator prefers "always show dropdown for consistency," call it. Default in this brief is single-pack-as-label.
 
 ## 12. Phase 9B / 9C preview
 
 For context only, not in scope here:
 
-- **Phase 9B** — Run history list, real-time progress streaming via Supabase realtime, pack discovery API, badge embed code generator
-- **Phase 9C** — Server-side QC chip dispatch (the actual smoke dispatch fix that's currently blocking the dispatcher gap), agent bridge polish, marketplace badge ranking integration
+- **Phase 9B**: Run history list, real-time progress streaming via Supabase realtime, pack discovery API, badge embed code generator
+- **Phase 9C**: Server-side QC chip dispatch (the actual smoke dispatch fix that's currently blocking the dispatcher gap), agent bridge polish, marketplace badge ranking integration
 
 After Phase 9A merges, todo `c116075a` closes and 🍿 picks up Phase 9B per the project memory file.

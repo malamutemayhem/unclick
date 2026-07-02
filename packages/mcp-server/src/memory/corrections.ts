@@ -83,7 +83,7 @@ export function correctionKey(input: CorrectionInput): string {
  */
 const MAX_CORRECTION_SOURCE_REF_LENGTH = 500;
 const SECRET_REF_PATTERN =
-  /(sk-[A-Za-z0-9]{12,}|xox[baprs]-[A-Za-z0-9-]{8,}|gh[posu]_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|bearer\s+[A-Za-z0-9._-]{12,}|authorization:\s*\S+)/i;
+  /(sk-[A-Za-z0-9]{12,}|[srpw][kh]_(?:live|test)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}|xox[baprs]-[A-Za-z0-9-]{8,}|gh[posu]_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|bearer\s+[A-Za-z0-9._-]{12,}|authorization:\s*\S+)/i;
 
 export function sanitizeCorrectionSourceRef(ref: unknown): string | undefined {
   if (typeof ref !== "string") return undefined;

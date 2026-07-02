@@ -97,12 +97,12 @@ async function makeSupabaseBackend(rowsByTable: Record<string, unknown[]>): Prom
 // ─── 1. retrieval-fusion helper (pure) ───────────────────────────────────────
 
 describe("lane-01 retrieval-fusion helper", () => {
-  test("isFusedRetrievalEnabled reads the flag, default off", async () => {
+  test("isFusedRetrievalEnabled defaults on; 0/false is the kill switch", async () => {
     const { isFusedRetrievalEnabled } = await import("../retrieval-fusion.js");
     const snap = snapshot([FLAG]);
     try {
       delete process.env[FLAG];
-      assert.equal(isFusedRetrievalEnabled(), false);
+      assert.equal(isFusedRetrievalEnabled(), true);
       process.env[FLAG] = "true";
       assert.equal(isFusedRetrievalEnabled(), true);
       process.env[FLAG] = "1";
@@ -181,7 +181,7 @@ describe("Supabase backend: business_context in keyword search", () => {
     const snap = snapshot([FLAG, ...EMBED_KEYS]);
     try {
       for (const key of EMBED_KEYS) delete process.env[key];
-      delete process.env[FLAG];
+      process.env[FLAG] = "0"; // kill switch
       const backend = await makeSupabaseBackend(rows);
       const results = await backend.searchMemory("timezone", 5);
       assert.deepEqual(results, []);
@@ -210,7 +210,7 @@ describe("Local backend: business_context in search", () => {
         "flag on should surface the standing rule"
       );
 
-      delete process.env[FLAG];
+      process.env[FLAG] = "0"; // kill switch
       const off = (await backend.searchMemory("timezone", 5)) as Array<{ source: string }>;
       assert.ok(
         !off.some((row) => row.source === "business_context"),

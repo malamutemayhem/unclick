@@ -147,11 +147,11 @@ export function runPreflight(
     return { proceed: true, mode, verdict: "allow" };
   }
 
-  let classified: { class: ActionClass; raw: string } | null = null;
+  let classified: { class: ActionClass; raw: string } | null;
   try {
     classified = classifyEndpoint(endpointId, params);
   } catch {
-    classified = null;
+    return { proceed: true, mode, verdict: "allow" };
   }
   if (!classified) {
     return { proceed: true, mode, verdict: "allow" };

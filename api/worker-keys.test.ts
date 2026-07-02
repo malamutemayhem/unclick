@@ -30,37 +30,64 @@ describe("newWorkerKey", () => {
 });
 
 describe("resolveWorkerTenancy", () => {
-  it("borrows the account's primary key hash for a worker key", () => {
+  it("uses the worker's own stamped lane and the primary's tier", () => {
     const resolved = resolveWorkerTenancy(
-      { key_hash_self: "worker-hash", tier: "worker" },
-      { key_hash: "primary-hash", tier: "pro" },
+      { key_hash_self: "worker-hash", lane_hash: "account-lane", tier: "worker" },
+      { key_hash: "primary-hash", lane_hash: "account-lane", tier: "pro" },
     );
-    // The worker shares the primary's memory + connections, and inherits its
-    // tier, not the literal "worker" placeholder.
-    expect(resolved.tenancyHash).toBe("primary-hash");
+    // Mint stamps the account lane onto the worker row; the billing tier comes
+    // from the primary, never the "worker" placeholder.
+    expect(resolved.tenancyHash).toBe("account-lane");
     expect(resolved.tenancyTier).toBe("pro");
+  });
+
+  it("borrows the primary's lane for a legacy worker row without one", () => {
+    const resolved = resolveWorkerTenancy(
+      { key_hash_self: "worker-hash", lane_hash: null, tier: "worker" },
+      { key_hash: "primary-hash", lane_hash: "account-lane", tier: "pro" },
+    );
+    expect(resolved.tenancyHash).toBe("account-lane");
+    expect(resolved.tenancyTier).toBe("pro");
+  });
+
+  it("falls back to the primary's key hash when neither row has a lane", () => {
+    const resolved = resolveWorkerTenancy(
+      { key_hash_self: "worker-hash", lane_hash: null, tier: "worker" },
+      { key_hash: "primary-hash", lane_hash: null, tier: "starter" },
+    );
+    expect(resolved.tenancyHash).toBe("primary-hash");
+    expect(resolved.tenancyTier).toBe("starter");
   });
 
   it("stays isolated on its own hash when the account has no primary key", () => {
     const resolved = resolveWorkerTenancy(
-      { key_hash_self: "worker-hash", tier: "worker" },
+      { key_hash_self: "worker-hash", lane_hash: null, tier: "worker" },
       null,
     );
     expect(resolved.tenancyHash).toBe("worker-hash");
+    expect(resolved.tenancyTier).toBe("free");
   });
 
-  it("never remaps a non-worker (primary) key, even if a primary row is passed", () => {
-    const resolved = resolveWorkerTenancy(
-      { key_hash_self: "uc-hash", tier: "pro" },
-      { key_hash: "other-hash", tier: "free" },
+  it("resolves a non-worker key by the lane convention (lane over hash)", () => {
+    const withLane = resolveWorkerTenancy(
+      { key_hash_self: "uc-hash", lane_hash: "account-lane", tier: "pro" },
+      null,
     );
-    expect(resolved.tenancyHash).toBe("uc-hash");
-    expect(resolved.tenancyTier).toBe("pro");
+    expect(withLane.tenancyHash).toBe("account-lane");
+    expect(withLane.tenancyTier).toBe("pro");
+
+    const withoutLane = resolveWorkerTenancy(
+      { key_hash_self: "uc-hash", lane_hash: null, tier: "pro" },
+      { key_hash: "other-hash", lane_hash: "other-lane", tier: "free" },
+    );
+    // A primary row never remaps a non-worker key.
+    expect(withoutLane.tenancyHash).toBe("uc-hash");
+    expect(withoutLane.tenancyTier).toBe("pro");
   });
 
   it("defaults a null tier to free", () => {
     const resolved = resolveWorkerTenancy(
-      { key_hash_self: "uc-hash", tier: null },
+      { key_hash_self: "uc-hash", lane_hash: null, tier: null },
       null,
     );
     expect(resolved.tenancyTier).toBe("free");

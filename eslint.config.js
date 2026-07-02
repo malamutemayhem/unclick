@@ -32,4 +32,10 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  {
+    files: ["packages/mcp-server/src/*-tool.ts"],
+    rules: {
+      "preserve-caught-error": "off",
+    },
+  },
 );

@@ -6,20 +6,20 @@ AI agent operating system. One npm install gives agents access to 450+ callable 
 
 Read `docs/unclick-context-boot-packet.md` before making product-map claims about UnClick, Autopilot, Launchpad, Rooms, XPass, or old Pass wording. If you only have connector-level context, say so and load the context packet before answering confidently.
 
-Read `FLEET_SYNC.md` first when working as part of the multi-PC worker fleet. It defines source-of-truth order, live worker lanes, Fishbowl coordination, no-stomp rules, and how older courier notes relate to the current process.
+Read `FLEET_SYNC.md` first when working as part of the multi-PC worker fleet. It defines source-of-truth order, live worker lanes, Boardroom coordination, no-stomp rules, and how older courier notes relate to the current process.
 
 If you are unsure which worker should own a handoff, review `docs/fleet-worker-roles.md` for the current emoji role map and routing guide.
 
-**Naming (Boardroom vs Fishbowl):** "Boardroom" is the user-facing name for the coordination room. "Fishbowl" is the legacy internal name still wired into the database tables, API routes, React route, and the room metadata returned by `read_messages` (which reports `name: "Fishbowl"`). Say **Boardroom** when talking to the user; expect to see **Fishbowl** in code and live metadata. Do NOT bulk-rename Fishbowl to Boardroom: per `AUTOPILOT.md` it is kept as the internal delivery address (an alias) until the automation substrate is explicitly migrated.
+**Naming (Boardroom vs Fishbowl):** "Boardroom" is the user-facing name for the coordination room. "Fishbowl" is the legacy internal name still wired into live contracts: the database tables, API routes and `fishbowl_*` action names, env secrets, and the room metadata returned by `read_messages` (which reports `name: "Fishbowl"`). The React admin UI is fully Boardroom-named (stage 1 of `docs/path-a-boardroom-rename-migration.md` is done). Say **Boardroom** when talking to the user; expect to see **Fishbowl** only in those live contracts. Do NOT bulk-rename Fishbowl to Boardroom: per `AUTOPILOT.md` it is kept as the internal delivery address (an alias) until the automation substrate is explicitly migrated. CI enforces a naming ratchet: `npm run boardroom:check` fails on any new Fishbowl/Popcorn reference. If your change removes references, or must touch a legacy contract, run `npm run boardroom:baseline` and commit the regenerated baseline. Policy: `docs/fishbowl-compat-map.md`.
 
 ## Before you touch code
 
 Use this as the short start ritual before any edit, branch, or PR action:
 
-1. Refresh live GitHub, Actions, and Fishbowl state.
+1. Refresh live GitHub, Actions, and Boardroom state.
 2. Check `git status`. If the checkout is dirty or clearly belongs to another active lane, stop and create a fresh worktree from `origin/main` or the approved base.
 3. Confirm the files you want are not already owned by another active PR or worker.
-4. Claim one small chip, post status in Fishbowl, and default to a draft PR first when risk is unclear.
+4. Claim one small chip, post status in the Boardroom, and default to a draft PR first when risk is unclear.
 
 ## Monorepo structure
 
@@ -79,7 +79,7 @@ These tools remain callable by name, but they are hidden from `ListTools` to kee
 - `search_memory` - recall anything from prior sessions
 - `save_identity` - set standing rules, always loaded (was `set_business_context`)
 - `check_signals` - check whether the agent should wake up or act
-- Fishbowl coordination tools such as `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, and `promote_idea_to_todo`
+- Boardroom coordination tools such as `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, and `promote_idea_to_todo`
 
 The old tool names still work as aliases for backward compatibility. Additional memory operations (manage_decay, store_code, log_conversation, supersede_fact, upsert_library_doc, etc.) are callable via `unclick_call` with `endpoint_id: "memory.<op>"`.
 

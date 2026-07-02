@@ -148,6 +148,20 @@ const badVisualAudit: VisualAuditSnapshot = {
       backgroundColor: "rgb(32, 32, 32)",
     },
     {
+      selector: ".generic-ai-copy",
+      tagName: "p",
+      text: "The all in one AI platform to supercharge productivity with intelligent agents that streamline workflows, unlock scale, and transform work.",
+      visible: true,
+      rect: { x: 8, y: 42, width: 260, height: 34, top: 42, right: 268, bottom: 76, left: 8 },
+      scrollWidth: 260,
+      scrollHeight: 34,
+      clientWidth: 260,
+      clientHeight: 34,
+      fontSize: 12,
+      color: "rgb(120, 120, 120)",
+      backgroundColor: "rgb(120, 120, 120)",
+    },
+    {
       selector: ".cropped-title",
       tagName: "div",
       text: "This important title is visibly cropped by the box",
@@ -378,6 +392,8 @@ describe("evaluateAllChecks - failure paths", () => {
     expect(evaluations.find((e) => e.check_id === "VD-006")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-007")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "VD-008")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-009")?.verdict).toBe("fail");
+    expect(evaluations.find((e) => e.check_id === "VD-010")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "MOB-002")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "A11Y-004")?.verdict).toBe("fail");
     expect(evaluations.find((e) => e.check_id === "A11Y-005")?.verdict).toBe("fail");

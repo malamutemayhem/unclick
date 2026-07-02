@@ -16,7 +16,7 @@ export const MEMORY_PASSPORT_VERSION = "memory-passport-v1";
 const SECRET_FIELD_PATTERN =
   /(api[_-]?key|authorization|bearer|credential|password|private[_-]?key|service[_-]?role|secret|token)/i;
 const SECRET_VALUE_PATTERN =
-  /(sk-[a-z0-9_-]{12,}|gh[oprsu]_[a-z0-9_]{20,}|xox[baprs]-[a-z0-9-]{10,}|Bearer\s+[a-z0-9._-]{12,}|eyJ[a-z0-9_-]{10,}\.[a-z0-9_-]{10,}\.[a-z0-9_-]{10,})/i;
+  /(sk-[a-z0-9_-]{12,}|[srpw][kh]_(?:live|test)_[a-z0-9]{10,}|whsec_[a-z0-9]{10,}|gh[oprsu]_[a-z0-9_]{20,}|xox[baprs]-[a-z0-9-]{10,}|AKIA[0-9A-Z]{12,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|Bearer\s+[a-z0-9._-]{12,}|eyJ[a-z0-9_-]{10,}\.[a-z0-9_-]{10,}\.[a-z0-9_-]{10,})/i;
 
 export function isMemoryPassportEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env[MEMORY_PASSPORT_FLAG] ?? "";

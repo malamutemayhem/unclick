@@ -328,11 +328,11 @@ function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
     <section
       aria-label="Jobsmith AI welcome packet"
       data-testid="jobsmith-ai-welcome-packet"
-      className="mb-4 rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.07] p-5"
+      className="mb-4 rounded-lg border border-primary/20 bg-primary/[0.07] p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">AI Welcome Packet</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">AI Welcome Packet</p>
           <h2 className="mt-1 text-xl font-semibold text-white">{packet.title}</h2>
           <p className="mt-2 text-sm leading-6 text-white/65">{packet.purpose}</p>
         </div>
@@ -392,7 +392,7 @@ function WelcomePacketPanel({ packet }: { packet: WelcomePacket }) {
       </div>
 
       <div className="mt-5 border-t border-white/[0.08] pt-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9EE4E6]">Safest next move</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Safest next move</p>
         <p className="mt-2 text-sm leading-6 text-white/75">{packet.safestNextMove}</p>
       </div>
     </section>
@@ -412,16 +412,26 @@ function ManagedRunReport({
   );
   const visibleBlockers = report.blockers.slice(0, 4);
   const visibleFindings = report.deterministicFindings.slice(0, 3);
+  const finalReportLines = [
+    `Submit-ready status: ${report.submitReady ? "ready" : "not ready"}`,
+    `Rules passed: ${report.rulesPassed}`,
+    `Blockers: ${report.blockers.length}`,
+    `Deterministic findings: ${report.deterministicFindings.length}`,
+    `Review-needed rules: ${report.reviewNeededCount}`,
+    `Decision cards: ${decisionSummary.resolved} resolved, ${decisionSummary.unresolved} unresolved`,
+    `Artifacts: ${report.artifacts.filter((artifact) => artifact.ready).length}/${report.artifacts.length} ready`,
+    `Proof receipts: ${report.proof.length}`,
+  ];
 
   return (
     <section
       aria-label="Jobsmith managed run report"
       data-testid="jobsmith-managed-run-report"
-      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+      className="rounded-lg border border-primary/20 bg-primary/[0.06] p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Managed Run Report</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Managed Run Report</p>
           <h2 className="mt-1 text-xl font-semibold text-white">Checklist to submit-ready gate</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
             JobSmith keeps the rule run, decision cards, artifacts, and submit-ready status visible instead of hiding review work in chat.
@@ -457,7 +467,7 @@ function ManagedRunReport({
           </div>
           <div className="mt-4 grid gap-2">
             {report.steps.map((step) => (
-              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+              <div key={step.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="text-sm font-semibold text-white">{step.label}</p>
                   <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-xs font-semibold text-white/65">
@@ -465,7 +475,7 @@ function ManagedRunReport({
                   </span>
                 </div>
                 <p className="mt-1 text-xs leading-5 text-white/55">{step.reason}</p>
-                <p className="mt-1 text-xs leading-5 text-[#9EE4E6]">Proof needed: {step.proofNeeded}</p>
+                <p className="mt-1 text-xs leading-5 text-primary">Proof needed: {step.proofNeeded}</p>
               </div>
             ))}
           </div>
@@ -481,6 +491,16 @@ function ManagedRunReport({
             <div>
               <dt className="font-semibold text-white/45">Next safe action</dt>
               <dd className="mt-1 text-white/70">{report.nextSafeAction}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-white/45">Submit-ready proof summary</dt>
+              <dd className="mt-1 space-y-1 text-white/70" data-testid="jobsmith-final-report-proof-summary">
+                {finalReportLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-white/45">Artifacts</dt>
@@ -548,14 +568,14 @@ function ManagedRunReport({
               Showing the first {Math.min(5, decisionCards.length)} of {decisionCards.length}. The full count stays in the run report.
             </p>
           </div>
-          <p className="text-xs font-semibold text-[#9EE4E6]">
+          <p className="text-xs font-semibold text-primary">
             {decisionSummary.blocked} blocked, {decisionSummary.needsDecision} need decision, {decisionSummary.resolved} resolved
           </p>
         </div>
 
         <div className="mt-4 space-y-3">
           {decisionCards.slice(0, 5).map((card) => (
-            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-[#111] p-3">
+            <article key={card.id} className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-white">{card.title}</p>
@@ -568,7 +588,7 @@ function ManagedRunReport({
                 </span>
               </div>
               <p className="mt-2 text-xs leading-5 text-white/55">{card.reason}</p>
-              <p className="mt-2 text-xs leading-5 text-[#9EE4E6]">Proof needed: {card.proofNeeded}</p>
+              <p className="mt-2 text-xs leading-5 text-primary">Proof needed: {card.proofNeeded}</p>
               {card.resolutionEvidence ? (
                 <p className="mt-2 text-xs leading-5 text-emerald-100">Evidence: {card.resolutionEvidence}</p>
               ) : null}
@@ -597,11 +617,11 @@ function RulePackStatus({ summary }: { summary: ReturnType<typeof summarizeRuleP
   return (
     <section
       aria-label="Jobsmith universal rules"
-      className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/[0.06] p-5"
+      className="rounded-lg border border-primary/20 bg-primary/[0.06] p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">Universal Rules v{summary.version}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Universal Rules v{summary.version}</p>
           <h2 className="mt-1 text-xl font-semibold text-white">Rule-pack check status</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
             Source-backed rules are loaded as data. Allowlist and requirement specs stay out of banned-keyword findings unless a rule explicitly says to flag or block the terms.
@@ -654,7 +674,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+        className="h-10 w-full rounded-lg border border-white/[0.08] bg-black/30 px-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-primary/45"
       />
     </label>
   );
@@ -684,7 +704,7 @@ function TextAreaField({
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
         placeholder={placeholder}
-        className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+        className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-primary/45"
       />
     </label>
   );
@@ -955,20 +975,20 @@ export default function JobsmithPage() {
   const canGenerate = profile !== null && jobText.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-[#090909] text-white">
+    <div className="relative min-h-screen bg-transparent text-foreground antialiased">
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 pb-20 pt-20 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#61C1C4]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                 Jobsmith
               </p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                 Tailored application drafts
               </h1>
             </div>
-            <div className="rounded-lg border border-[#61C1C4]/20 bg-[#61C1C4]/10 px-3 py-2 text-xs leading-5 text-[#9EE4E6]">
+            <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs leading-5 text-primary">
               Browser-local. No upload, no submit, no external check.
             </div>
           </div>
@@ -992,9 +1012,9 @@ export default function JobsmithPage() {
             className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]"
           >
             <div className="space-y-4">
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex items-center gap-2">
-                  <Upload className="h-4 w-4 text-[#61C1C4]" />
+                  <Upload className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                     Step 1 - Cover letter corpus
                   </h2>
@@ -1011,7 +1031,7 @@ export default function JobsmithPage() {
                   multiple
                   aria-label="Cover letter files"
                   onChange={(e) => void handleCorpusFiles(e.target.files)}
-                  className="block w-full text-xs text-white/70 file:mr-3 file:rounded-lg file:border file:border-[#61C1C4]/30 file:bg-[#61C1C4]/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#9EE4E6] hover:file:bg-[#61C1C4]/20"
+                  className="block w-full text-xs text-white/70 file:mr-3 file:rounded-lg file:border file:border-primary/30 file:bg-primary/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
                 />
 
                 {corpus.kind === "loading" && (
@@ -1031,10 +1051,10 @@ export default function JobsmithPage() {
                 )}
               </section>
 
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <ScrollText className="h-4 w-4 text-[#61C1C4]" />
+                    <ScrollText className="h-4 w-4 text-primary" />
                     <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                       Step 2 - Master CV facts
                     </h2>
@@ -1044,7 +1064,7 @@ export default function JobsmithPage() {
                     onClick={() =>
                       setCvFactsRaw(JSON.stringify(CV_FACTS_TEMPLATE, null, 2))
                     }
-                    className="rounded-lg border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9EE4E6] transition-colors hover:bg-[#61C1C4]/20"
+                    className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                   >
                     Load template
                   </button>
@@ -1062,7 +1082,7 @@ export default function JobsmithPage() {
                   rows={10}
                   spellCheck={false}
                   placeholder='{ "name": "...", "contact": "...", "experience": [], "education": [], "skills": [] }'
-                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 font-mono text-xs leading-5 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                  className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 font-mono text-xs leading-5 text-white outline-none transition-colors focus:border-primary/45"
                 />
                 {cvFactsParse === null && (
                   <p className="mt-2 text-xs text-white/40">
@@ -1085,9 +1105,9 @@ export default function JobsmithPage() {
                 )}
               </section>
 
-              <section className="rounded-lg border border-white/[0.06] bg-[#111] p-5">
+              <section className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5">
                 <div className="mb-4 flex items-center gap-2">
-                  <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
+                  <BriefcaseBusiness className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                     Step 3 - Job description
                   </h2>
@@ -1102,7 +1122,7 @@ export default function JobsmithPage() {
                     onChange={(e) => setJobText(e.target.value)}
                     rows={10}
                     placeholder="Paste the job description here. The first line is read as the role, the second as the company."
-                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#61C1C4]/45"
+                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-primary/45"
                   />
                 </label>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -1110,7 +1130,7 @@ export default function JobsmithPage() {
                     type="button"
                     onClick={handleGenerate}
                     disabled={!canGenerate}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-4 py-2.5 text-sm font-semibold text-[#9EE4E6] transition-colors hover:bg-[#61C1C4]/20 disabled:cursor-not-allowed disabled:border-white/[0.08] disabled:bg-white/[0.04] disabled:text-white/30"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:border-white/[0.08] disabled:bg-white/[0.04] disabled:text-white/30"
                   >
                     <Sparkles className="h-4 w-4" />
                     Generate tailored draft
@@ -1136,11 +1156,11 @@ export default function JobsmithPage() {
               {letterDraft && (
                 <section
                   aria-label="Cover letter draft"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-fuchsia-300" />
+                      <FileText className="h-4 w-4 text-primary" />
                       <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                         Cover letter draft
                       </h2>
@@ -1168,7 +1188,7 @@ export default function JobsmithPage() {
                             letterDraft.detectedRole,
                           )
                         }
-                        className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
+                        className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Download .docx
@@ -1192,7 +1212,7 @@ export default function JobsmithPage() {
                       setCopied(null);
                     }}
                     rows={20}
-                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-primary/45"
                   />
                   <p className="mt-2 text-xs text-white/45">
                     Detected role: {letterDraft.detectedRole ?? "not detected"} -
@@ -1205,11 +1225,11 @@ export default function JobsmithPage() {
               {cvDraft && (
                 <section
                   aria-label="CV draft"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-fuchsia-300" />
+                      <FileText className="h-4 w-4 text-primary" />
                       <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                         Tailored CV draft
                       </h2>
@@ -1237,7 +1257,7 @@ export default function JobsmithPage() {
                             letterDraft?.detectedRole ?? null,
                           )
                         }
-                        className="flex items-center gap-1.5 rounded-lg border border-fuchsia-300/30 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-semibold text-fuchsia-100 transition-colors hover:bg-fuchsia-300/20"
+                        className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Download .docx
@@ -1261,7 +1281,7 @@ export default function JobsmithPage() {
                       setCopied(null);
                     }}
                     rows={22}
-                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-[#61C1C4]/45"
+                    className="w-full resize-y rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2.5 text-sm leading-6 text-white outline-none transition-colors focus:border-primary/45"
                   />
                   <p className="mt-2 text-xs text-white/45">
                     Single column, standard ATS headings. Every bullet is one of
@@ -1277,7 +1297,7 @@ export default function JobsmithPage() {
               {letterDraft && (
                 <section
                   aria-label="Truthfulness audit"
-                  className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
                 >
                   <div className="mb-4 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-emerald-300" />
@@ -1346,7 +1366,7 @@ export default function JobsmithPage() {
             <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
               <section
                 aria-label="ATS and paste readiness"
-                className="rounded-lg border border-white/[0.06] bg-[#111] p-5"
+                className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -1375,7 +1395,7 @@ export default function JobsmithPage() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 rounded-lg border border-[#61C1C4]/15 bg-[#61C1C4]/[0.06] p-3 text-xs leading-5 text-[#9EE4E6]">
+                <div className="mt-4 rounded-lg border border-primary/15 bg-primary/[0.06] p-3 text-xs leading-5 text-primary">
                   Every draft is assembled in this browser from your own corpus.
                   Jobsmith does not submit an application or call an external
                   service.
@@ -1388,10 +1408,10 @@ export default function JobsmithPage() {
         <FadeIn delay={0.1}>
           <section
             aria-label="Application log"
-            className="mt-4 rounded-lg border border-white/[0.06] bg-[#111] p-5"
+            className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.03] p-5"
           >
             <div className="mb-4 flex items-center gap-2">
-              <BriefcaseBusiness className="h-4 w-4 text-[#61C1C4]" />
+              <BriefcaseBusiness className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
                 Application log
               </h2>
@@ -1442,7 +1462,7 @@ export default function JobsmithPage() {
                                 e.target.value as ApplicationStatus,
                               )
                             }
-                            className="rounded-md border border-white/[0.12] bg-black/40 px-2 py-1 text-xs text-white outline-none focus:border-[#61C1C4]/45"
+                            className="rounded-md border border-white/[0.12] bg-black/40 px-2 py-1 text-xs text-white outline-none focus:border-primary/45"
                           >
                             {APPLICATION_STATUSES.map((s) => (
                               <option key={s} value={s}>

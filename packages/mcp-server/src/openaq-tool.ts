@@ -1,11 +1,12 @@
 // ─── OpenAQ Air Quality Data ──────────────────────────────────────────────────
 // OpenAQ v3 API for real-time and historical air quality measurements.
-// Auth: OPENAQ_API_KEY env or api_key arg (X-API-Key header).
-// Docs: https://docs.openaq.io/
+// Auth: API key required. Register at explore.openaq.org/register.
+// Set OPENAQ_API_KEY env var or pass api_key per call (X-API-Key header).
+// Docs: https://docs.openaq.org/
 
 import { stampMeta } from "./connector-meta.js";
 
-const OPENAQ_BASE = "https://api.openaq.io/v3";
+const OPENAQ_BASE = "https://api.openaq.org/v3";
 
 // ─── API helper ──────────────────────────────────────────────────────────────
 
@@ -44,6 +45,9 @@ async function openaqFetch<T>(
   if (res.status === 429) {
     const retryAfter = res.headers.get("Retry-After");
     throw new Error(`OpenAQ API rate limit reached (HTTP 429)${retryAfter ? `, retry after ${retryAfter}s` : ""}.`);
+  }
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("OpenAQ API requires an API key. Register at explore.openaq.org/register and set OPENAQ_API_KEY.");
   }
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as Record<string, unknown>;

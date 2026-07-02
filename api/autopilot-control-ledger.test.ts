@@ -233,6 +233,35 @@ describe("autopilot control ledger helpers", () => {
     expect(JSON.stringify(first.payload)).not.toContain("undefined");
   });
 
+  it("rejects common API secret patterns in payload values even when the key looks benign", () => {
+    const secretValues = [
+      "sk_live_0000000000fake",
+      "sk_test_0000000000fake",
+      "rk_live_0000000000fake",
+      "whsec_0000000000fake",
+      "xoxb-0000000000-fake000000",
+      "xoxp-0000000000-fake000000",
+      "AKIAFAKE00000000FAKE",
+      "pk_live_0000000000fake",
+      "wh_live_0000000000fake",
+    ];
+    for (const secret of secretValues) {
+      expect(
+        () =>
+          buildAutopilotEventRow({
+            apiKeyHash: "hash_123",
+            eventType: "proof_result",
+            actorAgentId: "runner",
+            refKind: "todo",
+            refId: "todo-123",
+            now,
+            payload: { note: `deployed with config ${secret} active` },
+          }),
+        `should reject secret: "${secret}"`,
+      ).toThrow(/sensitive text/);
+    }
+  });
+
   it("rejects secret-looking AutoPilotKit recommendation text at row build time", () => {
     const event = planAutoPilotKitRecommendationLedgerEvents({
       actorAgentId: "autopilotkit",

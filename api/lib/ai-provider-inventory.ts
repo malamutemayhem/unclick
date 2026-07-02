@@ -639,7 +639,7 @@ export const AI_PROVIDER_INVENTORY: AiProviderInventoryEntry[] = [
     cost_tier: "paid",
     default_allowed: false,
     allow_paid_flag: "api_key argument",
-    notes: "MCP Higgsfield video generation is a paid provider call and requires an explicit caller key.",
+    notes: "MCP Higgsfield video generation is a paid provider call and uses the customer's connected Higgsfield MCP login when available; an explicit caller key is Cloud API fallback.",
   },
   {
     id: "mcp.higgsfield.tool.generate-image",
@@ -650,7 +650,7 @@ export const AI_PROVIDER_INVENTORY: AiProviderInventoryEntry[] = [
     cost_tier: "paid",
     default_allowed: false,
     allow_paid_flag: "api_key argument",
-    notes: "MCP Higgsfield image generation is a paid provider call and requires an explicit caller key.",
+    notes: "MCP Higgsfield image generation is a paid provider call and uses the customer's connected Higgsfield MCP login when available; an explicit caller key is Cloud API fallback.",
   },
   {
     id: "mcp.higgsfield.tool.style-listing",
@@ -661,7 +661,7 @@ export const AI_PROVIDER_INVENTORY: AiProviderInventoryEntry[] = [
     cost_tier: "paid_or_unknown",
     default_allowed: false,
     allow_paid_flag: "api_key argument",
-    notes: "MCP Higgsfield style listing reaches a provider API and requires an explicit caller key.",
+    notes: "MCP Higgsfield style listing uses the customer's connected Higgsfield MCP login when available; an explicit caller key is Cloud API fallback.",
   },
   {
     id: "mcp.higgsfield.tool.generation-status",
@@ -672,7 +672,7 @@ export const AI_PROVIDER_INVENTORY: AiProviderInventoryEntry[] = [
     cost_tier: "paid_or_unknown",
     default_allowed: false,
     allow_paid_flag: "api_key argument",
-    notes: "MCP Higgsfield generation status reaches provider run state and requires an explicit caller key.",
+    notes: "MCP Higgsfield generation status uses the customer's connected Higgsfield MCP login when available; an explicit caller key is Cloud API fallback.",
   },
   {
     id: "mcp.heygen.tool.avatar-video",

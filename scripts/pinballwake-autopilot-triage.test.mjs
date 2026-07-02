@@ -31,6 +31,8 @@ describe("PinballWake Autopilot triage", () => {
     assert.equal(result.route.ack_required, false);
     assert.equal(result.inline_scopepack.chip_title, "Tiny connector copy update");
     assert.deepEqual(result.inline_scopepack.owned_files, ["connectors/lott/index.ts"]);
+    assert.match(result.inline_scopepack.warm_chat_build_rule, /subscription chat seat/);
+    assert.match(result.inline_scopepack.warm_chat_build_rule, /DraftRoom/);
   });
 
   it("routes stuck PRs to Planning Room without Research Room", () => {

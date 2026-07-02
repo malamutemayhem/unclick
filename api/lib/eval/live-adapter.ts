@@ -92,6 +92,7 @@ export function deriveDisposition(input: LiveAdapterInput): RunDisposition {
 /** Find an independent verifier: a PASS-proof comment by someone other than the closer/creator. */
 function findVerifier(input: LiveAdapterInput, closerAgentId: string | null): string | null {
   const creator = input.job.created_by_agent_id ?? null;
+  if (!closerAgentId && !creator) return null;
   for (const c of input.comments ?? []) {
     if (!c.is_pass_proof) continue;
     const author = c.author_agent_id ?? null;

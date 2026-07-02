@@ -45,6 +45,7 @@ export interface CommonSensePassResult {
 
 export type TodoStatus =
   | "actionable"
+  | "open"
   | "in_progress"
   | "blocked"
   | "queued"

@@ -35,7 +35,11 @@ export function checkR1(input: ClaimInput): CommonSensePassResult | null {
   const todos = input.context.todos ?? [];
   const now = input.context.now_ms;
 
-  const actionable = todos.filter((t) => t.status === "actionable");
+  // Boardroom todos arrive with status "open"; counting only "actionable"
+  // let quiet/no_work claims slip past R1 with real work queued.
+  const actionable = todos.filter(
+    (t) => t.status === "actionable" || t.status === "open" || t.status === "queued",
+  );
   const inProgressFresh = todos.filter(
     (t) =>
       t.status === "in_progress" &&

@@ -99,34 +99,34 @@ describe("ingestCvCorpus", () => {
 
 async function buildFixture(root: string): Promise<void> {
   // dated CV folder
-  const cvFolder = path.join(root, "20240213 CV Christopher Byrne");
+  const cvFolder = path.join(root, "20240213 CV Jane Smith");
   await fs.mkdir(cvFolder, { recursive: true });
-  await fs.writeFile(path.join(cvFolder, "20240213 CV Christopher Byrne.pdf"), "fake pdf bytes");
-  await fs.writeFile(path.join(cvFolder, "20240213 CV Christopher Byrne.indd"), "fake indd bytes");
+  await fs.writeFile(path.join(cvFolder, "20240213 CV Jane Smith.pdf"), "fake pdf bytes");
+  await fs.writeFile(path.join(cvFolder, "20240213 CV Jane Smith.indd"), "fake indd bytes");
   await fs.writeFile(path.join(cvFolder, "Text versions inc. dates.txt"), "CV text body\nlots of lines");
 
   // cover letters folder
   const cl = path.join(root, "Cover Letters");
   await fs.mkdir(cl, { recursive: true });
   await fs.writeFile(
-    path.join(cl, "20240212 Cover Letter - Ampersand International, Christopher Byrne.pdf"),
+    path.join(cl, "20240212 Cover Letter - Ampersand International, Jane Smith.pdf"),
     makeMinimalPdf([
       "Dear Hiring Manager,",
       "I am writing to express my interest in the Digital Media Designer role.",
-      "Sincerely, Christopher Byrne",
+      "Sincerely, Jane Smith",
     ]),
   );
   await fs.writeFile(
-    path.join(cl, "20240212 Cover Letter - Ampersand International, Christopher Byrne.indd"),
+    path.join(cl, "20240212 Cover Letter - Ampersand International, Jane Smith.indd"),
     "fake indd bytes",
   );
   await fs.writeFile(
-    path.join(cl, "20240101 Cover Letter - Corrupt Sample, Christopher Byrne.pdf"),
+    path.join(cl, "20240101 Cover Letter - Corrupt Sample, Jane Smith.pdf"),
     "not a real pdf payload",
   );
   await fs.writeFile(
     path.join(cl, "Cover Letter1.txt"),
-    "Dear Hiring Manager,\nI am writing to express my interest in the role.\nSincerely,\nChristopher Byrne",
+    "Dear Hiring Manager,\nI am writing to express my interest in the role.\nSincerely,\nJane Smith",
   );
   await fs.writeFile(
     path.join(cl, "ChatGPT Prompt Letter Generation.txt"),

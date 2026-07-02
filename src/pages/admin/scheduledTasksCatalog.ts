@@ -5,9 +5,9 @@
 //
 // This module is the data + cron-prose layer only. It does NOT pick the
 // admin IA (standalone page vs section vs an /admin/system band cluster) -
-// that decision is pinned for Chris per the 2026-04-26 Designer/Skeptic
+// that decision is pinned per the 2026-04-26 Designer/Skeptic
 // thread on the todo. A future admin page can render this catalog under
-// whichever IA Chris chooses.
+// whichever IA the operator chooses.
 //
 // Drift-detection design (per the Skeptic comment): the catalog stores the
 // raw `cron` and the human `description` only. `describeCron` derives the

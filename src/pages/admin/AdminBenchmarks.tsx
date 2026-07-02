@@ -121,7 +121,7 @@ function formatDate(iso: string): string {
 function ScoreCardInner({ result, lift }: { result: BenchmarkResult; lift: number | null }) {
   const accent = result.uses_unclick ? TEAL : "#888";
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-[#aaa]">{CONTESTANT_LABEL[result.contestant]}</p>
         {result.uses_unclick && lift !== null && (
@@ -247,7 +247,7 @@ function RunColumn({ mode }: { mode: "off" | "on" }) {
 function HowToRun() {
   const [open, setOpen] = useState(true);
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-2 text-left">
         <ListChecks className="h-4 w-4" style={{ color: TEAL }} />
         <span className="text-sm font-semibold text-white">How to run a benchmark</span>
@@ -294,7 +294,7 @@ const ORIGIN_COLOR: Record<string, string> = {
 
 function WhatsInTheExam({ suite, categories }: { suite: BenchmarkSuite; categories: SuiteCategory[] }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-5">
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-5">
       <p className="text-sm font-semibold text-white">What is in the exam</p>
       <p className="mt-1 text-xs leading-relaxed text-[#888]">
         {suite.description ||
@@ -371,7 +371,7 @@ function CategoryBreakdown({ run, categories }: { run: BenchmarkRun; categories:
       {categories.map((cat) => {
         const Icon = CATEGORY_ICON[cat.key] ?? Sparkles;
         return (
-          <div key={cat.key} className="rounded-xl border border-white/[0.06] bg-[#111111] p-4">
+          <div key={cat.key} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
             <div className="mb-3 flex items-center gap-2">
               <Icon className="h-4 w-4 text-[#888]" />
               <span className="text-sm font-medium text-[#ddd]">{cat.label}</span>
@@ -415,7 +415,7 @@ function CategoryBreakdown({ run, categories }: { run: BenchmarkRun; categories:
 
 function HistoryTable({ runs }: { runs: BenchmarkRun[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111111]">
+    <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.03]">
       <table className="w-full text-left text-xs">
         <thead className="text-[#666]">
           <tr className="border-b border-white/[0.06]">
@@ -602,13 +602,13 @@ export default function AdminBenchmarks() {
       )}
 
       {!suite && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-sm text-[#888]">No benchmark suite is set up yet.</p>
         </div>
       )}
 
       {suite && !latest && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#111111] p-8 text-center">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <p className="text-sm text-[#888]">No runs recorded yet for {suite.title}.</p>
           <p className="mt-1 text-xs text-[#666]">
             Record one with the helper in <code className="text-[#888]">scripts/benchmark-record.mjs</code>.

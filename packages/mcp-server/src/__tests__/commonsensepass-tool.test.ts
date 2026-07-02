@@ -50,6 +50,23 @@ describe("commonsensepass MCP tools", () => {
     expect(result.next_action).toBe("hydrate_queue_and_claim_one");
   });
 
+  it("counts Boardroom-style open and queued todos as R1 backlog", async () => {
+    const result = asRecord(await ADDITIONAL_HANDLERS.commonsensepass_check({
+      claim: "quiet",
+      context: {
+        now_ms: 1_765_000_000_000,
+        active_jobs: 0,
+        todos: [
+          { id: "todo-open-1", status: "open" },
+          { id: "todo-queued-1", status: "queued" },
+        ],
+      },
+    }));
+
+    expect(result.verdict).toBe("BLOCKER");
+    expect(result.rule_id).toBe("R1");
+  });
+
   it("suppresses duplicate wakes with R3", async () => {
     const now = 1_765_000_000_000;
     const result = asRecord(await ADDITIONAL_HANDLERS.commonsensepass_check({

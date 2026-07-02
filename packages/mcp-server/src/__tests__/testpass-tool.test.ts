@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ADDITIONAL_TOOLS } from "../tool-wiring.js";
 import {
+  normalizeTaskId,
   testpassEditItem,
   testpassEvidence,
   testpassFixList,
@@ -29,13 +30,15 @@ function okJson(body: unknown): Response {
 }
 
 describe("TestPass MCP tool", () => {
-  it("lists packs through the authenticated admin pack endpoint", async () => {
+  it("lists packs through the API-key-capable testpass endpoint", async () => {
     process.env.UNCLICK_API_KEY = "uc_test";
     const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ packs: [{ slug: "testpass-core" }] }));
     globalThis.fetch = fetchMock as typeof fetch;
 
     await expect(testpassListPacks()).resolves.toEqual({ packs: [{ slug: "testpass-core" }] });
-    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/memory-admin?action=list_testpass_packs");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/testpass?action=list_packs");
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer uc_test");
   });
 
   it("passes UUID pack identifiers as pack_id instead of pack_slug", async () => {
@@ -54,6 +57,39 @@ describe("TestPass MCP tool", () => {
       target: { type: "mcp", url: "https://example.test/mcp" },
     });
     expect(JSON.parse(String(init.body))).not.toHaveProperty("pack_slug");
+  });
+
+  it("passes a valid UUID task_id through unchanged", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ run_id: "run-1" }));
+    globalThis.fetch = fetchMock as typeof fetch;
+
+    await testpassRun({
+      target_url: "https://example.test/mcp",
+      task_id: "3f3754ef-d25d-523c-96d6-6b3471ded29a",
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    expect(JSON.parse(String(init.body)).task_id).toBe("3f3754ef-d25d-523c-96d6-6b3471ded29a");
+  });
+
+  it("normalizes a non-UUID task_id into a stable UUID instead of letting the API 400", async () => {
+    process.env.UNCLICK_API_KEY = "uc_test";
+    const fetchMock = vi.fn(async (..._args: unknown[]) => okJson({ run_id: "run-1" }));
+    globalThis.fetch = fetchMock as typeof fetch;
+
+    await testpassRun({
+      target_url: "https://example.test/mcp",
+      task_id: "audit-seat-20260611-smoke1",
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    const sent = JSON.parse(String(init.body)).task_id as string;
+    expect(sent).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    // Deterministic: the same input maps to the same UUID so retries stay idempotent.
+    expect(sent).toBe(normalizeTaskId("audit-seat-20260611-smoke1"));
+    expect(normalizeTaskId("audit-seat-20260611-smoke1")).toBe(normalizeTaskId("audit-seat-20260611-smoke1"));
+    expect(normalizeTaskId("a-different-key")).not.toBe(sent);
   });
 
   it("sends canonical pack_yaml when saving packs", async () => {

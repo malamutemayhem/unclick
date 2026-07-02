@@ -99,7 +99,7 @@ async function loadPrBody() {
       throw new Error(`Could not read --pr-body-file: ${err?.message ?? err}`);
     }
   }
-  return ""; // no PR body provided — anything touched is "unmentioned"
+  return ""; // no PR body provided; anything touched is "unmentioned"
 }
 
 export function parseChangedFiles(diffText) {
