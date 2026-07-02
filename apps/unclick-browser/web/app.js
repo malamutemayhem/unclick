@@ -593,6 +593,46 @@
     } catch (e) {}
   }
 
+  // Ask Rust to load the page in a hidden webview so its JavaScript runs, then
+  // re-enter Zen with the real rendered DOM. One shot per load (t.rendered),
+  // token-guarded so a slow render never overwrites a newer navigation, and
+  // every failure path lands on the previous behavior.
+  function tryRenderedDom(t) {
+    if (!invoke || t.rendered) return false;
+    t.rendered = 1;
+    var token = t.loadSeq || 0;
+    if (t.id === activeId) {
+      reader.innerHTML = "";
+      setStatus("Reading " + (t.host || "the page") + " (running its scripts) ...");
+    }
+    invoke("render_url", { url: t.final || t.url }).then(function (page) {
+      if (t.loadSeq !== token) return;
+      if (page && page.html && page.html.length > 200) {
+        t.html = page.html;
+        t.final = (page.final_url || t.final);
+        var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
+        t.title = pageTitle(metaDoc) || t.title;
+        t.favicon = faviconOf(metaDoc, t.final) || t.favicon;
+        if (t.id === activeId) { renderActive(); syncChrome(); }
+        renderTabs();
+      } else {
+        fallbackAfterRender(t, token);
+      }
+    }).catch(function () {
+      fallbackAfterRender(t, token);
+    });
+    return true;
+  }
+  function fallbackAfterRender(t, token) {
+    if (t.loadSeq !== token || t.id !== activeId) return;
+    if (isSpaShell(t.html)) { renderUnsupported(t); renderTabs(); syncChrome(); return; }
+    t.mode = "native";
+    renderNative(t);
+    renderTabs();
+    syncChrome();
+    flash("Best viewed live");
+  }
+
   // Bot-walls / challenge pages (Cloudflare, captcha) have no readable content.
   // Showing them in Zen is pointless - hand the user to a real browser that can
   // actually complete the check.
@@ -606,10 +646,15 @@
     setMode("zen");
     if (!t.html) { renderWelcome(); return; }
     if (looksBlocked(t.html)) { renderUnsupported(t, "wall"); renderTabs(); syncChrome(); return; }
-    if (isWebApp(t.host, t.html)) { renderUnsupported(t); return; }
+    if (isWebAppHost(t.host)) { renderUnsupported(t); return; }
     if (tryEngineListing(t)) return;
     var built = buildReader(t.html, t.final || t.url);
-    if (built.thin) {
+    if (built.thin || isSpaShell(t.html)) {
+      // The fetched HTML holds nothing readable. Most of these are pages that
+      // build themselves with JavaScript, so run them once in a hidden webview
+      // and read the real DOM. Falls back below if that cannot help.
+      if (tryRenderedDom(t)) return;
+      if (isSpaShell(t.html)) { renderUnsupported(t); return; }
       // Nothing worth simplifying on this one, so just show it live - quietly.
       t.mode = "native";
       renderNative(t);
@@ -633,18 +678,24 @@
   // simplify, and they refuse to be embedded, so the live iframe just shows the
   // browser's "refused to connect". Detect them and show an honest panel instead
   // of a broken frame.
-  function isWebApp(host, html) {
+  function isWebAppHost(host) {
     host = (host || "").toLowerCase().replace(/^www\./, "");
-    if (host) {
-      if (/(^|\.)google(\.[a-z]{2,3})+$/.test(host)) return true;
-      var APPS = ["gmail.com", "youtube.com", "outlook.com", "outlook.live.com", "office.com", "facebook.com", "instagram.com", "twitter.com", "x.com", "linkedin.com", "figma.com", "notion.so", "slack.com", "discord.com", "messenger.com", "web.whatsapp.com"];
-      for (var i = 0; i < APPS.length; i++) { if (host === APPS[i] || host.slice(-(APPS[i].length + 1)) === "." + APPS[i]) return true; }
-    }
-    if (html) {
-      var bare = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      if (bare.length < 200 && /<(div|main)[^>]+id=["'](root|app|__next|__nuxt|svelte)["']/i.test(html)) return true;
-    }
+    if (!host) return false;
+    if (/(^|\.)google(\.[a-z]{2,3})+$/.test(host)) return true;
+    var APPS = ["gmail.com", "youtube.com", "outlook.com", "outlook.live.com", "office.com", "facebook.com", "instagram.com", "twitter.com", "x.com", "linkedin.com", "figma.com", "notion.so", "slack.com", "discord.com", "messenger.com", "web.whatsapp.com"];
+    for (var i = 0; i < APPS.length; i++) { if (host === APPS[i] || host.slice(-(APPS[i].length + 1)) === "." + APPS[i]) return true; }
     return false;
+  }
+  // A client-rendered shell: almost no server-side text, just a mount node.
+  // These are worth a real render pass (the JS often produces a readable page)
+  // before declaring them unsupported.
+  function isSpaShell(html) {
+    if (!html) return false;
+    var bare = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return bare.length < 200 && /<(div|main)[^>]+id=["'](root|app|__next|__nuxt|svelte)["']/i.test(html);
+  }
+  function isWebApp(host, html) {
+    return isWebAppHost(host) || isSpaShell(html);
   }
   // Hand a URL off to the user's real default browser (interactive pages that
   // the fetch-and-iframe view cannot run: web apps, captchas, logins).
@@ -936,6 +987,7 @@
       t.pending = false;
       t.html = (page && page.html) || "";
       t.final = (page && page.final_url) || url;
+      t.rendered = 0;                     // fresh load may try the render pass again
       var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
       t.title = pageTitle(metaDoc) || hostOf(t.final);
       t.host = hostOf(t.final);
