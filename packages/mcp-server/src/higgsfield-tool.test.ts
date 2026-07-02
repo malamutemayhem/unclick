@@ -45,6 +45,7 @@ describe("higgsfield connector resilience (L2)", () => {
   it("returns customer-facing account-login guidance when Higgsfield is not connected", async () => {
     delete process.env.UNCLICK_API_KEY;
     delete process.env.HIGGSFIELD_API_KEY;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
 
     const result = await higgsfield_get_styles({}) as {
       not_connected?: boolean;
@@ -145,6 +146,78 @@ describe("higgsfield connector resilience (L2)", () => {
       expect.stringContaining("api.higgsfield.ai"),
       expect.anything(),
     );
+  });
+
+  it("resolves the connected Higgsfield account on a keyless login session via the MCP session token", async () => {
+    // Keyless logged-in agent session: no UNCLICK_API_KEY, but a verifiable MCP
+    // OAuth session token plus the login-connect flag on. The server-scheme row
+    // (stored by the hosted-MCP sign-in) must resolve through that bearer.
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.HIGGSFIELD_API_KEY;
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp-session-token";
+    process.env.UNCLICK_LOGIN_CONNECT_ENABLED = "1";
+    process.env.UNCLICK_API_URL = "https://unclick.test";
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = String(init?.method ?? "GET").toUpperCase();
+      const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : {};
+
+      if (url === "https://unclick.test/api/credentials?platform=higgsfield") {
+        // The session token (not an api key) must authorize the credential read.
+        expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer mcp-session-token");
+        return jsonResponse({
+          credential_kind: "higgsfield_mcp_oauth",
+          access_token: "mcp-token",
+          refresh_token: "refresh-token",
+          client_id: "client-123",
+          expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          token_type: "Bearer",
+          mcp_url: "https://mcp.higgsfield.ai/mcp",
+        });
+      }
+
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "initialize") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: {} }, { headers: { "mcp-session-id": "session-1" } });
+      }
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "notifications/initialized") {
+        return acceptedResponse();
+      }
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/list") {
+        return jsonResponse({ jsonrpc: "2.0", id: body.id, result: { tools: [{ name: "models_explore" }] } });
+      }
+      if (url === "https://mcp.higgsfield.ai/mcp" && method === "POST" && body.method === "tools/call") {
+        return jsonResponse({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: { structuredContent: { models: [{ id: "nano_banana_pro" }] } },
+        });
+      }
+
+      throw new Error(`Unexpected fetch ${method} ${url}`);
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await higgsfield_get_styles({ query: "banana" }) as Record<string, unknown>;
+    expect(result.provider).toBe("higgsfield_mcp");
+    expect(result.tool).toBe("models_explore");
+  });
+
+  it("stays not-connected on a session token when the login-connect flag is off", async () => {
+    // With the flag off, the session-token fallback must NOT be taken, so a
+    // keyless session sees the same not-connected guidance as before #1653.
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.HIGGSFIELD_API_KEY;
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp-session-token";
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
+
+    const fetchMock = vi.fn(async () => { throw new Error("network should not be reached"); });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await higgsfield_get_styles({}) as { not_connected?: boolean };
+    expect(result.not_connected).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("refreshes an expired Higgsfield MCP login before calling the native tool", async () => {

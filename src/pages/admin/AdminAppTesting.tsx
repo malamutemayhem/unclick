@@ -7,9 +7,9 @@
 // Apps catalog with the recorded results so every app has a row, then lets you
 // filter by status and search by name. Admin access is enforced at the route.
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
+import { FlaskConical, Check, X, AlertTriangle, Circle, Search, KeyRound, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { APP_CATALOG, APP_COUNT } from "@/lib/appCatalog";
 import {
   getAppTestResult,
@@ -19,8 +19,23 @@ import {
   type AppTestStatus,
 } from "@/lib/appTestResults";
 import { appMatchesSearch } from "@/lib/appSearch";
+import { useSession } from "@/lib/auth";
 
 const YELLOW = "#E2B93B";
+
+// Apps a human has personally verified end to end (real inbox, real root
+// folder, real push). These start ticked; everything else starts unticked.
+// An explicit save in app_human_checks overrides this default per slug.
+const DEFAULT_HUMAN_CHECKED = new Set<string>([
+  "gmail",
+  "google-drive",
+  "onedrive",
+  "dropbox",
+  "github",
+  "vercel",
+  "supabase",
+  "higgsfield",
+]);
 
 function StatusIcon({ status }: { status: AppTestStatus }) {
   if (status === "pass") return <Check className="h-3.5 w-3.5 text-emerald-300" />;
@@ -45,7 +60,44 @@ function whenLabel(testedAt?: string | null): string {
   return testedAt.slice(0, 10);
 }
 
-const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.4fr)_minmax(0,1.4fr)_82px]";
+const COLS = "grid-cols-[112px_minmax(110px,1fr)_minmax(80px,0.7fr)_46px_minmax(0,1.4fr)_minmax(0,1.4fr)_82px_96px]";
+
+// The interactive "Human checked" checkbox. Optimistic: the parent flips the
+// value immediately and persists in the background; this cell just renders the
+// current state plus a saving/disabled affordance.
+function HumanCheckCell({
+  checked,
+  saving,
+  disabled,
+  onToggle,
+}: {
+  checked: boolean;
+  saving: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="flex justify-center">
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        aria-label={checked ? "Human checked" : "Not human checked"}
+        disabled={disabled || saving}
+        onClick={onToggle}
+        className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+          checked
+            ? "border-emerald-300/40 bg-emerald-300/15 text-emerald-200"
+            : "border-white/15 bg-white/[0.03] text-transparent hover:border-white/30"
+        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+      >
+        {saving
+          ? <Loader2 className="h-3 w-3 animate-spin text-white/50" />
+          : <Check className="h-3.5 w-3.5" />}
+      </button>
+    </div>
+  );
+}
 
 function ExpandableCell({ text, className }: { text: string; className?: string }) {
   const [open, setOpen] = useState(false);
@@ -66,8 +118,74 @@ function ExpandableCell({ text, className }: { text: string; className?: string 
 }
 
 export default function AdminAppTesting() {
+  const { session } = useSession();
   const [status, setStatus] = useState<AppTestStatus | "all">("all");
   const [query, setQuery] = useState("");
+
+  // Human-checked state. `overrides` holds only slugs with an explicit stored
+  // value; everything else falls back to DEFAULT_HUMAN_CHECKED.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [savingSlugs, setSavingSlugs] = useState<Set<string>>(() => new Set());
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Load the stored overrides once we have an admin session.
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    fetch("/api/app-human-checks", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+      .then((r) => (r.ok ? r.json() : { checks: {} }))
+      .then((body) => {
+        if (!cancelled && body && typeof body.checks === "object") {
+          setOverrides(body.checks as Record<string, boolean>);
+        }
+      })
+      .catch(() => { /* keep built-in defaults on failure */ });
+    return () => { cancelled = true; };
+  }, [session]);
+
+  const isChecked = useCallback(
+    (slug: string): boolean => overrides[slug] ?? DEFAULT_HUMAN_CHECKED.has(slug),
+    [overrides],
+  );
+
+  const toggleChecked = useCallback(
+    (slug: string) => {
+      if (!session) { setSaveError("Sign in to save."); return; }
+      const next = !(overrides[slug] ?? DEFAULT_HUMAN_CHECKED.has(slug));
+      // Optimistic: flip immediately, persist in the background, revert on error.
+      setOverrides((prev) => ({ ...prev, [slug]: next }));
+      setSavingSlugs((prev) => new Set(prev).add(slug));
+      setSaveError(null);
+      fetch("/api/app-human-checks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ slug, checked: next }),
+      })
+        .then(async (r) => {
+          if (!r.ok) {
+            const body = await r.json().catch(() => ({}));
+            throw new Error(body.error ?? "Failed to save.");
+          }
+        })
+        .catch((e) => {
+          setOverrides((prev) => ({ ...prev, [slug]: !next }));
+          setSaveError(e instanceof Error ? e.message : "Failed to save.");
+        })
+        .finally(() => {
+          setSavingSlugs((prev) => {
+            const copy = new Set(prev);
+            copy.delete(slug);
+            return copy;
+          });
+        });
+    },
+    [session, overrides],
+  );
 
   const rows = useMemo(
     () => APP_CATALOG.map((app) => ({ app, result: getAppTestResult(app.slug) })),
@@ -122,7 +240,18 @@ export default function AdminAppTesting() {
           Apps with an <span className="text-red-300">Issue</span> status are hidden from the public Apps
           store until a retest passes; this page is their system of record while they are out.
         </p>
+        <p className="mt-1">
+          <span className="text-[#ccc]">Human checked</span> is a separate, manual sign-off: tick it once a
+          person has verified the app for real (checked the inbox, listed the root folder). It saves the
+          moment you tick or untick.
+        </p>
       </div>
+
+      {saveError && (
+        <div className="mb-4 rounded-lg border border-red-400/30 bg-red-400/10 px-3 py-2 text-xs text-red-200">
+          {saveError}
+        </div>
+      )}
 
       {/* Progress + status counts */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -167,6 +296,7 @@ export default function AdminAppTesting() {
             <span>Result</span>
             <span>Comments</span>
             <span className="text-right">Tested</span>
+            <span className="text-center">Human checked</span>
           </div>
           <div className="divide-y divide-white/[0.04]">
             {filtered.map(({ app, result }) => (
@@ -187,6 +317,12 @@ export default function AdminAppTesting() {
                 <ExpandableCell text={result.note ?? "-"} className="text-white/50" />
                 <ExpandableCell text={result.comment ?? "-"} className="text-white/70" />
                 <span className="text-right tabular-nums text-white/35">{whenLabel(result.testedAt)}</span>
+                <HumanCheckCell
+                  checked={isChecked(app.slug)}
+                  saving={savingSlugs.has(app.slug)}
+                  disabled={!session}
+                  onToggle={() => toggleChecked(app.slug)}
+                />
               </div>
             ))}
             {filtered.length === 0 && (

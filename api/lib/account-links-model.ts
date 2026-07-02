@@ -1,4 +1,4 @@
-export const CIRCLE_PERMISSIONS = ["shared_memory", "shared_orchestrator"] as const;
+export const CIRCLE_PERMISSIONS = ["shared_memory", "shared_orchestrator", "shared_chat"] as const;
 
 export type CirclePermission = (typeof CIRCLE_PERMISSIONS)[number];
 

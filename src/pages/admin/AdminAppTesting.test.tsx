@@ -26,6 +26,10 @@ describe("AdminAppTesting", () => {
     ).toBeInTheDocument();
     // Comments column header is rendered.
     expect(screen.getByText("Comments")).toBeInTheDocument();
+    // Human checked column header is rendered (also referenced in the help copy).
+    expect(screen.getAllByText("Human checked").length).toBeGreaterThanOrEqual(1);
+    // Each app row exposes a human-checked checkbox.
+    expect(screen.getAllByRole("checkbox").length).toBeGreaterThan(0);
   });
 
   it("filters the table by search query", () => {

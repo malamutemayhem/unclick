@@ -5,6 +5,9 @@ import {
   encryptCredential,
   decryptCredential,
   readProviderKey,
+  encryptForAccount,
+  decryptForAccount,
+  readProviderKeyForAccount,
 } from "./chat-crypto";
 
 const API_KEY = "uc_test_key_abcdef0123456789";
@@ -83,5 +86,36 @@ describe("readProviderKey", () => {
   it("ignores a non-allowlisted requested field and uses safe synonyms", () => {
     const row = encryptCredential(API_KEY, JSON.stringify({ api_key: "sk-ok" }));
     expect(readProviderKey(API_KEY, row, "__proto__")).toBe("sk-ok");
+  });
+});
+
+describe("server scheme (account-lane bound)", () => {
+  const SECRET = "stable-server-secret-never-rotated";
+  const LANE = "lane_hash_abc";
+
+  it("round-trips a full credential payload via encrypt/decryptForAccount", () => {
+    const payload = JSON.stringify({ access_token: "at-1", refresh_token: "rt-1", tenant_id: "t-9" });
+    const row = encryptForAccount(SECRET, LANE, payload);
+    expect(decryptForAccount(SECRET, LANE, row)).toBe(payload);
+    expect(JSON.parse(decryptForAccount(SECRET, LANE, row))).toEqual({
+      access_token: "at-1",
+      refresh_token: "rt-1",
+      tenant_id: "t-9",
+    });
+  });
+
+  it("is bound to the lane: a different lane fails the GCM auth tag", () => {
+    const row = encryptForAccount(SECRET, LANE, "secret-payload");
+    expect(() => decryptForAccount(SECRET, "lane_hash_other", row)).toThrow("Decryption failed");
+  });
+
+  it("is bound to the secret: a different secret fails the GCM auth tag", () => {
+    const row = encryptForAccount(SECRET, LANE, "secret-payload");
+    expect(() => decryptForAccount("wrong-secret", LANE, row)).toThrow("Decryption failed");
+  });
+
+  it("readProviderKeyForAccount pulls an allowlisted field from a server row", () => {
+    const row = encryptForAccount(SECRET, LANE, JSON.stringify({ api_key: "sk-live-zzz" }));
+    expect(readProviderKeyForAccount(SECRET, LANE, row)).toBe("sk-live-zzz");
   });
 });

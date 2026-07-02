@@ -81,6 +81,15 @@ describe("backstagepass resolveTenant api_keys lookup", () => {
     expect(apiKeysCall).toContain("is_active=eq.true");
     expect(apiKeysCall).toContain("order=last_used_at.desc.nullslast");
 
+    // Regression guard for the dropped-column bug: api_keys stores only the
+    // SHA-256 key_hash (the plaintext api_key column was removed). Selecting
+    // the non-existent api_key column makes PostgREST 400 the whole request,
+    // so resolveTenant() returns null and the page shows 0 connections. Check
+    // the select list only - the table name "api_keys" legitimately contains
+    // the substring "api_key", so we cannot assert on the whole URL.
+    const selectClause = new URL(apiKeysCall!).searchParams.get("select");
+    expect(selectClause).toBe("key_hash");
+
     // A resolvable tenant must not 401 "Not signed in.".
     expect(res.statusCode).toBe(200);
   });

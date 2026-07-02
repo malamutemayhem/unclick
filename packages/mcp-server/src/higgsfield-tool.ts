@@ -4,7 +4,7 @@
 
 import { type NotConnectedResult } from "./connection-help.js";
 import { stampMeta } from "./connector-meta.js";
-import { markCredentialLiveTested } from "./vault-bridge.js";
+import { markCredentialLiveTested, unclickCredentialsBearer } from "./vault-bridge.js";
 
 const HF_API_BASE = "https://api.higgsfield.ai/v1";
 const HF_MCP_URL = "https://mcp.higgsfield.ai/mcp";
@@ -70,12 +70,17 @@ function apiTimeoutMs(): number {
 }
 
 async function fetchStoredHiggsfieldCredentials(): Promise<Record<string, string> | null> {
-  const apiKey = process.env.UNCLICK_API_KEY?.trim();
-  if (!apiKey) return null;
+  // Reuse the shared credential bearer so a keyless logged-in agent session can
+  // read its connected Higgsfield account: prefer the UnClick api key (apikey
+  // scheme), and only fall back to the verifiable MCP OAuth session token
+  // (server scheme, set by the hosted-MCP sign-in) when the login-connect flag
+  // is on. Same rule every other connector follows via vault-bridge.
+  const bearer = unclickCredentialsBearer();
+  if (!bearer) return null;
 
   try {
     const res = await fetch(`${apiBase()}/api/credentials?platform=higgsfield`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: { Authorization: `Bearer ${bearer}` },
     });
     if (!res.ok) return null;
     const data = await res.json() as unknown;
@@ -91,17 +96,26 @@ async function fetchStoredHiggsfieldCredentials(): Promise<Record<string, string
 }
 
 async function persistStoredHiggsfieldCredentials(credentials: Record<string, string>): Promise<void> {
+  // Persist refreshed tokens back to the same lane/row the read came from. With
+  // a plaintext api key we POST the api_key body (apikey scheme). On a keyless
+  // login session we send the verifiable session token in Authorization and omit
+  // api_key, so the server stores a server-scheme row bound to the lane it
+  // resolves. Either way the secret is never logged.
   const apiKey = process.env.UNCLICK_API_KEY?.trim();
-  if (!apiKey) return;
+  const bearer = unclickCredentialsBearer();
+  if (!apiKey && !bearer) return;
 
   try {
     await fetch(`${apiBase()}/api/credentials`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+      },
       body: JSON.stringify({
         platform: "higgsfield",
         credentials,
-        api_key: apiKey,
+        ...(apiKey ? { api_key: apiKey } : {}),
       }),
     });
   } catch {

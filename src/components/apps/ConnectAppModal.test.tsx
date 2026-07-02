@@ -168,6 +168,28 @@ describe("ConnectAppModal", () => {
     await waitFor(() => expect(onDisconnect).toHaveBeenCalled());
   });
 
+  it("keeps a Reconnect path for a live-connected hosted MCP login that may have expired", async () => {
+    const onStartHostedMcpLogin = vi.fn(() => Promise.resolve());
+    renderModal({
+      app: HIGGSFIELD_APP,
+      connector: {
+        id: "higgsfield",
+        auth_type: "api_key",
+        setup_url: null,
+        supports_hosted_mcp_connection: true,
+        credential: { is_valid: true, last_tested_at: "2026-06-20T00:00:00.000Z", connection_state: "connected" },
+      },
+      isConnected: true,
+      statusLabel: "Connected",
+      onStartHostedMcpLogin,
+    });
+
+    // The honest "Connected" badge still surfaces a way to re-auth.
+    expect(screen.getByText(/login expired or switching accounts/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /reconnect higgsfield/i }));
+    await waitFor(() => expect(onStartHostedMcpLogin).toHaveBeenCalled());
+  });
+
   it("routes Supabase users to login instead of a key form", () => {
     renderModal({
       app: SUPABASE_APP,

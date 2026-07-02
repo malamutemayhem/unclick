@@ -86,6 +86,12 @@ The guard verifies:
   `packages/mcp-server/src/keychain-tool.ts` all see the same connection
   sources: `platform_credentials`, `user_credentials`, and
   `managed_app_connections`.
+- No `api_keys` query selects a plaintext `api_key` column (the table only
+  stores `key_hash`, so a bad column 400s the read and empties the Connections
+  page), the vault decrypt surfaces never import the mismatched
+  `crypto-helpers.ts`, and the server-scheme secret read checks for a non-empty
+  value rather than mere presence. See the credential/key learnings runbook
+  below.
 - `packages/mcp-server/src/builder-access-profiles.ts` defines privileged
   builder profiles for agents that need to push code, deploy, or do provider
   secret work. A connected app alone is not enough for builder status.
@@ -109,8 +115,9 @@ npm run test:app-connections
 
 They intentionally break catalog visibility, Popular lens visibility, Connect
 page button allowlisting, setup-pending fallback, keychain parity, and OAuth env
-mapping, plus the saved-vs-verified Admin Apps split, to prove the guard catches
-the failures.
+mapping, plus the saved-vs-verified Admin Apps split, the `api_keys` plaintext
+select, the mismatched crypto-helper import, and the present-but-empty server
+secret check, to prove the guard catches the failures.
 
 ## XPass routing
 
@@ -128,6 +135,18 @@ visibility, or keychain status select:
 - CommonSensePass for "no connected badge without tool-facing proof" and "saved
   connections must stay visible while waiting for proof"
 - SlopPass for implementation quality when source files change
+
+Credential read, encryption-scheme, and key-scoping questions route to RotatePass,
+whose credential/key knowledge surface is
+[`credential-key-learnings-runbook.md`](./credential-key-learnings-runbook.md).
+
+## Related docs
+
+- [`credential-key-learnings-runbook.md`](./credential-key-learnings-runbook.md):
+  the credential, encryption-scheme, and key-handling traps (the `api_keys`
+  no-plaintext-column rule, the apikey-vs-server crypto schemes, lane-vs-hash
+  scoping, present-but-empty secrets, plaintext-key-vs-hash decryption, and the
+  Connected-list-by-lane rule) that sit behind this wiring contract.
 
 ## Builder access hierarchy
 

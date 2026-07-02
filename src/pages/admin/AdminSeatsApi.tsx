@@ -264,6 +264,14 @@ export default function AdminSeatsApi() {
     [credentials],
   );
 
+  // Server-scheme rows now include app-connection creds (Layer 2 connector vault),
+  // so keep only LLM providers on this page. The API is filtered too; this is the
+  // belt-and-suspenders guard so the count and table never show a connector.
+  const aiServerKeys = useMemo(
+    () => serverKeys.filter((key) => AI_PROVIDER_SLUGS.has(key.platform_slug)),
+    [serverKeys],
+  );
+
   const healthCounts = useMemo(() => aiCredentials.reduce<Record<CredentialHealthStatus, number>>((counts, credential) => {
     counts[credentialHealth(credential)] += 1;
     return counts;
@@ -278,7 +286,7 @@ export default function AdminSeatsApi() {
   const attentionCount = aiCredentials.length - healthCounts.healthy;
   const providerCount = new Set([
     ...aiCredentials.map((credential) => credential.platform),
-    ...serverKeys.map((key) => key.platform_slug),
+    ...aiServerKeys.map((key) => key.platform_slug),
   ]).size;
 
   async function handleReveal(credential: Credential) {
@@ -398,7 +406,7 @@ export default function AdminSeatsApi() {
   if (!accessToken) {
     return (
       <div className="space-y-6">
-        <PageHeader onAdd={() => openAdd(null)} disableAdd />
+        <PageHeader />
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-8 text-center">
           <KeyRound className="mx-auto h-8 w-8 text-[#333]" />
           <p className="mt-3 text-sm text-[#888]">Sign in to manage API providers.</p>
@@ -409,7 +417,7 @@ export default function AdminSeatsApi() {
 
   return (
     <div className="space-y-6">
-      <PageHeader onAdd={() => openAdd(null)} />
+      <PageHeader />
 
       <section className="grid gap-3 sm:grid-cols-3">
         <SummaryCard label="Active providers" value={String(providerCount)} />
@@ -433,13 +441,13 @@ export default function AdminSeatsApi() {
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-sm">Loading API providers...</span>
         </div>
-      ) : aiCredentials.length === 0 && serverKeys.length === 0 ? (
+      ) : aiCredentials.length === 0 && aiServerKeys.length === 0 ? (
         <EmptyState onAdd={() => openAdd(null)} />
       ) : (
         <div className="space-y-6">
-          {serverKeys.length > 0 && (
+          {aiServerKeys.length > 0 && (
             <ServerKeysTable
-              serverKeys={serverKeys}
+              serverKeys={aiServerKeys}
               accessToken={accessToken}
               deleting={deletingServerKey}
               onDelete={(id) => void deleteServerKey(id)}
@@ -490,6 +498,15 @@ export default function AdminSeatsApi() {
           </div>
           </section>
           )}
+
+          <button
+            type="button"
+            onClick={() => openAdd(null)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#E2B93B]/30 bg-[#E2B93B]/[0.06] px-4 py-3 text-xs font-semibold text-[#E2B93B] transition-colors hover:border-[#E2B93B]/50 hover:bg-[#E2B93B]/10"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add provider
+          </button>
         </div>
       )}
 
@@ -543,25 +560,14 @@ export default function AdminSeatsApi() {
   );
 }
 
-function PageHeader({ onAdd, disableAdd = false }: { onAdd: () => void; disableAdd?: boolean }) {
+function PageHeader() {
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">API Models</h1>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-[#888]">
-          Your AI provider keys, encrypted to your account and unaffected by key rotation. Connect
-          once and every seat can use them.
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onAdd}
-        disabled={disableAdd}
-        className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-2 text-xs font-semibold text-[#E2B93B] transition-colors hover:bg-[#E2B93B]/20 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        Add provider
-      </button>
+    <header className="flex flex-col gap-1">
+      <h1 className="text-2xl font-semibold tracking-tight text-white">API Models</h1>
+      <p className="max-w-2xl text-sm leading-6 text-[#888]">
+        Your AI provider keys, encrypted to your account and unaffected by key rotation. Connect
+        once and every seat can use them.
+      </p>
     </header>
   );
 }

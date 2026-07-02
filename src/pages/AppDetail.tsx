@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, KeyRound, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowLeft, KeyRound, RefreshCw, Sparkles } from "lucide-react";
 import PageShell from "../components/PageShell";
 import FadeIn from "../components/FadeIn";
 import { useCanonical } from "../hooks/use-canonical";
@@ -129,11 +129,21 @@ const AppDetail = () => {
                   ? `Connect ${app.name} from Apps to open a Higgsfield sign-in window. The MCP login uses your Higgsfield account, plan, and credits, and UnClick can use that connection on every device. A Cloud API key is only a fallback.`
                   : `Most apps work straight away with nothing to set up. If ${app.name} needs your account, manage it from Apps; UnClick shows the status it can verify.`}
               </p>
+              <p className="mt-1.5 text-[11px] leading-4 text-white/40">
+                Already connected? You can reconnect or sign in again from Apps at any time, even while it shows as
+                connected, in case the login has quietly expired.
+              </p>
               <Link
                 to={usesHostedMcpSetup ? "/admin/apps?lens=signin" : "/admin/apps"}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#E2B93B]/30 bg-[#E2B93B]/10 px-3 py-1.5 text-xs font-semibold text-[#f0d577] transition-colors hover:bg-[#E2B93B]/15"
               >
                 <KeyRound className="h-3.5 w-3.5" /> {usesHostedMcpSetup ? "Connect in Apps" : "Manage connections"}
+              </Link>
+              <Link
+                to={usesHostedMcpSetup ? "/admin/apps?lens=signin" : "/admin/apps?lens=connected"}
+                className="mt-3 ml-2 inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/[0.04] hover:text-white/80"
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Reconnect
               </Link>
             </div>
 

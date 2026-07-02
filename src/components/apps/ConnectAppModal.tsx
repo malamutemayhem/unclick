@@ -100,6 +100,10 @@ export function ConnectAppModal({
   const hostedApiKeySetupUrl = app.slug === "higgsfield" ? "https://cloud.higgsfield.ai/api-keys" : setupUrl;
   const hasSavedCredential = Boolean(connector.credential?.is_valid);
   const hasSavedConnection = isConnected || hasSavedCredential;
+  // OAuth and hosted-MCP logins can expire silently, so the sign-in path must
+  // stay reachable even when we show the connection as live. These families
+  // always offer a Reconnect action that re-runs the same sign-in flow.
+  const offersReconnect = isOAuth || needsFullConnectionPage || usesManagedConnection || usesHostedMcpConnection;
   const modalVerb = hasSavedConnection ? "Manage" : "Connect";
   const savedStatusTitle = statusLabel ?? "Connected";
   const savedStatusBody = `${app.name} is connected in UnClick. UnClick can use this connection across your devices.`;
@@ -203,6 +207,16 @@ export function ConnectAppModal({
     </button>
   ) : null;
 
+  // Shown inside the green "Connected" banner for sign-in connectors so a user
+  // staring at a "Connected" badge still sees that they can re-auth if the
+  // upstream login has quietly expired.
+  const reconnectHint =
+    isConnected && offersReconnect ? (
+      <span className="mt-1 block text-emerald-100/80">
+        Login expired or switching accounts? Use Reconnect below to sign in again.
+      </span>
+    ) : null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
@@ -224,6 +238,7 @@ export function ConnectAppModal({
             <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
               <strong>{statusLabel ?? "Connected"}.</strong> {app.name} is available while this app stays turned on.
+              {reconnectHint}
             </span>
           </div>
         )}

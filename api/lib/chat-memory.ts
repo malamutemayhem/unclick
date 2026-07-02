@@ -11,6 +11,7 @@
 // Best-effort: any failure returns "" so a memory hiccup never blocks the chat.
 
 import { SupabaseBackend } from "../../packages/mcp-server/src/memory/supabase.js";
+import type { ChatMemory } from "./chat-tools.js";
 
 interface StartupContext {
   business_context?: Array<{ category?: string; key?: string; value?: unknown }>;
@@ -97,4 +98,34 @@ export async function fetchMemoryBlock(
   } catch {
     return "";
   }
+}
+
+// Default confidence for a fact the user states in chat, matching the
+// save_fact memory handler default (num(args.confidence, 0.9)).
+const CHAT_FACT_CONFIDENCE = 0.9;
+
+/**
+ * Build the direct, lane-scoped memory surface the chat tools call. Tenancy is
+ * the resolved account hash (lane_hash ?? key_hash) - the SAME hash
+ * fetchMemoryBlock and memory-admin use - so search and save run on the
+ * logged-in session alone, with no global env mutation and no cross-tenant risk.
+ *
+ * The methods throw on backend failure; the chat tool wrapper catches and
+ * surfaces a short "tool error" so the model never fabricates a result.
+ */
+export function buildChatMemory(
+  supabaseUrl: string,
+  serviceKey: string,
+  apiKeyHash: string,
+): ChatMemory {
+  const backend = new SupabaseBackend({
+    url: supabaseUrl,
+    serviceRoleKey: serviceKey,
+    tenancy: { mode: "managed", apiKeyHash },
+  });
+  return {
+    search: (query: string, maxResults: number) => backend.searchMemory(query, maxResults),
+    save: (fact: string, category: string) =>
+      backend.addFact({ fact, category, confidence: CHAT_FACT_CONFIDENCE }),
+  };
 }

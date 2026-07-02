@@ -204,17 +204,18 @@ async function getApiKeyHashForUser(
   serviceKey: string,
   userId: string,
 ): Promise<string | null> {
+  // public.api_keys stores the SHA-256 key_hash (no plaintext column). Select
+  // key_hash only - selecting a non-existent column 400s the whole request.
   const r = await fetch(
-    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&is_active=eq.true&select=key_hash,api_key&order=last_used_at.desc.nullslast,created_at.desc&limit=1`,
+    `${supabaseUrl}/rest/v1/api_keys?user_id=eq.${encodeURIComponent(userId)}&is_active=eq.true&select=key_hash&order=last_used_at.desc.nullslast,created_at.desc&limit=1`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
   );
   if (!r.ok) return null;
   const rows = (await r.json().catch(() => [])) as Array<{
     key_hash?: string | null;
-    api_key?: string | null;
   }>;
   const row = rows[0];
-  return row?.key_hash ?? (row?.api_key ? sha256hex(row.api_key) : null);
+  return row?.key_hash ?? null;
 }
 
 function shouldEmitScheduledSignal(source: string | undefined): boolean {

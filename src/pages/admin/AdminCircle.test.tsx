@@ -99,11 +99,12 @@ describe("AdminCircle", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders linked people, permission switches, and audit rows", async () => {
+  it("renders linked people, permission matrix, key, and audit rows", async () => {
     await renderAdminCircle();
 
-    expect(screen.getByText("They can see my memory")).toBeInTheDocument();
-    expect(screen.getByText("I can receive their memory")).toBeInTheDocument();
+    expect(screen.getByText("Permissions")).toBeInTheDocument();
+    expect(screen.getByText("Memory Bundle")).toBeInTheDocument();
+    expect(screen.getByText("Handshake, two-way shared")).toBeInTheDocument();
     expect(screen.getByText("Permission Enabled")).toBeInTheDocument();
   });
 
@@ -133,7 +134,7 @@ describe("AdminCircle", () => {
   it("sends explicit permission direction changes", async () => {
     await renderAdminCircle();
 
-    fireEvent.click(screen.getByRole("switch", { name: "They can see my chat log" }));
+    fireEvent.click(screen.getByRole("button", { name: "Share my Orchestrator with Alex" }));
 
     await waitFor(() => {
       const permissionCall = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls.find(([url]) =>

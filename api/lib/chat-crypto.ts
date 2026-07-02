@@ -150,7 +150,7 @@ export function readProviderKey(
   return null;
 }
 
-// ─── Server scheme (AI provider keys) ───────────────────────────────────────
+// --- Server scheme (AI provider keys) ---------------------------------------
 //
 // AI provider keys (OpenRouter, Anthropic, ...) for the website chat are
 // encrypted with a stable SERVER secret bound to the account lane, NOT the
@@ -169,6 +169,22 @@ export function encryptForAccount(
   plaintext: string,
 ): EncryptedCredential {
   return encryptCredential(serverSchemePassword(serverSecret, laneHash), plaintext);
+}
+
+// Decrypt a full server-scheme payload string for an account lane. Thin
+// wrapper over decryptCredential with the same server_secret:lane_hash
+// password encryptForAccount used to write, so it reuses the proven
+// primitive rather than introducing new crypto. Used by the connector
+// vault, whose payload is an arbitrary { field: value } credential map
+// (access_token, refresh_token, tenant_id, ...) that must round-trip
+// whole, not a single allowlisted provider-key field. Throws the same
+// generic sanitized "Decryption failed" on a wrong secret or lane.
+export function decryptForAccount(
+  serverSecret: string,
+  laneHash: string,
+  row: EncryptedCredential,
+): string {
+  return decryptCredential(serverSchemePassword(serverSecret, laneHash), row);
 }
 
 export function readProviderKeyForAccount(

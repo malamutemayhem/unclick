@@ -259,8 +259,10 @@ const AUTOPILOT_LINKS = [
   { path: "/admin/boardroom", label: "Boardroom", icon: MessagesSquare },
   { path: "/admin/jobs", label: "Jobs", icon: ListTodo },
   { path: "/admin/controltower", label: "Control Tower", icon: TowerControl },
-  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
+  // XGate (pre-execution gates) sits above XPass (after-action proof): prechecks
+  // run before the work, so they read first in the list.
   { path: "/admin/xgate", label: "XGate", icon: ShieldHalf, hasChildren: true },
+  { path: "/admin/checks", label: "XPass", icon: ClipboardCheck, hasChildren: true },
   { path: "/admin/projects", label: "Projects", icon: FolderKanban },
   { path: "/admin/ledger", label: "Ledger", icon: ReceiptText },
   { path: "/admin/workers", label: "Workers", icon: Bot },
@@ -456,7 +458,6 @@ const ADMIN_SUBMENU = [
   { path: "/admin/app-testing",   label: "App Testing",           icon: FlaskConical },
   { path: "/admin/benchmarks",    label: "Benchmarks",            icon: Trophy      },
   { path: "/admin/truth-rate",    label: "Truth Rate",            icon: Gauge       },
-  { path: "/admin/app-testing",   label: "AppTesting",            icon: FlaskConical },
 ] as const;
 
 function AdminSubmenu({ onLinkClick }: { onLinkClick?: () => void }) {
@@ -735,6 +736,11 @@ export default function AdminShell() {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && localStorage.getItem("admin-sidebar-collapsed") === "1",
   );
+  const location = useLocation();
+  // The chat page uses the full content width (sessions rail flush to the nav,
+  // members rail flush to the right edge), so it opts out of the centered
+  // max-width container every other admin page sits in.
+  const wideContent = location.pathname.startsWith("/admin/chat");
 
   useEffect(() => {
     localStorage.setItem("admin-sidebar-collapsed", collapsed ? "1" : "0");
@@ -905,7 +911,7 @@ export default function AdminShell() {
 
       {/* ── Main content ───────────────────── */}
       <main className={`min-h-screen flex-1 ${collapsed ? "md:ml-0" : "md:ml-56"}`} style={{ paddingTop: "calc(var(--bbn-h, 0px) + 56px)" }}>
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className={wideContent ? "px-3 py-4 sm:px-4 lg:px-5" : "mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"}>
           <Outlet />
         </div>
       </main>

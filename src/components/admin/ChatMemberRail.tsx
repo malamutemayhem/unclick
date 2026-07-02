@@ -11,15 +11,19 @@
 // Circle links) so you can add them to the room.
 //
 // Each AI seat runs on the operator's own key. Human members are added
-// from the existing cross-account connection graph; live messaging with
-// them is a later slice, so they appear here as present in the room.
+// from the existing cross-account connection graph and can receive normal
+// room messages without invoking any AI provider.
 // ============================================================
 
-import { useEffect, useState } from "react";
-import { Plus, X, Bot, UserPlus } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import { Plus, X, Bot, UserPlus, Power, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import UserAvatar from "@/components/UserAvatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Combobox, type ComboOption } from "@/components/admin/Combobox";
 import {
   CHAT_PROVIDERS,
@@ -27,7 +31,18 @@ import {
   fetchOpenRouterModels,
   type ChatModelOption,
 } from "@/components/admin/chatTransportConfig";
-import { fetchConnectedMembers, type HumanMember } from "@/components/admin/chatMembers";
+import {
+  fetchConnectedMembers,
+  type HumanMember,
+} from "@/components/admin/chatMembers";
+import {
+  SUBSCRIPTION_RUNTIMES,
+  bridgeCommand,
+  fetchBridgeSeats,
+  isSubscriptionSeat,
+  type BridgeSeatPresence,
+  type SubscriptionRuntime,
+} from "@/components/admin/subscriptionSeats";
 import { cn } from "@/lib/utils";
 
 export interface AiSeat {
@@ -36,6 +51,12 @@ export interface AiSeat {
   model: string;
   label: string;
   handle: string;
+  active: boolean;
+  // The model traffic channel. Absent (stored seats predate the field)
+  // means "api". Subscription seats answer through a local bridge worker
+  // driving the official CLI signed in on the user's machine.
+  lane?: "api" | "subscription";
+  runtime?: string;
 }
 
 // A small avatar for a human member: their picture if we have one, else
@@ -44,10 +65,16 @@ export interface AiSeat {
 function MemberAvatar({ member }: { member: HumanMember }) {
   if (member.avatarUrl) {
     return (
-      <img src={member.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+      <img
+        src={member.avatarUrl}
+        alt=""
+        className="h-7 w-7 shrink-0 rounded-full object-cover"
+      />
     );
   }
-  const initials = (member.label || member.email || "?").slice(0, 2).toUpperCase();
+  const initials = (member.label || member.email || "?")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-500/15 text-[10px] font-medium text-sky-300">
       {initials}
@@ -58,14 +85,53 @@ function MemberAvatar({ member }: { member: HumanMember }) {
 // The seat picker, scoped to the providers you have actually connected a key
 // for. connectedSlugs comes from /api/ai-provider-key, so a "✓" here means a
 // real connection, not just the current selection.
+// The subscription seat picker: no API key needed, the seat answers through
+// the official CLI (Claude Code / Codex) signed in on the user's machine.
+function AddSubscriptionSeatSection({
+  onAdd,
+}: {
+  onAdd: (runtime: SubscriptionRuntime) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+        Subscription seats
+      </p>
+      {SUBSCRIPTION_RUNTIMES.map((option) => (
+        <button
+          key={option.runtime}
+          type="button"
+          onClick={() => onAdd(option.runtime)}
+          className="flex flex-col items-start gap-0.5 rounded-md border border-border/50 bg-card/40 px-3 py-1.5 text-left transition-colors hover:border-primary/50"
+        >
+          <span className="text-sm text-body">{option.label}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {option.planHint}, via the {option.cliName}
+          </span>
+        </button>
+      ))}
+      <p className="px-0.5 text-[10px] leading-relaxed text-muted-foreground">
+        No API key: turns run on your own plan through a small bridge you
+        start on your machine. Images are supported everywhere; UnClick
+        tools (memory + connectors, Build-mode gated) ride on Claude and
+        ChatGPT seats.
+      </p>
+    </div>
+  );
+}
+
 function AddSeatForm({
   connectedSlugs,
   onAdd,
+  onAddSubscription,
 }: {
   connectedSlugs: string[];
   onAdd: (slug: string, model: string) => void;
+  onAddSubscription: (runtime: SubscriptionRuntime) => void;
 }) {
-  const connectedProviders = CHAT_PROVIDERS.filter((p) => connectedSlugs.includes(p.slug));
+  const connectedProviders = CHAT_PROVIDERS.filter((p) =>
+    connectedSlugs.includes(p.slug),
+  );
   const first = connectedProviders[0];
 
   const [slug, setSlug] = useState(first?.slug ?? "");
@@ -103,15 +169,18 @@ function AddSeatForm({
 
   if (connectedProviders.length === 0) {
     return (
-      <div className="w-[min(18rem,90vw)] p-3 text-sm">
-        <p className="text-body">No AI provider keys connected yet.</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Add a provider key in{" "}
-          <a href="/admin/agents/api" className="text-primary hover:underline">
-            API keys
-          </a>{" "}
-          and it shows up here.
-        </p>
+      <div className="flex w-[min(18rem,90vw)] flex-col gap-3 p-3">
+        <div className="text-sm">
+          <p className="text-body">No AI provider keys connected yet.</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Add a provider key in{" "}
+            <a href="/admin/agents/api" className="text-primary hover:underline">
+              API keys
+            </a>{" "}
+            and it shows up here.
+          </p>
+        </div>
+        <AddSubscriptionSeatSection onAdd={onAddSubscription} />
       </div>
     );
   }
@@ -120,7 +189,8 @@ function AddSeatForm({
     value: p.slug,
     label: p.label,
   }));
-  const modelOptions: ComboOption[] = slug === "openrouter" && live ? live : provider?.models ?? [];
+  const modelOptions: ComboOption[] =
+    slug === "openrouter" && live ? live : (provider?.models ?? []);
 
   return (
     <div className="flex w-[min(18rem,90vw)] flex-col gap-2 p-3">
@@ -169,6 +239,9 @@ function AddSeatForm({
       >
         + Connect another provider
       </a>
+      <div className="border-t border-border/40 pt-2">
+        <AddSubscriptionSeatSection onAdd={onAddSubscription} />
+      </div>
     </div>
   );
 }
@@ -214,7 +287,9 @@ function InviteMemberForm({
       <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
         Your connections
       </p>
-      {loading && <p className="px-1 py-2 text-sm text-muted-foreground">Loading...</p>}
+      {loading && (
+        <p className="px-1 py-2 text-sm text-muted-foreground">Loading...</p>
+      )}
       {!loading && available.length === 0 && (
         <p className="px-1 py-2 text-xs leading-relaxed text-muted-foreground">
           No connected members to add yet. Connect with people in{" "}
@@ -235,7 +310,9 @@ function InviteMemberForm({
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-body">{m.label}</span>
             {m.email && m.email !== m.label && (
-              <span className="block truncate text-[10px] text-muted-foreground">{m.email}</span>
+              <span className="block truncate text-[10px] text-muted-foreground">
+                {m.email}
+              </span>
             )}
           </span>
           <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -250,10 +327,15 @@ export function ChatMemberRail({
   accessToken,
   seats,
   activeSeatId,
+  activeHumanMemberId,
+  workingSeatIds,
   humanMembers,
   onSelectSeat,
+  onSelectHumanMember,
   onAddSeat,
+  onAddSubscriptionSeat,
   onRemoveSeat,
+  onToggleSeatActive,
   onAddHumanMember,
   onRemoveHumanMember,
 }: {
@@ -261,16 +343,48 @@ export function ChatMemberRail({
   accessToken: string | null;
   seats: AiSeat[];
   activeSeatId: string | null;
+  activeHumanMemberId: string | null;
+  workingSeatIds?: string[];
   humanMembers: HumanMember[];
   onSelectSeat: (seat: AiSeat) => void;
+  onSelectHumanMember: (member: HumanMember) => void;
   onAddSeat: (slug: string, model: string) => void;
+  onAddSubscriptionSeat: (runtime: SubscriptionRuntime) => void;
   onRemoveSeat: (id: string) => void;
+  onToggleSeatActive: (id: string) => void;
   onAddHumanMember: (member: HumanMember) => void;
   onRemoveHumanMember: (id: string) => void;
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [connectedSlugs, setConnectedSlugs] = useState<string[]>([]);
+  const [bridgePresence, setBridgePresence] = useState<
+    Record<string, BridgeSeatPresence>
+  >({});
+
+  // Presence for subscription seats: is the local bridge worker heartbeating?
+  // Polled while any subscription seat is in the room.
+  const hasSubscriptionSeats = seats.some(isSubscriptionSeat);
+  useEffect(() => {
+    if (!accessToken || !hasSubscriptionSeats) {
+      setBridgePresence({});
+      return;
+    }
+    let cancelled = false;
+    const refresh = async () => {
+      const rows = await fetchBridgeSeats(accessToken);
+      if (cancelled || !rows) return;
+      const byHandle: Record<string, BridgeSeatPresence> = {};
+      for (const row of rows) byHandle[row.handle] = row;
+      setBridgePresence(byHandle);
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [accessToken, hasSubscriptionSeats]);
 
   // Which AI providers this account has connected a key for. Drives the seat
   // picker so it only offers usable providers. Refetches when the picker opens.
@@ -280,7 +394,9 @@ export function ChatMemberRail({
       return;
     }
     let cancelled = false;
-    fetch("/api/ai-provider-key", { headers: { Authorization: `Bearer ${accessToken}` } })
+    fetch("/api/ai-provider-key", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((body) => {
         if (cancelled || !body) return;
@@ -289,7 +405,10 @@ export function ChatMemberRail({
           new Set(
             rows
               .map((p: { platform_slug?: string }) => p.platform_slug)
-              .filter((s: unknown): s is string => typeof s === "string" && s.length > 0),
+              .filter(
+                (s: unknown): s is string =>
+                  typeof s === "string" && s.length > 0,
+              ),
           ),
         ) as string[];
         setConnectedSlugs(slugs);
@@ -317,61 +436,199 @@ export function ChatMemberRail({
           </div>
         </div>
 
-        {humanMembers.map((m) => (
-          <div key={m.id} className="group flex items-center gap-2 rounded-md px-2 py-1.5">
-            <MemberAvatar member={m} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-body">{m.label}</p>
-              <p className="truncate text-[10px] text-muted-foreground">member - messaging soon</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => onRemoveHumanMember(m.id)}
-              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-              aria-label={`Remove ${m.label}`}
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
-
-        {seats.map((s) => (
-          <div
-            key={s.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onSelectSeat(s)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelectSeat(s);
-              }
-            }}
-            className={cn(
-              "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors",
-              activeSeatId === s.id ? "bg-primary/10" : "hover:bg-card/50",
-            )}
-          >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-              <Bot className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-body">{s.label}</p>
-              <p className="truncate text-[10px] text-muted-foreground">@{s.handle}</p>
-            </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveSeat(s.id);
+        {humanMembers.map((m) => {
+          const isSelected = activeHumanMemberId === m.id;
+          return (
+            <div
+              key={m.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectHumanMember(m)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectHumanMember(m);
+                }
               }}
-              className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
-              aria-label={`Remove ${s.label}`}
+              className={cn(
+                "group flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
+                isSelected
+                  ? "border-primary/35 bg-primary/10 shadow-[0_0_0_1px_rgba(45,212,191,0.08)]"
+                  : "border-transparent hover:bg-card/50",
+              )}
             >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
+              <MemberAvatar member={m} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-body">{m.label}</p>
+                <p className="truncate text-[10px] text-muted-foreground">
+                  {isSelected
+                    ? "selected"
+                    : m.role === "owner"
+                      ? "room owner"
+                      : "member"}
+                </p>
+              </div>
+              {isSelected && (
+                <Check className="h-3.5 w-3.5 shrink-0 text-primary" />
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveHumanMember(m.id);
+                }}
+                className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                aria-label={`Remove ${m.label}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          );
+        })}
+
+        {seats.map((s) => {
+          const isSelected = activeSeatId === s.id;
+          const isWorking = Boolean(workingSeatIds?.includes(s.id));
+          const isSubscription = isSubscriptionSeat(s);
+          const bridgeOnline = isSubscription
+            ? Boolean(bridgePresence[s.handle]?.online)
+            : null;
+          return (
+            <Fragment key={s.id}>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectSeat(s)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectSeat(s);
+                }
+              }}
+              className={cn(
+                "group relative flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 transition-all",
+                s.active
+                  ? "border-emerald-300/45 bg-emerald-500/10 shadow-[0_0_0_1px_rgba(52,211,153,0.08),0_10px_26px_rgba(16,185,129,0.08)]"
+                  : isSelected
+                    ? "border-primary/25 bg-primary/10"
+                    : "border-transparent hover:bg-card/50",
+                isWorking && "border-cyan-300/60 bg-cyan-400/10",
+              )}
+            >
+              {s.active && (
+                <span
+                  className="absolute right-1.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 text-[9px] text-slate-950 shadow-sm"
+                  aria-hidden="true"
+                >
+                  <Check className="h-2.5 w-2.5" />
+                </span>
+              )}
+              <span className="relative flex h-7 w-7 shrink-0 items-center justify-center">
+                {isWorking && (
+                  <span className="absolute inset-0 rounded-full border border-cyan-300/60 animate-ping" />
+                )}
+                <span
+                  className={cn(
+                    "relative flex h-7 w-7 items-center justify-center rounded-full",
+                    isWorking
+                      ? "bg-cyan-400/20 text-cyan-200"
+                      : s.active
+                        ? "bg-emerald-500/20 text-emerald-300"
+                        : "bg-primary/15 text-primary",
+                  )}
+                >
+                  <Bot
+                    className={cn("h-4 w-4", isWorking && "animate-pulse")}
+                  />
+                </span>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-body">{s.label}</p>
+                <p className="flex min-h-4 items-center gap-1 truncate text-[10px] text-muted-foreground">
+                  <span className="truncate">@{s.handle}</span>
+                  <span className="shrink-0">
+                    {isWorking
+                      ? "- thinking"
+                      : s.active
+                        ? "- called in"
+                        : "- standby"}
+                  </span>
+                  {isSubscription && (
+                    <span
+                      className={cn(
+                        "shrink-0",
+                        bridgeOnline ? "text-emerald-300" : "text-amber-300",
+                      )}
+                    >
+                      {bridgeOnline ? "· bridge online" : "· bridge offline"}
+                    </span>
+                  )}
+                  {isWorking && (
+                    <span
+                      className="ml-0.5 flex shrink-0 items-end gap-0.5"
+                      aria-hidden="true"
+                    >
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="h-1 w-1 rounded-full bg-cyan-300 animate-bounce"
+                          style={{ animationDelay: `${i * 110}ms` }}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSeatActive(s.id);
+                }}
+                className={cn(
+                  "shrink-0 rounded p-1 transition-colors",
+                  s.active
+                    ? "text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                    : "text-muted-foreground hover:bg-card/60 hover:text-body",
+                )}
+                aria-label={
+                  s.active ? `Bench ${s.label}` : `Call in ${s.label}`
+                }
+                title={
+                  s.active
+                    ? "Bench (stop auto-responding)"
+                    : "Call in (auto-respond)"
+                }
+              >
+                <Power className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveSeat(s.id);
+                }}
+                className="text-muted-foreground opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+                aria-label={`Remove ${s.label}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            {isSubscription && bridgeOnline === false && (
+              <div className="mx-2 rounded-md border border-amber-400/25 bg-amber-400/[0.06] px-2 py-1.5">
+                <p className="text-[10px] leading-relaxed text-amber-200/80">
+                  Start the bridge on the machine where the {""}
+                  {s.runtime === "codex-cli" ? "Codex CLI" : "Claude Code CLI"}{" "}
+                  is signed in (UNCLICK_API_KEY set):
+                </p>
+                <code className="mt-1 block break-all font-mono text-[9px] leading-relaxed text-amber-100/90">
+                  {bridgeCommand(s.runtime ?? "claude-code", s.handle)}
+                </code>
+              </div>
+            )}
+            </Fragment>
+          );
+        })}
       </div>
 
       <div className="mt-2 space-y-1 border-t border-border/40 pt-2">
@@ -381,7 +638,8 @@ export function ChatMemberRail({
               type="button"
               className="flex w-full items-center gap-2 rounded-md border border-dashed border-border/50 px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-body"
             >
-              <Plus className="h-4 w-4 shrink-0" /> Add AI seat
+              <Plus className="h-4 w-4 shrink-0" />{" "}
+              {seats.length > 0 ? "Add another AI seat" : "Add AI seat"}
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0">
@@ -389,6 +647,10 @@ export function ChatMemberRail({
               connectedSlugs={connectedSlugs}
               onAdd={(slug, model) => {
                 onAddSeat(slug, model);
+                setAddOpen(false);
+              }}
+              onAddSubscription={(runtime) => {
+                onAddSubscriptionSeat(runtime);
                 setAddOpen(false);
               }}
             />

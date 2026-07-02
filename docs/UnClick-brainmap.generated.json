@@ -9,7 +9,7 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1144,
+    "inventory": 1145,
     "source_manifest": 256,
     "pages": 121,
     "tools": 677,
@@ -75,7 +75,7 @@
       "id": "source-of-truth",
       "name": "Source of truth",
       "meaning": "Canonical state, queue, memory, and context surfaces.",
-      "count": 13
+      "count": 14
     },
     {
       "id": "modules-and-apps",
@@ -4548,6 +4548,16 @@
       "kind": "state module",
       "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
       "source": "api/lib/boardroom-read-bounds.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "source-of-truth-state-module-chat-memory-api-lib-chat-memory-ts-no-route",
+      "division": "Source of truth",
+      "name": "chat memory",
+      "kind": "state module",
+      "meaning": "Server endpoint or helper used by UnClick admin, memory, workers, or tools.",
+      "source": "api/lib/chat-memory.ts",
       "route": "",
       "tags": []
     },
@@ -16050,8 +16060,8 @@
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
-      "hash": "3a84071191a0",
-      "bytes": 34071
+      "hash": "58c7376858b1",
+      "bytes": 34482
     },
     {
       "source": "src/pages/admin/AdminControlTower.tsx",
@@ -16085,23 +16095,23 @@
     },
     {
       "source": ".github/workflows/ci.yml",
-      "hash": "623080333b64",
-      "bytes": 2247
+      "hash": "7c408b278dd4",
+      "bytes": 2334
     },
     {
       "source": ".github/workflows/brainmap-auto-update.yml",
-      "hash": "45d1db95a47c",
+      "hash": "8380e71aa526",
       "bytes": 2101
     },
     {
       "source": ".github/workflows/continuous-improvement-watch.yml",
-      "hash": "d121a434a464",
+      "hash": "ce90e4dcd5cb",
       "bytes": 2358
     },
     {
       "source": "package.json",
-      "hash": "989f2a2ed48d",
-      "bytes": 7828
+      "hash": "437e02a6846b",
+      "bytes": 7858
     },
     {
       "source": "seed/skills/accessibility-audit.skill.md",
@@ -16330,8 +16340,8 @@
     },
     {
       "source": "src/pages/admin/AdminSeatsApi.tsx",
-      "hash": "e6458412807a",
-      "bytes": 37787
+      "hash": "9815b367ce89",
+      "bytes": 40798
     },
     {
       "source": "src/pages/admin/AdminSeatHeartbeat.tsx",
@@ -16360,13 +16370,13 @@
     },
     {
       "source": "src/pages/admin/AdminAppTesting.tsx",
-      "hash": "5ba37cf2abff",
-      "bytes": 11567
+      "hash": "ca297a0e8311",
+      "bytes": 16411
     },
     {
       "source": "src/pages/admin/AdminTools.tsx",
-      "hash": "7890f786a6b5",
-      "bytes": 16370
+      "hash": "8fcb06af3471",
+      "bytes": 18478
     },
     {
       "source": "src/pages/admin/AdminAuditLog.tsx",
@@ -16385,8 +16395,8 @@
     },
     {
       "source": "src/pages/admin/AdminBackstagePass.tsx",
-      "hash": "783eb21efbf6",
-      "bytes": 8807
+      "hash": "210fd31b0962",
+      "bytes": 9203
     },
     {
       "source": "src/pages/admin/AdminBenchmarks.tsx",
@@ -16395,8 +16405,8 @@
     },
     {
       "source": "src/pages/admin/Boardroom.tsx",
-      "hash": "61d332b5a15e",
-      "bytes": 37186
+      "hash": "f3fa8e77bf8a",
+      "bytes": 39561
     },
     {
       "source": "src/pages/admin/AdminBrainmap.tsx",
@@ -16415,13 +16425,13 @@
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "cb91805a2f38",
-      "bytes": 9529
+      "hash": "b33b09a8cad7",
+      "bytes": 46220
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
-      "hash": "76282f364efd",
-      "bytes": 16913
+      "hash": "005cabb745d2",
+      "bytes": 28861
     },
     {
       "source": "src/pages/admin/AdminCodebase.tsx",
@@ -16465,8 +16475,8 @@
     },
     {
       "source": "src/pages/admin/AdminInduction.tsx",
-      "hash": "38ea7ac92566",
-      "bytes": 13693
+      "hash": "9f8731027a85",
+      "bytes": 13701
     },
     {
       "source": "src/pages/admin/AdminJobs.tsx",
@@ -16480,8 +16490,8 @@
     },
     {
       "source": "src/pages/admin/AdminKeychain.tsx",
-      "hash": "d24135238f4d",
-      "bytes": 70823
+      "hash": "937a7f2833af",
+      "bytes": 73431
     },
     {
       "source": "src/pages/admin/AdminMemory.tsx",
@@ -16550,8 +16560,8 @@
     },
     {
       "source": "src/pages/admin/testpass/RunDetail.tsx",
-      "hash": "595aeee7decc",
-      "bytes": 21995
+      "hash": "0029d0d93d20",
+      "bytes": 22801
     },
     {
       "source": "src/pages/admin/testpass/TestPassCatalog.tsx",
@@ -16580,8 +16590,8 @@
     },
     {
       "source": "src/pages/AppDetail.tsx",
-      "hash": "41b547b88949",
-      "bytes": 7479
+      "hash": "7b0b653f2082",
+      "bytes": 8200
     },
     {
       "source": "src/pages/Apps.tsx",
@@ -16605,8 +16615,8 @@
     },
     {
       "source": "src/pages/Connect.tsx",
-      "hash": "b010830d8d67",
-      "bytes": 34860
+      "hash": "d685cc35a47a",
+      "bytes": 37504
     },
     {
       "source": "src/pages/Crews.tsx",
@@ -17170,112 +17180,112 @@
     },
     {
       "source": ".github/workflows/apply-migrations.yml",
-      "hash": "d2ee87e75e7f",
+      "hash": "f161a1681927",
       "bytes": 1529
     },
     {
       "source": ".github/workflows/auto-close-fishbowl-todo.yml",
-      "hash": "d11ec31e1d22",
+      "hash": "ef725f3c66bd",
       "bytes": 11599
     },
     {
       "source": ".github/workflows/autonomous-runner.yml",
-      "hash": "942080b620ac",
+      "hash": "f4c7f8f50345",
       "bytes": 15338
     },
     {
       "source": ".github/workflows/branch-backup.yml",
-      "hash": "163c931d3922",
+      "hash": "4ea6e16a571c",
       "bytes": 1365
     },
     {
       "source": ".github/workflows/claude.yml",
-      "hash": "e8fc79a85b6c",
+      "hash": "c2ce7aef4ab6",
       "bytes": 1085
     },
     {
       "source": ".github/workflows/dirty-branch-hygiene.yml",
-      "hash": "d5ca538bd8a9",
+      "hash": "4cc47109d7d6",
       "bytes": 2190
     },
     {
       "source": ".github/workflows/dogfood-report.yml",
-      "hash": "65897c4393aa",
+      "hash": "aaf67e6986dc",
       "bytes": 6605
     },
     {
       "source": ".github/workflows/event-wake-router.yml",
-      "hash": "bfd53e324bb4",
+      "hash": "963c4ded4fd2",
       "bytes": 1453
     },
     {
       "source": ".github/workflows/fleet-throughput-watch.yml",
-      "hash": "c5a08f4edf9b",
+      "hash": "c88a11d2febc",
       "bytes": 930
     },
     {
       "source": ".github/workflows/openhands-test-mode.yml",
-      "hash": "9aaef5273976",
+      "hash": "7b370199850b",
       "bytes": 1137
     },
     {
       "source": ".github/workflows/pr-scope-guard.yml",
-      "hash": "a130d252be9c",
+      "hash": "19e8be817fe0",
       "bytes": 1286
     },
     {
       "source": ".github/workflows/publish-channel-package.yml",
-      "hash": "5c9197848ca9",
+      "hash": "9e29989a203c",
       "bytes": 8046
     },
     {
       "source": ".github/workflows/publish-mcp-package.yml",
-      "hash": "c029877aab11",
+      "hash": "51027c8813fb",
       "bytes": 6427
     },
     {
       "source": ".github/workflows/publish-standalone-mcps.yml",
-      "hash": "ddd200e03a08",
+      "hash": "8b885b746b78",
       "bytes": 7228
     },
     {
       "source": ".github/workflows/review-enforcement-warning.yml",
-      "hash": "64b27fdddfe8",
+      "hash": "031755e14a8a",
       "bytes": 548
     },
     {
       "source": ".github/workflows/scheduled-build-self-test.yml",
-      "hash": "1362b535ff33",
+      "hash": "45a6e8e5ebf0",
       "bytes": 1024
     },
     {
       "source": ".github/workflows/secret-scan.yml",
-      "hash": "437fe35aa550",
+      "hash": "c58ff9888043",
       "bytes": 1158
     },
     {
       "source": ".github/workflows/seed-vault.yml",
-      "hash": "003a9bd13283",
+      "hash": "05666c146c8b",
       "bytes": 1246
     },
     {
       "source": ".github/workflows/testpass-pr-check.yml",
-      "hash": "ab425e8d32b7",
+      "hash": "fe6b03f9eb3e",
       "bytes": 20467
     },
     {
       "source": ".github/workflows/testpass-scheduled-smoke.yml",
-      "hash": "46f9a65b1dbb",
+      "hash": "a13840c4e2d0",
       "bytes": 1673
     },
     {
       "source": ".github/workflows/tier2-auto-merge-queue-check.yml",
-      "hash": "5abfca8c42dc",
+      "hash": "01244fbd6249",
       "bytes": 830
     },
     {
       "source": ".github/workflows/tier2-rollback.yml",
-      "hash": "1468c05586fb",
+      "hash": "88bac610b855",
       "bytes": 1495
     }
   ]

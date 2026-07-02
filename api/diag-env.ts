@@ -15,6 +15,8 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
     "UNCLICK_AI_KEY_SECRET_V2",
     "SUPABASE_URL",
     "SUPABASE_SERVICE_ROLE_KEY",
+    "MCP_OAUTH_SIGNING_SECRET",
+    "UNCLICK_OAUTH_SIGNING_SECRET",
   ];
 
   const present: Record<string, boolean> = {};

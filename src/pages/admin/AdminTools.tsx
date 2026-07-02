@@ -27,6 +27,10 @@ export interface Connector {
     last_tested_at: string | null;
     connection_state?: "connected" | "untested" | "pending" | "failing" | "stale" | "missing";
     source?: "platform_credentials" | "user_credentials" | "managed_app_connections" | "mixed";
+    // Set when the last OAuth token refresh failed. A short reason code (never a
+    // token); mapped to human text below and shown as a "Needs reconnect" note.
+    last_refresh_error?: string | null;
+    last_refresh_error_at?: string | null;
     managed?: {
       provider: string;
       provider_config_key: string | null;
@@ -38,6 +42,22 @@ export interface Connector {
       connected_at: string | null;
     } | null;
   } | null;
+}
+
+// Map a refresh failure reason code (from /api/credentials) to short human text
+// for the "Needs reconnect" note. provider_rejected may carry an HTTP status
+// suffix (e.g. "provider_rejected:400") which we ignore for the human line.
+export function humanRefreshReason(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  const code = reason.split(":")[0];
+  switch (code) {
+    case "no_refresh_token":   return "no refresh token saved - reconnect once";
+    case "missing_client_env": return "server config missing";
+    case "provider_rejected":  return "the provider rejected the refresh";
+    case "network_error":      return "could not reach the provider";
+    case "no_config":          return null; // platform is not refresh-capable; nothing to reconnect
+    default:                   return null;
+  }
 }
 
 export function buildAdminConnectorMap(connectors: Connector[]) {
@@ -67,6 +87,7 @@ export default function AdminToolsPage() {
   const [connectors, setConnectors] = useState<Connector[]>([]);
   const [disabled, setDisabled] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [connectTarget, setConnectTarget] = useState<AppEntry | null>(null);
   // One filter state, two controls: the rail and the chips both read/write
@@ -163,6 +184,16 @@ export default function AdminToolsPage() {
     void persist(on ? new Set() : new Set(APP_CATALOG.map((a) => a.slug)));
   }
 
+  async function handleRefreshStatus() {
+    setRefreshing(true);
+    setSaveError(null);
+    try {
+      await refreshStatus();
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   function statusOf(app: { slug: string }): AppStatus | null {
     const c = connectorBySlug.get(app.slug);
     if (!c) return { label: "Built-in", tone: "border-white/10 bg-white/[0.04] text-white/45" };
@@ -172,8 +203,11 @@ export default function AdminToolsPage() {
     if (c.credential?.connection_state === "pending") {
       return { label: "Pending", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
+    if (c.credential?.connection_state === "stale") {
+      return { label: "Stale", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
+    }
     if (c.credential?.is_valid) {
-      return { label: "Connected", tone: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
+      return { label: "Needs check", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     }
     if (c.auth_type === "oauth2") return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
     if (c.supports_managed_connection) return { label: "Connect", tone: "border-amber-300/25 bg-amber-300/10 text-amber-100" };
@@ -195,6 +229,16 @@ export default function AdminToolsPage() {
     const label = actionLabelFor(connectorBySlug.get(app.slug));
     if (!label) return null;
     return { label, onClick: () => openAppConnection(app) };
+  }
+
+  // When the last token refresh failed, surface a short muted note plus a
+  // Reconnect link, instead of letting the connection silently look "Connected"
+  // until the stale token finally fails a live call.
+  function noteOf(app: AppEntry): { text: string; reconnectTo: string } | null {
+    const c = connectorBySlug.get(app.slug);
+    const human = humanRefreshReason(c?.credential?.last_refresh_error);
+    if (!human) return null;
+    return { text: `Needs reconnect: ${human}`, reconnectTo: `/connect/${app.slug}` };
   }
 
   function disconnectActionOf(app: AppEntry) {
@@ -360,11 +404,13 @@ export default function AdminToolsPage() {
         enabled={enabled}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
+        onRefreshStatus={() => void handleRefreshStatus()}
         statusOf={statusOf}
         onStatusClick={handleStatusClick}
         actionOf={actionOf}
         disconnectOf={disconnectActionOf}
-        busy={saving}
+        noteOf={noteOf}
+        busy={saving || refreshing}
       />
 
       {connectTarget && session && connectorBySlug.get(connectTarget.slug) && (

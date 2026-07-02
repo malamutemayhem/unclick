@@ -11,6 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import ClaimKeyBanner from "@/components/ClaimKeyBanner";
+import WorkerKeysCard from "@/components/admin/WorkerKeysCard";
 import UserAvatar, { FACE_LIBRARY, getAvatarChoice } from "@/components/UserAvatar";
 import {
   User,
@@ -32,6 +33,7 @@ import {
   Download,
   Upload,
   Database,
+  Bot,
   Fingerprint,
 } from "lucide-react";
 
@@ -963,6 +965,7 @@ export default function AdminYou() {
     { id: "you-about", label: "About You", icon: Fingerprint, ready: Boolean(savedAboutYou?.text) },
     { id: "you-style", label: "AI Style", icon: Sparkles, ready: Boolean(savedAiStyle) },
     { id: "you-api-key", label: "Connection", icon: KeyRound, ready: Boolean(generatedKey || profile?.api_key?.is_active) },
+    { id: "you-worker-keys", label: "Worker Keys", icon: Bot, ready: true },
     { id: "you-my-data", label: "My Data", icon: Database, ready: true },
   ];
 
@@ -1208,6 +1211,9 @@ export default function AdminYou() {
             </div>
             {aboutYouError && <p className="mt-2 text-[11px] text-red-400">{aboutYouError}</p>}
           </section>
+
+          {/* Worker Keys card */}
+          <WorkerKeysCard />
 
           {/* AI Style card */}
           <section id="you-style" className="scroll-mt-24 rounded-xl border border-white/[0.06] bg-white/[0.03] p-6">

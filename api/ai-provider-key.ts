@@ -23,6 +23,17 @@ function sbHeaders(serviceKey: string): Record<string, string> {
   };
 }
 
+// The API Models surface manages ONLY these LLM provider keys. App-connection
+// credentials now also use enc_scheme='server' (the Layer 2 connector vault),
+// so without this allowlist they would leak into the AI key list AND be
+// deletable from this endpoint. Keep in sync with AI_PROVIDER_CATALOG in
+// src/pages/admin/AdminSeatsApi.tsx.
+const AI_PROVIDER_SLUGS = [
+  "anthropic", "openai", "openrouter", "google-ai", "cohere",
+  "mistral", "groq", "perplexity", "together-ai", "replicate",
+] as const;
+const AI_SLUG_FILTER = `&platform_slug=in.(${AI_PROVIDER_SLUGS.join(",")})`;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "https://unclick.world");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
@@ -50,6 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const url =
       `${supabaseUrl}/rest/v1/user_credentials?lane_hash=eq.${encodeURIComponent(lane)}` +
       `&enc_scheme=eq.server` +
+      AI_SLUG_FILTER +
       `&select=id,platform_slug,label,is_valid,last_tested_at,last_used_at,created_at,updated_at` +
       `&order=created_at.desc`;
     const r = await fetch(url, { headers: sbHeaders(serviceKey) });
@@ -107,7 +119,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // caller can never delete another account's row or a non-AI credential.
     const r = await fetch(
       `${supabaseUrl}/rest/v1/user_credentials?id=eq.${encodeURIComponent(id)}` +
-        `&lane_hash=eq.${encodeURIComponent(lane)}&enc_scheme=eq.server`,
+        `&lane_hash=eq.${encodeURIComponent(lane)}&enc_scheme=eq.server` +
+        AI_SLUG_FILTER,
       { method: "DELETE", headers: { ...sbHeaders(serviceKey), Prefer: "return=minimal" } },
     );
     if (!r.ok) {

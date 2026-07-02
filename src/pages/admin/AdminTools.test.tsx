@@ -70,6 +70,7 @@ describe("AdminTools (Apps library)", () => {
   it("renders the unified app rows with admin controls and search", async () => {
     await renderAdminTools();
     expect(screen.getByPlaceholderText(/search apps/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /refresh status/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /turn all on/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /turn all off/i })).toBeInTheDocument();
     // A known app from the generated catalog renders as a row.

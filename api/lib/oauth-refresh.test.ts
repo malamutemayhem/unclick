@@ -3,6 +3,7 @@ import {
   isExpiring,
   needsRefresh,
   refreshOAuthCredential,
+  refreshOAuthCredentialResult,
 } from "./oauth-refresh.js";
 
 const savedEnv = { ...process.env };
@@ -150,5 +151,76 @@ describe("refreshOAuthCredential", () => {
 
     const result = await refreshOAuthCredential("gmail", { refresh_token: "r", expires_at: "" });
     expect(result).toBeNull();
+  });
+});
+
+describe("refreshOAuthCredentialResult", () => {
+  it("reports no_refresh_token when the credential has no refresh token", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await refreshOAuthCredentialResult("gmail", { access_token: "a" });
+    expect(result).toEqual({ ok: false, reason: "no_refresh_token" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports no_config for a platform with no refresh config", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await refreshOAuthCredentialResult("github", { refresh_token: "r" });
+    expect(result).toEqual({ ok: false, reason: "no_config" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports missing_client_env when the config exists but the env is unset", async () => {
+    delete process.env.GOOGLE_WORKSPACE_CLIENT_ID;
+    delete process.env.GOOGLE_WORKSPACE_CLIENT_SECRET;
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await refreshOAuthCredentialResult("gmail", { refresh_token: "r" });
+    expect(result).toEqual({ ok: false, reason: "missing_client_env" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reports provider_rejected:<status> when the token endpoint returns non-2xx", async () => {
+    process.env.GOOGLE_WORKSPACE_CLIENT_ID = "google-client";
+    process.env.GOOGLE_WORKSPACE_CLIENT_SECRET = "google-secret";
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 400, json: async () => ({ error: "invalid_grant" }) })));
+
+    const result = await refreshOAuthCredentialResult("gmail", {
+      access_token: "stale",
+      refresh_token: "revoked",
+      expires_at: new Date(Date.now() - 1000).toISOString(),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe("provider_rejected:400");
+    expect(result.credentials).toBeUndefined();
+  });
+
+  it("reports a network_error when fetch throws", async () => {
+    process.env.GOOGLE_WORKSPACE_CLIENT_ID = "google-client";
+    process.env.GOOGLE_WORKSPACE_CLIENT_SECRET = "google-secret";
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("network down"); }));
+
+    const result = await refreshOAuthCredentialResult("gmail", { refresh_token: "r", expires_at: "" });
+    expect(result).toEqual({ ok: false, reason: "network_error" });
+  });
+
+  it("returns ok with fresh credentials on a 200 with an access_token", async () => {
+    process.env.GOOGLE_WORKSPACE_CLIENT_ID = "google-client";
+    process.env.GOOGLE_WORKSPACE_CLIENT_SECRET = "google-secret";
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ access_token: "fresh-access", expires_in: 3600 }) })));
+
+    const result = await refreshOAuthCredentialResult("gmail", {
+      access_token: "stale",
+      refresh_token: "stored-refresh",
+      expires_at: new Date(Date.now() - 1000).toISOString(),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.reason).toBeUndefined();
+    expect(result.credentials?.access_token).toBe("fresh-access");
+    expect(result.credentials?.refresh_token).toBe("stored-refresh");
   });
 });
