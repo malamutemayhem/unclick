@@ -576,16 +576,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
   }
 
-  // ── POST append (persist a human turn; auto-title on first message) ──────────
-  // Owner or active member may post into the shared stream.
+  // ── POST append (persist a turn; auto-title on first human message) ──────────
+  // Owner or active member may post into the shared stream. Besides human
+  // turns, a member may append an agent turn ONLY for the local lane: the
+  // browser is the sole party that talks to a model running on the member's
+  // own computer, so it has to relay the finished reply here itself. Api and
+  // subscription lanes keep persisting server-side (api/chat.ts,
+  // api/chat-bridge.ts) and are rejected in this action.
   if (action === "append") {
     const threadId =
       typeof body.thread_id === "string" ? body.thread_id.trim() : "";
     const content = typeof body.content === "string" ? body.content : "";
+    const senderKind =
+      typeof body.sender_kind === "string" ? body.sender_kind : "human";
+    if (senderKind !== "human" && senderKind !== "agent")
+      return res.status(400).json({ error: "Unsupported sender_kind." });
+    if (senderKind === "agent" && body.seat_lane !== "local")
+      return res
+        .status(400)
+        .json({ error: "Only local-lane agent turns can be appended." });
+    const model =
+      senderKind === "agent" && typeof body.model === "string" && body.model.trim()
+        ? body.model.trim().slice(0, 120)
+        : null;
     const senderId =
       typeof body.sender_id === "string" && body.sender_id.trim()
         ? body.sender_id.trim()
-        : "you";
+        : senderKind === "agent"
+          ? "local-seat"
+          : "you";
     if (!threadId)
       return res.status(400).json({ error: "thread_id is required." });
     if (!content.trim())
@@ -613,7 +632,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         api_key_hash: ownerLane,
         thread_id: threadId,
         sender_id: senderId,
-        sender_kind: "human",
+        sender_kind: senderKind,
+        ...(senderKind === "agent" ? { seat_lane: "local", model } : {}),
         content,
         status: "complete",
         created_at: now,
@@ -633,13 +653,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       serviceKey,
       ownerLane,
       threadId,
-      role: "user",
+      role: senderKind === "agent" ? "assistant" : "user",
       content,
     });
 
     // Touch updated_at, and auto-title from the first human turn if still
-    // default. Scope by the owner lane of the thread so a member cannot
-    // touch a row outside the room's canonical tenant key.
+    // default (agent turns never title a room). Scope by the owner lane of
+    // the thread so a member cannot touch a row outside the room's
+    // canonical tenant key.
     const cur = await fetch(
       `${rest}/chat_threads?id=eq.${encodeURIComponent(threadId)}` +
         `&api_key_hash=eq.${encodeURIComponent(ownerLane)}&select=title`,
@@ -650,7 +671,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : [];
     const patch: Record<string, unknown> = { updated_at: now };
     const existingTitle = curRows[0]?.title;
-    if (!existingTitle || existingTitle === "New chat")
+    if (
+      senderKind === "human" &&
+      (!existingTitle || existingTitle === "New chat")
+    )
       patch.title = trimTitle(content);
     await fetch(
       `${rest}/chat_threads?id=eq.${encodeURIComponent(threadId)}` +
@@ -849,7 +873,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // sufficient gate here by design (the handshake is the permission); we
     // intentionally do NOT also require a shared_chat toggle (no hidden
     // toggles, per the PRD Section 6 decision).
-    const memberRole: "member" = "member";
+    const memberRole = "member" as const;
     const now = new Date().toISOString();
     const upsert = await fetch(
       `${rest}/chat_room_members?on_conflict=thread_id,member_lane_hash`,
