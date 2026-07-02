@@ -28,6 +28,7 @@ const OPTIONS = [
   { id: "p", label: "p", to: "/home-preview-p" },
   { id: "q", label: "q", to: "/home-preview-q" },
   { id: "r", label: "r", to: "/home-preview-r" },
+  { id: "s", label: "s", to: "/home-preview-s" },
 ] as const;
 
 export type OptionId = (typeof OPTIONS)[number]["id"];

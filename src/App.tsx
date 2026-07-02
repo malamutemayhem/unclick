@@ -35,6 +35,7 @@ const HomePreviewO = lazy(() => import("./pages/HomePreviewO.tsx"));
 const HomePreviewP = lazy(() => import("./pages/HomePreviewP.tsx"));
 const HomePreviewQ = lazy(() => import("./pages/HomePreviewQ.tsx"));
 const HomePreviewR = lazy(() => import("./pages/HomePreviewR.tsx"));
+const HomePreviewS = lazy(() => import("./pages/HomePreviewS.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const DocsPage = lazy(() => import("./pages/Docs.tsx"));
 const LinkInBioPage = lazy(() => import("./pages/tools/LinkInBio.tsx"));
@@ -226,6 +227,7 @@ const App = () => (
           <Route path="/home-preview-p" element={<HomePreviewP />} />
           <Route path="/home-preview-q" element={<HomePreviewQ />} />
           <Route path="/home-preview-r" element={<HomePreviewR />} />
+          <Route path="/home-preview-s" element={<HomePreviewS />} />
           <Route path="/uipass-home-sample" element={<HomepageSample />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/tools/link-in-bio" element={<LinkInBioPage />} />

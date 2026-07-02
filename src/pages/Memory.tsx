@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import PageShell from "@/components/PageShell";
 import FadeIn from "@/components/FadeIn";
-import ExpandableImage from "@/components/ExpandableImage";
+import {
+  AiTetherDiagram,
+  InBuildTeamCard,
+  SessionSplit,
+  SharedBoardCard,
+} from "@/components/home/second-session";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
 import { presets } from "@/lib/design-system";
@@ -10,13 +15,21 @@ import {
   Shield,
   Search,
   Code,
-  RefreshCw,
   Fingerprint,
   Briefcase,
   Library,
   History,
   Gauge,
 } from "lucide-react";
+
+/**
+ * The Memory page, rebuilt around the second-session concept (option
+ * S) after the operator picked it over the old pillar-first layout
+ * (2026-07-02). The narrative leads: day one against day two, tell it
+ * once, switch AIs and keep it, then the team act. The load-bearing
+ * product sections stay: the eight pillars, the data island, and the
+ * setup path.
+ */
 
 /**
  * The eight pillars of memory, matching the product map. Plain English,
@@ -30,171 +43,58 @@ const MEMORY_PILLARS = [
   { title: "Session continuity", desc: "One summary per session: decisions, open loops, key topics. New sessions read the last few and carry on.", icon: History },
   { title: "Code memory", desc: "Code stored on its own and expanded on demand. Language and file tagged, searchable, loaded only when needed.", icon: Code },
   { title: "Recall and hygiene", desc: "Used memories surface first and stale ones fade to save context. Everything stays searchable by keyword.", icon: Gauge },
-  { title: "Data island", desc: "It all lives in your own database. We never see it, and if you leave, your data stays yours.", icon: Database },
+  { title: "Yours to keep", desc: "Hosted for you, so turning it on takes minutes. Export or delete everything any time; it is your data.", icon: Database },
 ];
 
-/**
- * The transparency layer. A calm, plausible feed of capture events so
- * the user can feel memory working. Static for now. Phase 3 wires it
- * to a real reader of recent memory writes.
- */
-const CAPTURE_FEED = [
+const SETUP_STEPS = [
   {
-    time: "2:14 PM",
-    tag: "Saved fact",
-    text: "Client prefers Tuesday morning calls",
+    step: 1,
+    title: "Create your account",
+    desc: "One email. Free while we are in beta.",
   },
   {
-    time: "2:14 PM",
-    tag: "Updated context",
-    text: "Project: Q4 launch brief",
+    step: 2,
+    title: "Connect your AI once",
+    desc: "One address, sign in in the browser, no key to carry.",
   },
   {
-    time: "2:15 PM",
-    tag: "Linked",
-    text: "\"Jason's birthday is 15 July\" to family",
+    step: 3,
+    title: "That is it. Memory is on.",
+    desc: "Every session loads it first and saves before it ends.",
   },
-  {
-    time: "2:31 PM",
-    tag: "Session summary",
-    text: "8 decisions captured, 3 open loops",
-  },
-  {
-    time: "2:47 PM",
-    tag: "Referenced",
-    text: "\"Use plain English in client emails\" (12 times this week)",
-  },
-  {
-    time: "3:02 PM",
-    tag: "Library updated",
-    text: "Onboarding checklist v3 saved",
-  },
-];
-
-const COMPARISON = [
-  { feature: "Where data lives", tip: "Who controls your memory data", unclick: "Your database", managed: "Provider cloud", runtime: "Runtime store", graph: "Provider cloud" },
-  { feature: "Memory structure", tip: "How memory is structured and organised", unclick: "Eight pillars", managed: "Flat store", runtime: "Runtime tiers", graph: "Graph layers" },
-  { feature: "Code aware", tip: "Stores and searches code blocks separately", unclick: "Yes", managed: "Usually no", runtime: "Partial", graph: "Usually no" },
-  { feature: "Version history", tip: "Previous versions of documents are preserved", unclick: "Yes", managed: "Limited", runtime: "Limited", graph: "Limited" },
-  { feature: "Smart prioritisation", tip: "Used memories surface first; stale ones fade to save context", unclick: "Yes", managed: "Sometimes", runtime: "Limited", graph: "Limited" },
-  { feature: "Cross platform", tip: "Works across Claude Code, Cowork, Cursor, and other MCP-compatible clients", unclick: "Yes", managed: "Often", runtime: "Limited", graph: "Often" },
-  { feature: "Price", tip: "Starting cost for production use", unclick: "Free", managed: "Paid tiers", runtime: "Self-host option", graph: "Usage based" },
-  { feature: "Lock in", tip: "How hard it is to leave and take your data with you", unclick: "Zero", managed: "Higher", runtime: "Medium", graph: "Medium" },
 ];
 
 const Memory = () => {
   useCanonical("/memory");
   useMetaTags({
-    title: "Persistent memory for AI agents - UnClick",
+    title: "One memory for every AI you use - UnClick Memory",
     description:
-      "Give your AI agent an eight-pillar memory: identity, business context, facts, library, sessions, code, recall, and your own data island. Cross-session, cross-agent, stored in your own database.",
-    ogTitle: "UnClick Memory - Persistent cross-session memory for AI agents",
+      "Persistent cross-session memory for AI agents. Tell it once: ChatGPT, Claude, Cursor, and your local model read the same identity, facts, and session history. Hosted for you, yours to export.",
+    ogTitle: "UnClick Memory - One memory for every AI you use",
     ogDescription:
-      "Eight pillars of memory for AI agents: identity, business context, facts, sessions, code, and more. All cross-session.",
+      "Tell it once. Every AI knows. Eight pillars of persistent memory, cross-session and cross-agent, in your own database.",
     ogUrl: "https://unclick.world/memory",
   });
 
   return (
     <PageShell
       eyebrow="Memory"
-      title="Your agent forgets everything."
-      accent="Fix that."
-      lede={<>Drop-in persistent memory for any AI agent. Eight pillars, all searchable. Your data stays in <span className="whitespace-nowrap">your database.</span></>}
-      cta={{ label: "See how it works", href: "#how-it-works" }}
+      title="One memory."
+      accent="Every AI you use."
+      lede={
+        <>
+          Your AI forgets you the moment a session ends. UnClick memory is the layer it plugs
+          into: tell it once, and every AI you open next{" "}
+          <span className="whitespace-nowrap">already knows.</span>
+        </>
+      }
+      cta={{ label: "Set up memory", href: "/memory/setup" }}
     >
-      {/* Infographic: the eight pillars at a glance, high on the page */}
-      <section className="px-6 pb-0 -mt-8 sm:-mt-10">
-        <div className="mx-auto max-w-5xl">
+      {/* Day one against day two, high on the page */}
+      <section className="px-6 pb-0 -mt-6 sm:-mt-8">
+        <div className="mx-auto max-w-4xl">
           <FadeIn>
-            <ExpandableImage
-              src="/memory_web.jpg"
-              alt="UnClick Memory: eight pillars around a secure brain - Identity, Business context, Facts, Library and briefs, Session continuity, Code memory, Recall and hygiene, and your own data island."
-            />
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* The problem */}
-      <section className={presets.section}>
-        <div className="mx-auto max-w-3xl text-center">
-          <FadeIn>
-            <h2 className={presets.h2}>The problem</h2>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <p className="mt-6 text-lg text-body leading-relaxed">
-              Every AI session starts from zero. You re-explain your business,
-              your preferences, your clients, your rules. Every time.
-            </p>
-          </FadeIn>
-          <FadeIn delay={0.15}>
-            <p className="mt-4 text-body leading-relaxed">
-              Your agent made 200 decisions last week. How many does it remember?{" "}
-              <span className="font-semibold text-heading">Zero.</span>
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Watch memory at work - the transparency layer */}
-      <section className={presets.section + " bg-card/30"}>
-        <div className="mx-auto max-w-3xl">
-          <div className={presets.sectionHeader}>
-            <FadeIn>
-              <h2 className={presets.h2}>Watch memory at work.</h2>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <p className="mt-6 text-lg text-body leading-relaxed">
-                You can see what memory is capturing as it happens. Nothing
-                hidden. Nothing magic. Just a calm feed of what was learned,
-                linked, and saved.
-              </p>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.15}>
-            <div className="mt-12 rounded-xl border border-border/60 bg-card/60 backdrop-blur-sm overflow-hidden">
-              {/* Header strip */}
-              <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="h-2 w-2 rounded-full bg-primary animate-pulse"
-                    aria-hidden="true"
-                  />
-                  <span className="font-mono text-xs text-muted-foreground">
-                    Capture feed
-                  </span>
-                </div>
-                <span className="font-mono text-xs text-muted-foreground">
-                  Today
-                </span>
-              </div>
-
-              {/* The feed */}
-              <ul className="divide-y divide-border/30">
-                {CAPTURE_FEED.map((row, i) => (
-                  <FadeIn key={i} delay={0.2 + i * 0.06}>
-                    <li className="grid grid-cols-[auto_auto_1fr] items-baseline gap-x-4 px-5 py-3">
-                      <span className="font-mono text-xs text-primary">
-                        {row.time}
-                      </span>
-                      <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
-                        {row.tag}
-                      </span>
-                      <span className="text-sm text-body leading-snug">
-                        {row.text}
-                      </span>
-                    </li>
-                  </FadeIn>
-                ))}
-              </ul>
-
-              {/* Footer note */}
-              <div className="border-t border-border/40 px-5 py-3">
-                <span className="font-mono text-xs text-muted-foreground">
-                  Visible to you. Stored in your database. Never sent home.
-                </span>
-              </div>
-            </div>
+            <SessionSplit />
           </FadeIn>
         </div>
       </section>
@@ -204,12 +104,12 @@ const Memory = () => {
         <div className={presets.sectionInner}>
           <div className={presets.sectionHeader}>
             <FadeIn>
-              <h2 className={presets.h2}>Eight pillars of memory.</h2>
+              <h2 className={presets.h2}>Tell it once.</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
-                From always-on identity to on-demand code. Each pillar does a
-                different job, and all of it is searchable.
+                Eight pillars, each doing a different job, from always-on identity to on-demand
+                code. All of it searchable, all of it carried between sessions.
               </p>
             </FadeIn>
           </div>
@@ -232,37 +132,23 @@ const Memory = () => {
         </div>
       </section>
 
-      {/* Works everywhere */}
+      {/* Portability */}
       <section className={presets.section + " bg-card/30"}>
         <div className="mx-auto max-w-3xl">
           <div className={presets.sectionHeader}>
             <FadeIn>
-              <h2 className={presets.h2}>
-                Works everywhere. Remembers everything.
-              </h2>
+              <h2 className={presets.h2}>Switch AIs. Your memory comes with you.</h2>
             </FadeIn>
             <FadeIn delay={0.1}>
               <p className="mt-6 text-lg text-body leading-relaxed">
-                Start a task in Cowork on your desktop. Continue in Claude Code
-                on your laptop. Pick up on mobile. Memory travels with you.
+                UnClick is not another assistant. Any compatible AI plugs in and reads the same
+                memory. Change models, change tools, change your mind. Nothing resets.
               </p>
             </FadeIn>
           </div>
 
           <FadeIn delay={0.15}>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              {["Cowork", "Claude Code", "Cursor", "Any MCP client"].map((p) => (
-                <div
-                  key={p}
-                  className="flex items-center gap-2 rounded-full border border-border/40 bg-card/60 px-4 py-2 backdrop-blur-sm"
-                >
-                  <RefreshCw className="h-3 w-3 text-primary" />
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {p}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <AiTetherDiagram className="mt-12" />
           </FadeIn>
 
           <FadeIn delay={0.2}>
@@ -271,9 +157,9 @@ const Memory = () => {
                 The handoff problem, solved.
               </p>
               <p className="text-sm text-body leading-relaxed">
-                Claude Code sessions don't talk to each other. Cowork sessions
-                don't persist. We fix that. Every session reads from and writes
-                to the same memory. Context is never lost.
+                Sessions don't talk to each other. Desktop doesn't talk to laptop. We fix that.
+                Every session reads from and writes to the same memory, so context is never lost
+                between tools, devices, or models.
               </p>
             </div>
           </FadeIn>
@@ -287,28 +173,54 @@ const Memory = () => {
             <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 text-primary mb-6">
               <Shield className="h-6 w-6" />
             </div>
-            <h2 className={presets.h2}>Your data. Your database.</h2>
+            <h2 className={presets.h2}>Yours, without the homework.</h2>
           </FadeIn>
           <FadeIn delay={0.1}>
             <p className="mt-6 text-lg text-body leading-relaxed">
-              UnClick Memory stores everything in your own Supabase instance.
-              We never see your data. If you leave, your data stays. It is
-              already yours.
+              We host your memory so turning it on takes minutes, not a
+              database migration. It stays yours the whole time: export it or
+              delete it whenever you like.
             </p>
           </FadeIn>
           <FadeIn delay={0.15}>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/60 px-4 py-2 backdrop-blur-sm">
               <Database className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs text-body">
-                Others store your memories in their cloud. We store them in yours.
+                Prefer full custody? The bring-your-own-Supabase lane is in the setup wizard.
               </span>
             </div>
           </FadeIn>
         </div>
       </section>
 
-      {/* Setup */}
+      {/* The team act */}
       <section className={presets.section + " bg-card/30"}>
+        <div className="mx-auto max-w-5xl">
+          <div className={presets.sectionHeader}>
+            <FadeIn>
+              <h2 className={presets.h2}>Every AI on the job, on the same page.</h2>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mt-6 text-lg text-body leading-relaxed">
+                Run more than one AI? They already share the memory. They also share a board:
+                updates, handoffs, and ideas land in one place, whoever's seat posted them.
+              </p>
+            </FadeIn>
+          </div>
+
+          <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_320px]">
+            <FadeIn delay={0.1}>
+              <SharedBoardCard />
+            </FadeIn>
+            <FadeIn delay={0.18}>
+              <InBuildTeamCard />
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* Setup */}
+      <section className={presets.section}>
         <div className="mx-auto max-w-3xl">
           <div className={presets.sectionHeader}>
             <FadeIn>
@@ -317,23 +229,7 @@ const Memory = () => {
           </div>
 
           <div className="mt-12 space-y-6">
-            {[
-              {
-                step: 1,
-                title: "Connect your database",
-                desc: "Supabase free tier, or any PostgreSQL.",
-              },
-              {
-                step: 2,
-                title: "Run one migration",
-                desc: "We do it for you. One click.",
-              },
-              {
-                step: 3,
-                title: "Add one line to your MCP config",
-                desc: "That is it. Every session now has memory.",
-              },
-            ].map((s, i) => (
+            {SETUP_STEPS.map((s, i) => (
               <FadeIn key={s.step} delay={0.05 * i}>
                 <div className="flex items-start gap-4">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
@@ -349,96 +245,20 @@ const Memory = () => {
           </div>
 
           <FadeIn delay={0.2}>
-            <div className="mt-10 rounded-xl border border-border/60 bg-card/60 p-5 overflow-x-auto">
-              <div className="font-mono text-xs text-muted-foreground mb-2">
-                ~/.claude/mcp.json
-              </div>
-              <pre className="font-mono text-xs text-heading leading-relaxed">{`{
-  "mcpServers": {
-    "unclick-memory": {
-      "command": "npx",
-      "args": ["-y", "@unclick/memory-mcp"],
-      "env": {
-        "UNCLICK_API_KEY": "um_live_xxxxxxxxxxxx"
-      }
-    }
-  }
-}`}</pre>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.25}>
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              Coming from another memory tool? Import in one click.
+            <p className="mt-8 text-center text-xs text-muted-foreground">
+              Coming from another memory tool? Import in one click. Want it in
+              your own Supabase? The wizard has that lane too.
             </p>
           </FadeIn>
         </div>
       </section>
 
-      {/* Comparison */}
-      <section className={presets.section}>
-        <div className="mx-auto max-w-4xl">
-          <div className={presets.sectionHeader}>
-            <FadeIn>
-              <h2 className={presets.h2}>How we compare.</h2>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.1}>
-            <div className="mt-12 overflow-x-auto rounded-xl border border-border/60">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border/40 bg-card/80">
-                    <th className="p-3 text-left font-medium text-muted-foreground" />
-                    <th className="p-3 text-left font-semibold text-primary">
-                      UnClick Memory
-                    </th>
-                    <th className="p-3 text-left font-medium text-muted-foreground">
-                      Managed memory
-                    </th>
-                    <th className="p-3 text-left font-medium text-muted-foreground">
-                      Agent runtime
-                    </th>
-                    <th className="p-3 text-left font-medium text-muted-foreground">
-                      Graph memory
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPARISON.map((row, i) => (
-                    <tr
-                      key={row.feature}
-                      className={i % 2 === 0 ? "bg-card/40" : ""}
-                    >
-                      <td className="p-3 font-medium text-heading group relative cursor-help">
-                        <span className="border-b border-dotted border-muted-foreground/40">
-                          {row.feature}
-                        </span>
-                        <span className="pointer-events-none absolute left-3 -top-8 z-10 hidden w-56 rounded-lg border border-border/60 bg-card px-3 py-2 text-[10px] text-muted-foreground shadow-lg group-hover:block">
-                          {row.tip}
-                        </span>
-                      </td>
-                      <td className="p-3 font-medium text-primary">
-                        {row.unclick}
-                      </td>
-                      <td className="p-3 text-body">{row.managed}</td>
-                      <td className="p-3 text-body">{row.runtime}</td>
-                      <td className="p-3 text-body">{row.graph}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
       {/* Final CTA - single button only */}
-      <section className={presets.section}>
+      <section className={presets.section + " bg-card/30"}>
         <div className="mx-auto max-w-2xl text-center">
           <FadeIn>
             <h2 className={presets.h2}>
-              Your agent deserves better than starting from scratch every session.
+              Tell it once. <span className="text-primary">Every AI knows.</span>
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>

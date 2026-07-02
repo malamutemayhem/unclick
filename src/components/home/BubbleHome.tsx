@@ -266,6 +266,7 @@ function JourneyField() {
   const peopleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tetherCanvasRef = useRef<HTMLCanvasElement>(null);
+  const dragCatchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -281,23 +282,61 @@ function JourneyField() {
     // cheaper than mutating stroked SVG paths (which invalidate and
     // re-rasterize their layer every frame). DPR is capped; hairline
     // strings do not need 3x pixels.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    //
+    // All geometry lives in the documentElement's client box, NOT
+    // window.inner*: fixed-position layout (the bubble, this canvas)
+    // resolves against the viewport minus any classic scrollbar, while
+    // window.innerWidth includes the scrollbar. Mixing the two spaces
+    // drew every string a scrollbar-width short of the bubble.
+    const docEl = document.documentElement;
+    let vw = docEl.clientWidth;
+    let vh = docEl.clientHeight;
+    // Same 640px line Tailwind's sm: uses, so the JS bubble size can
+    // never disagree with the CSS bubble size at the breakpoint.
+    const smQuery = window.matchMedia("(min-width: 640px)");
     const sizeCanvas = () => {
-      canvas.width = Math.round(window.innerWidth * dpr);
-      canvas.height = Math.round(window.innerHeight * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.lineCap = "round";
+      vw = docEl.clientWidth;
+      vh = docEl.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      const w = Math.round(vw * dpr);
+      const h = Math.round(vh * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.lineCap = "round";
+      }
     };
     sizeCanvas();
     window.addEventListener("resize", sizeCanvas);
+    // A scrollbar appearing or disappearing resizes the viewport
+    // without firing a window resize; only the root element sees it.
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(sizeCanvas) : null;
+    ro?.observe(docEl);
+    const installEl = document.getElementById("install");
 
     let raf = 0;
     const start = performance.now();
-    let cx = window.innerWidth / 2;
-    let cy = window.innerHeight * 0.38;
+    let cx = vw / 2;
+    let cy = vh * 0.38;
     let cs = 1;
     let sp = 0;
     let lastNow = performance.now();
+    // The easter egg: grab the bubble and it pulls against its
+    // strings, then springs home on release. The drag offset rides on
+    // top of the scripted center, so scroll choreography and play
+    // never fight each other.
+    const catcher = dragCatchRef.current;
+    let dragging = false;
+    let grabDx = 0;
+    let grabDy = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+    let ox = 0;
+    let oy = 0;
+    let vox = 0;
+    let voy = 0;
+    let grabbable = false;
     // Power management: the loop only runs while the journey is on (or
     // near) screen and the tab is visible; at rest it drops to half
     // rate (the idle drift and tether sway are slow sines, invisible
@@ -333,12 +372,44 @@ function JourneyField() {
       document.documentElement.classList.add("hp-perf-lite");
     };
 
+    // Weak hardware goes straight to lite instead of shipping a second
+    // of jank first so the detector can notice. The lite look is the
+    // designed fallback, not a degraded accident.
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    if ((navigator.hardwareConcurrency || 8) <= 4 || (nav.deviceMemory ?? 8) <= 4) {
+      enableLite();
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!catcher) return;
+      dragging = true;
+      catcher.setPointerCapture(event.pointerId);
+      grabDx = event.clientX - (cx + ox);
+      grabDy = event.clientY - (cy + oy);
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      catcher.style.cursor = "grabbing";
+      event.preventDefault();
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+    };
+    const endDrag = () => {
+      if (!dragging || !catcher) return;
+      dragging = false;
+      catcher.style.cursor = "grab";
+    };
+    catcher?.addEventListener("pointerdown", onPointerDown);
+    catcher?.addEventListener("pointermove", onPointerMove);
+    catcher?.addEventListener("pointerup", endDrag);
+    catcher?.addEventListener("pointercancel", endDrag);
+
     const tick = (now: number) => {
       if (!running) return;
       frame += 1;
       const t = (now - start) / 1000;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
       const rect = field.getBoundingClientRect();
       const total = rect.height - vh * 0.55;
       const p = Math.min(1, Math.max(0, -rect.top / Math.max(total, 1)));
@@ -346,18 +417,42 @@ function JourneyField() {
       const restful =
         Math.abs(p - sp) < 0.0005 &&
         ropes.every((rope) => rope.phase === "idle") &&
-        Math.abs(sp - 0.955) * 26 > 1.2;
+        Math.abs(sp - 0.955) * 26 > 1.2 &&
+        !dragging &&
+        ox === 0 &&
+        oy === 0;
       if (restful && frame % 2 === 1) {
         raf = requestAnimationFrame(tick);
         return;
       }
 
-      const sm = vw < 640;
+      const sm = !smQuery.matches;
       const base = sm ? 290 : 400;
 
-      // Smooth the progress itself, then ease positions on top:
-      // double damping means the bubble glides, never jerks.
-      sp += (p - sp) * (sm ? 0.03 : 0.022);
+      // Frame time first: every ease below is time-based, so a 30fps
+      // laptop and a 144Hz monitor settle at the same visible speed
+      // instead of the per-frame factors compounding differently.
+      const frameMs = now - lastNow;
+      const dt = Math.min(0.05, frameMs / 1000);
+      lastNow = now;
+      // Sustained slow frames while the scene is actually in motion
+      // flip lite mode once (sticky). Resume spikes and idle half-rate
+      // frames do not count toward jank.
+      if (!lite && !restful) {
+        if (frameMs > 24 && frameMs < 250) janky = Math.min(90, janky + 1);
+        else janky = Math.max(0, janky - 2);
+        if (janky >= 45) enableLite();
+      }
+      // Fraction of the remaining distance covered this frame, for a
+      // settle time constant of tau seconds.
+      const ease = (tau: number) => 1 - Math.exp(-dt / tau);
+
+      // Smooth the progress itself, then ease positions on top: double
+      // damping means the bubble glides, never jerks. The launch
+      // constants stacked up to over a second of lag, which read as
+      // the bubble being late rather than relaxed; these settle in
+      // roughly half the time.
+      sp += (p - sp) * ease(sm ? 0.26 : 0.32);
 
       const xPct = interp(
         sp,
@@ -384,29 +479,70 @@ function JourneyField() {
       const driftX = Math.sin(t * 0.24) * vw * 0.006;
       const driftY = Math.sin(t * 0.17 + 1.3) * vh * 0.008;
 
-      const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX * (1 - heroBlend) + driftX * heroBlend;
+      const targetX = heroBlend * heroCx + (1 - heroBlend) * xPct * vw + driftX;
       const targetY = heroBlend * heroCy + (1 - heroBlend) * yPct * vh + driftY;
 
-      const ease = sm ? 0.055 : 0.045;
-      cx += (targetX - cx) * ease;
-      cy += (targetY - cy) * ease;
-      cs += (scale - cs) * (ease + 0.007);
+      const posEase = ease(sm ? 0.16 : 0.2);
+      cx += (targetX - cx) * posEase;
+      cy += (targetY - cy) * posEase;
+      cs += (scale - cs) * ease(sm ? 0.14 : 0.17);
 
-      const installRect = document.getElementById("install")?.getBoundingClientRect();
+      // Easter egg physics. Held: the offset chases the pointer
+      // through a rubber band (tanh soft clamp keeps the pull gentle).
+      // Released: an underdamped spring carries it home with a small
+      // wobble. The strings stretch for free; they redraw from the
+      // rendered center every frame.
+      if (dragging) {
+        const wantX = pointerX - grabDx - cx;
+        const wantY = pointerY - grabDy - cy;
+        const want = Math.hypot(wantX, wantY);
+        const maxPull = sm ? 70 : 110;
+        const give = want > 0.001 ? (maxPull * Math.tanh(want / maxPull)) / want : 0;
+        const chase = ease(0.05);
+        const nextOx = ox + (wantX * give - ox) * chase;
+        const nextOy = oy + (wantY * give - oy) * chase;
+        vox = dt > 0 ? (nextOx - ox) / dt : 0;
+        voy = dt > 0 ? (nextOy - oy) / dt : 0;
+        ox = nextOx;
+        oy = nextOy;
+      } else if (ox !== 0 || oy !== 0 || vox !== 0 || voy !== 0) {
+        vox += (-ox * 70 - vox * 9) * dt;
+        voy += (-oy * 70 - voy * 9) * dt;
+        ox += vox * dt;
+        oy += voy * dt;
+        if (Math.hypot(ox, oy) < 0.3 && Math.hypot(vox, voy) < 2) {
+          ox = 0;
+          oy = 0;
+          vox = 0;
+          voy = 0;
+        }
+      }
+      const rx = cx + ox;
+      const ry = cy + oy;
+
+      const installRect = installEl?.getBoundingClientRect();
       const installFade = installRect ? interp(installRect.top, [vh * 0.62, vh * 0.95], [0, 1]) : 1;
       const visible = cs > 0.015 && sp < 0.985;
       bubble.style.opacity = visible ? String(installFade) : "0";
-      bubble.style.transform = `translate(${cx - (base * cs) / 2}px, ${cy - (base * cs) / 2}px)`;
+      bubble.style.transform = `translate(${rx - (base * cs) / 2}px, ${ry - (base * cs) / 2}px)`;
       inner.style.transform = `scale(${cs})`;
+
+      // The catcher only exists while there is a bubble to grab.
+      const wantGrab = visible && installFade > 0.5 && cs > 0.2;
+      if (catcher && wantGrab !== grabbable) {
+        grabbable = wantGrab;
+        catcher.style.pointerEvents = wantGrab ? "auto" : "none";
+        if (!wantGrab) endDrag();
+      }
 
       const ringOpacity = Math.max(0, 1 - Math.abs(sp - 0.955) * 26);
       const ringScale = 1 + Math.max(0, sp - 0.93) * 14;
       ring.style.opacity = String(ringOpacity * 0.8 * installFade);
-      ring.style.transform = `translate(${cx - 40}px, ${cy - 40}px) scale(${ringScale})`;
+      ring.style.transform = `translate(${rx - 40}px, ${ry - 40}px) scale(${ringScale})`;
 
       // Hero bundle to the people.
       ctx.clearRect(0, 0, vw, vh);
-      const gatherY = cy + (base * cs) / 2 - 6;
+      const gatherY = ry + (base * cs) / 2 - 6;
       const peopleAlpha = interp(p, [0.05, 0.14], [1, 0]) * installFade;
       if (peopleAlpha > 0.01) {
         ctx.strokeStyle = `hsl(183 50% 62% / ${0.5 * peopleAlpha})`;
@@ -416,9 +552,9 @@ function JourneyField() {
           const r = el.getBoundingClientRect();
           const px = r.left + r.width / 2;
           const py = r.top + 6;
-          const sx = cx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
+          const sx = rx + (i - (PEOPLE.length - 1) / 2) * 6.5 * cs;
           const sway = Math.sin(t * 0.5 + i * 0.7) * 3;
-          const bx = cx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
+          const bx = rx + (i - (PEOPLE.length - 1) / 2) * 9 + sway;
           const by = gatherY + (py - gatherY) * 0.62;
           ctx.beginPath();
           ctx.moveTo(sx, gatherY);
@@ -430,19 +566,19 @@ function JourneyField() {
       // Two-handed web-slinging: as the bubble travels, a fresh rope
       // shoots out to the next stage while the old one releases and
       // reels home. Both ease and fade; nothing ever cuts.
-      const frameMs = now - lastNow;
-      const dt = Math.min(0.05, frameMs / 1000);
-      lastNow = now;
-      // Sustained slow frames while the scene is actually in motion
-      // flip lite mode once (sticky). Resume spikes and idle half-rate
-      // frames do not count toward jank.
-      if (!lite && !restful) {
-        if (frameMs > 24 && frameMs < 250) janky = Math.min(90, janky + 1);
-        else janky = Math.max(0, janky - 2);
-        if (janky >= 45) enableLite();
-      }
-      const mouthX = cx;
-      const mouthY = cy + (base * cs) / 2 - 8;
+      //
+      // Each rope ties to the point on the rim nearest its target. A
+      // fixed bottom mouth used to send ropes aimed at a stage above
+      // the bubble straight across the glass face.
+      const rimR = Math.max(0, (base * cs) / 2 - 4);
+      const rimX = (aimX: number, aimY: number) => {
+        const d = Math.hypot(aimX - rx, aimY - ry) || 1;
+        return rx + ((aimX - rx) / d) * rimR;
+      };
+      const rimY = (aimX: number, aimY: number) => {
+        const d = Math.hypot(aimX - rx, aimY - ry) || 1;
+        return ry + ((aimY - ry) / d) * rimR;
+      };
       const windowAlpha = interp(sp, [0.05, 0.11, 0.88, 0.94], [0, 1, 1, 0]) * installFade;
 
       let bestI = -1;
@@ -469,13 +605,16 @@ function JourneyField() {
           holding.sx = holding.ex;
           holding.sy = holding.ey;
         }
-        // A free hand shoots the new web.
+        // A free hand shoots the new web from the rim facing it.
         const free = ropes.find((rope) => rope !== holding) ?? ropes[0];
+        const tr = stageRefs.current[bestI]?.getBoundingClientRect();
+        const tx = tr ? tr.left + tr.width / 2 : rx;
+        const ty = tr ? tr.top + tr.height / 2 : ry + rimR;
         free.idx = bestI;
         free.phase = "out";
         free.prog = 0;
-        free.sx = mouthX;
-        free.sy = mouthY;
+        free.sx = rimX(tx, ty);
+        free.sy = rimY(tx, ty);
         activeStage = bestI;
       }
 
@@ -486,8 +625,14 @@ function JourneyField() {
         if (rope.phase === "idle") return;
         const el = rope.idx >= 0 ? stageRefs.current[rope.idx] : null;
         const r = el?.getBoundingClientRect();
-        const axp = r ? r.left + r.width / 2 : mouthX;
-        const ayp = r ? r.top + r.height / 2 : mouthY;
+        const axp = r ? r.left + r.width / 2 : rx;
+        const ayp = r ? r.top + r.height / 2 : ry + rimR;
+        // A reeling rope retracts toward the rim facing where it let
+        // go; a live one ties to the rim facing its stage.
+        const aimX = rope.phase === "reel" ? rope.sx : axp;
+        const aimY = rope.phase === "reel" ? rope.sy : ayp;
+        const tieX = rimX(aimX, aimY);
+        const tieY = rimY(aimX, aimY);
         let alpha = 0.6 * windowAlpha;
 
         if (rope.phase === "out") {
@@ -503,8 +648,8 @@ function JourneyField() {
         } else if (rope.phase === "reel") {
           rope.prog = Math.min(1, rope.prog + dt / 0.45);
           const k = easeInCubic(rope.prog);
-          rope.ex = rope.sx + (mouthX - rope.sx) * k;
-          rope.ey = rope.sy + (mouthY - rope.sy) * k;
+          rope.ex = rope.sx + (tieX - rope.sx) * k;
+          rope.ey = rope.sy + (tieY - rope.sy) * k;
           alpha *= 1 - rope.prog;
           if (rope.prog >= 1) {
             rope.phase = "idle";
@@ -513,12 +658,12 @@ function JourneyField() {
           }
         }
 
-        const midX = (mouthX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
-        const midY = (mouthY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - mouthX) * 0.25);
+        const midX = (tieX + rope.ex) / 2 + Math.sin(t * 0.5 + ri * 1.7) * 5;
+        const midY = (tieY + rope.ey) / 2 + Math.min(90, Math.abs(rope.ex - tieX) * 0.25);
         ctx.strokeStyle = `hsl(183 52% 64% / ${Math.max(0, alpha)})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(mouthX, mouthY);
+        ctx.moveTo(tieX, tieY);
         ctx.quadraticCurveTo(midX, midY, rope.ex, rope.ey);
         ctx.stroke();
       });
@@ -556,8 +701,13 @@ function JourneyField() {
     return () => {
       stopLoop();
       io.disconnect();
+      ro?.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", sizeCanvas);
+      catcher?.removeEventListener("pointerdown", onPointerDown);
+      catcher?.removeEventListener("pointermove", onPointerMove);
+      catcher?.removeEventListener("pointerup", endDrag);
+      catcher?.removeEventListener("pointercancel", endDrag);
     };
   }, [reduced]);
 
@@ -602,6 +752,16 @@ function JourneyField() {
                 <span className="relative flex w-[64%] flex-col">
                   <img src="/logo-lockup.svg" alt="UnClick. Where AI Belongs. Humans welcome." className="w-full" />
                 </span>
+                {/* Grab handle for the easter egg: a circle, so the
+                    square corners never block clicks underneath. The
+                    engine flips pointer-events on only while the
+                    bubble is actually visible. */}
+                <div
+                  ref={dragCatchRef}
+                  className="absolute inset-0 rounded-full"
+                  style={{ pointerEvents: "none", touchAction: "none", cursor: "grab" }}
+                  aria-hidden="true"
+                />
               </div>
             </div>
           </div>
@@ -813,7 +973,7 @@ function JourneyField() {
         <div className="mx-auto min-h-[30svh] max-w-2xl pt-[18svh]">
           <FadeIn>
             <h2 className="text-3xl font-extrabold tracking-[-0.02em] text-heading [text-wrap:balance] sm:text-5xl">
-              Same memory. Same rules. Same{" "}receipts.
+              Same context. Same rules. Same{" "}receipts.
             </h2>
           </FadeIn>
 
@@ -838,15 +998,21 @@ export default function BubbleHome() {
           <div className="relative z-10 mx-auto max-w-3xl">
             <FadeIn>
               <div className="flex justify-center">
-                <Eyebrow>Universal remote for AI</Eyebrow>
+                <Eyebrow>The context layer for every AI</Eyebrow>
               </div>
             </FadeIn>
             <FadeIn delay={0.05}>
               <h1 className="mt-6 text-5xl font-extrabold leading-[1.02] tracking-[-0.025em] text-heading sm:text-7xl">
                 Everyone's AI.
                 <br />
-                <GradientText>One{" "}bubble.</GradientText>
+                <GradientText>One{" "}context.</GradientText>
               </h1>
+            </FadeIn>
+            <FadeIn delay={0.1}>
+              <p className="mx-auto mt-6 max-w-xl text-lg text-body">
+                The bubble holds what your AIs know and how they work together: memory,
+                conversations, boards, receipts. Context they share. Collaboration you can watch.
+              </p>
             </FadeIn>
           </div>
         </section>
