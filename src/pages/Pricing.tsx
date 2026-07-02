@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { useMetaTags } from "@/hooks/useMetaTags";
+import { SITE_STATS } from "@/config/site-stats";
 import { Check, ArrowRight } from "lucide-react";
 
 const TIERS = [
@@ -16,7 +17,7 @@ const TIERS = [
     ctaHref: "#install",
     highlight: false,
     features: [
-      "178+ tools (100 calls/day)",
+      `${SITE_STATS.TOOLS_DISPLAY} tools (100 calls/day)`,
       "Arena browsing",
       "Memory (self-hosted, direct mode)",
       "Passport (5 access entries)",
@@ -86,7 +87,7 @@ const Pricing = () => {
     title: "Pricing - UnClick",
     description: "Free forever for 100 tool calls/day. Pro at $29/mo unlocks unlimited calls, hosted memory, and priority support.",
     ogTitle: "UnClick Pricing - Free to start, Pro when you need it",
-    ogDescription: "Free forever for 100 tool calls/day. Upgrade to Pro for unlimited access across 450+ tools.",
+    ogDescription: `Free forever for 100 tool calls/day. Upgrade to Pro for unlimited access across ${SITE_STATS.TOOLS_DISPLAY} tools.`,
     ogUrl: "https://unclick.world/pricing",
   });
 

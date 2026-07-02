@@ -25,9 +25,22 @@ import { getHeartbeatProtocol } from "./heartbeat-protocol.js";
 import { getCommonSensePassProtocol } from "./commonsensepass-protocol.js";
 import { WORKSPACE_VISIBLE_TOOLS, handleWorkspaceTool } from "./workspace-tool.js";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 
 // Build provenance stamp, set by the release tooling. Do not edit by hand.
 export const BUILD_PROVENANCE = "f4a078b9-a81f-4871-97d2-debdf2b23f2b";
+
+// The version every MCP client sees on `initialize`. Read from package.json
+// (src/ and dist/ are siblings of it) so releases can never leave a stale
+// hardcoded version behind; 0.3.0 was advertised while 0.3.110 shipped.
+const PKG_VERSION: string = (() => {
+  try {
+    const pkg = createRequire(import.meta.url)("../package.json") as { version?: string };
+    return pkg.version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 // ─── Umami tool-usage tracking ──────────────────────────────────────────────
 //
@@ -1927,8 +1940,8 @@ export function createServer(): Server {
   const server = new Server(
     {
       name: "@unclick/mcp-server",
-      version: "0.3.0",
-      description: "AI agent tool marketplace. 60+ tools for social, e-commerce, accounting, and messaging.",
+      version: PKG_VERSION,
+      description: "The universal remote for AI. 650+ apps and 1500+ callable actions across social, e-commerce, accounting, messaging, and more, plus persistent memory.",
       websiteUrl: "https://unclick.world",
       icons: [
         {
@@ -2379,7 +2392,7 @@ export function createServer(): Server {
       if (name === "unclick_search") {
         const query = String(args.query ?? "");
         const results = searchTools(query, args.category as string | undefined);
-        // Also search the full integration surface (803+ tools) with intent/alias
+        // Also search the full integration surface (1600+ tools) with intent/alias
         // routing, so "next train" finds ptv_search, "bitcoin price" finds crypto.
         const toolHits = query ? searchToolIndex(query, 10) : [];
 

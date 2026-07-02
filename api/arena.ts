@@ -418,7 +418,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // GET /v1/arena/problems
   if (urlPath.endsWith('/problems') || urlPath.includes('/problems?')) {
     const query = rawUrl.includes('?') ? new URLSearchParams(rawUrl.split('?')[1]) : null;
-    const limit = Math.min(parseInt(query?.get('limit') ?? '20', 10), 100);
+    // Guard the parse: ?limit=abc (NaN) or a negative limit would otherwise
+    // flow into slice() and return an empty or truncated list.
+    const parsedLimit = parseInt(query?.get('limit') ?? '20', 10);
+    const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 20;
     const status = query?.get('status') ?? null;
 
     let results = PROBLEMS.filter((p) => !status || p.status === status);
@@ -438,7 +441,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET' && urlPath.endsWith('/leaderboard')) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) return json(res, { data: [], message: "Leaderboard unavailable" });
+    // json() already wraps payloads as { data, meta }; passing the array
+    // straight through keeps the client's `res.data` an array.
+    if (!supabaseUrl || !supabaseKey) return json(res, []);
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const [solutionsRes, botsRes] = await Promise.all([
@@ -446,6 +451,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       supabase.from("arena_bots").select("id, name, description, model, created_at"),
     ]);
     if (solutionsRes.error) return res.status(500).json({ error: "Failed to load solutions" });
+    if (botsRes.error) return res.status(500).json({ error: "Failed to load bots" });
 
     const solutions = solutionsRes.data ?? [];
     const bots = botsRes.data ?? [];
@@ -478,7 +484,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }).sort((a, b) => b.total_votes - a.total_votes || b.solution_count - a.solution_count);
     entries.forEach((e, i) => { e.rank = i + 1; });
 
-    return json(res, { data: entries });
+    return json(res, entries);
   }
 
   // ---------------------------------------------------------------------------

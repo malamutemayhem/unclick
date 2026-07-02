@@ -14,7 +14,7 @@ export async function yesNoRandom(args: Record<string, unknown>): Promise<unknow
     let res: Response;
     try {
       res = await fetch(`https://yesno.wtf/api${force}`, {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
         signal: controller.signal,
       });
     } catch (err) {

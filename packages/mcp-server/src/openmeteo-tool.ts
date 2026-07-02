@@ -122,7 +122,7 @@ async function omFetch(url: string): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(url, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

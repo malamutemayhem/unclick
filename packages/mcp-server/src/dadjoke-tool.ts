@@ -15,7 +15,7 @@ async function djFetch<T>(path: string): Promise<T> {
     res = await fetch(`${BASE}${path}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });

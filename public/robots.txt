@@ -1,40 +1,94 @@
-# UnClick: welcome to all crawlers, including AI agents
+# UnClick: welcome to all crawlers, including AI agents.
+# Note: a crawler obeys only its most specific matching group, so every
+# named group repeats the shared Disallow rules. Keep them in sync.
 
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 # AI crawlers: welcome
 User-agent: GPTBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: anthropic-ai
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: YouBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: CCBot
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
+Disallow: /home-preview
+Disallow: /uipass-home-sample
 
 Sitemap: https://unclick.world/sitemap.xml

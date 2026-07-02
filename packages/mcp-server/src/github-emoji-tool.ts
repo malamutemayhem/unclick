@@ -13,7 +13,7 @@ export async function githubEmojis(_args: Record<string, unknown>): Promise<unkn
     let res: Response;
     try {
       res = await fetch("https://api.github.com/emojis", {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)", Accept: "application/json" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)", Accept: "application/json" },
         signal: controller.signal,
       });
     } catch (err) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -496,6 +496,16 @@ export default function HomepageSample() {
       "A sample homepage direction showing UnClick as the patchbay between AI, tools, memory, and safeguards.",
     ogUrl: "https://unclick.world/uipass-home-sample",
   });
+
+  // Keep the sample out of search while it is a design sample, matching
+  // every HomePreview* page; otherwise this indexes as a duplicate homepage.
+  useEffect(() => {
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex";
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground antialiased">

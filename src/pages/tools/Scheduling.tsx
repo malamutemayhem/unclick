@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
@@ -80,18 +81,18 @@ const SchedulingPage = () => (
       </FadeIn>
       <FadeIn delay={0.15}>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <a
-            href="/docs"
+          <Link
+            to="/docs"
             className="rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
           >
             Get Started Free: Scheduling
-          </a>
-          <a
-            href="/docs#scheduling"
+          </Link>
+          <Link
+            to="/docs#scheduling"
             className="rounded-lg border border-border/60 px-5 py-2.5 text-center text-sm font-medium text-heading hover:border-primary/30 transition-colors"
           >
             Full API Reference
-          </a>
+          </Link>
         </div>
       </FadeIn>
 
@@ -151,7 +152,7 @@ const SchedulingPage = () => (
             Subscribe to <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">booking.created</code>,{" "}
             <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">booking.cancelled</code>, and{" "}
             <code className="font-mono text-xs bg-card/50 px-1.5 py-0.5 rounded">booking.rescheduled</code> events
-            via <a href="/docs#webhooks" className="text-primary underline underline-offset-4">the webhooks API</a>.
+            via <Link to="/docs#webhooks" className="text-primary underline underline-offset-4">the webhooks API</Link>.
           </p>
         </div>
       </FadeIn>

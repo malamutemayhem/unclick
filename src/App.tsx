@@ -1,6 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -185,6 +192,24 @@ function HashScrollHandler() {
   return null;
 }
 
+/**
+ * Reset scroll to the top when navigating to a new page. Hash navigations are
+ * owned by HashScrollHandler, and browser back/forward (POP) keeps the
+ * browser's own scroll restoration so returning to a long page lands where
+ * the reader left off. Search-param-only changes (filters, tabs) never scroll.
+ */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  const navigationType = useNavigationType();
+
+  useEffect(() => {
+    if (hash || navigationType === "POP") return;
+    window.scrollTo(0, 0);
+  }, [pathname, hash, navigationType]);
+
+  return null;
+}
+
 /** Quiet, theme-consistent placeholder while a lazy route chunk loads. */
 function RouteFallback() {
   return (
@@ -203,6 +228,7 @@ const App = () => (
       <BrowserRouter>
         <SiteAurora />
         <AnalyticsPageviewTracker />
+        <ScrollToTop />
         <HashScrollHandler />
         <BetaBanner />
         <Suspense fallback={<RouteFallback />}>

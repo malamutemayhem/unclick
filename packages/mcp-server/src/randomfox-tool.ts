@@ -13,7 +13,7 @@ export async function randomFoxImage(_args: Record<string, unknown>): Promise<un
     let res: Response;
     try {
       res = await fetch("https://randomfox.ca/floof/", {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
         signal: controller.signal,
       });
     } catch (err) {

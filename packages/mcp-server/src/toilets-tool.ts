@@ -6,7 +6,7 @@ import { stampMeta } from "./connector-meta.js";
 
 const AU_TOILET_BASE = "https://toiletmap.gov.au/api/getToiletsByRadius";
 const OVERPASS_BASE = "https://overpass-api.de/api/interpreter";
-const FETCH_HEADERS = { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" };
+const FETCH_HEADERS = { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" };
 
 // ─── Haversine distance ───────────────────────────────────────────────────────
 

@@ -11,8 +11,9 @@ import { stampMeta } from "./connector-meta.js";
 const IGDB_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 
-// Simple in-process token cache (resets on restart)
-let cachedToken: { token: string; expires: number } | null = null;
+// In-process token cache (resets on restart), keyed by client id so the
+// multi-tenant hosted process never serves one tenant another's token.
+const tokenCache = new Map<string, { token: string; expires: number }>();
 
 function getCredentials(args: Record<string, unknown>): { clientId: string; clientSecret: string } | NotConnectedResult {
   const clientId = String(args.client_id ?? process.env.IGDB_CLIENT_ID ?? "").trim();
@@ -22,7 +23,8 @@ function getCredentials(args: Record<string, unknown>): { clientId: string; clie
 }
 
 async function getTwitchToken(clientId: string, clientSecret: string): Promise<string> {
-  if (cachedToken && Date.now() < cachedToken.expires) return cachedToken.token;
+  const cached = tokenCache.get(clientId);
+  if (cached && Date.now() < cached.expires) return cached.token;
 
   const IGDB_TIMEOUT_MS = Number(process.env.IGDB_TIMEOUT_MS) || 15000;
   const tokenController = new AbortController();
@@ -52,7 +54,7 @@ async function getTwitchToken(clientId: string, clientSecret: string): Promise<s
   const json = await res.json() as Record<string, unknown>;
   const token = String(json.access_token ?? "");
   const expiresIn = Number(json.expires_in ?? 3600);
-  cachedToken = { token, expires: Date.now() + (expiresIn - 60) * 1000 };
+  tokenCache.set(clientId, { token, expires: Date.now() + (expiresIn - 60) * 1000 });
   return token;
 }
 
@@ -87,7 +89,7 @@ async function igdbPost(
     clearTimeout(timer);
   }
   if (res.status === 401) {
-    cachedToken = null;
+    tokenCache.delete(clientId);
     throw new Error("IGDB token expired or invalid. Try again.");
   }
   if (res.status === 429) throw new Error("IGDB rate limit exceeded.");

@@ -106,6 +106,29 @@ describe("vibe coding page links only to real destinations", () => {
   });
 });
 
+describe("catalog counts come from SITE_STATS, never hand-typed", () => {
+  // The 2026-07-02 audit found three different tool counts live at once
+  // (homepage 450+/178+, /why 900+/200+, /apps 1606/675). Pages must read
+  // SITE_STATS so the claim moves in one place.
+  it.each(["src/pages/Why.tsx", "src/pages/Pricing.tsx", "src/pages/Dispatch.tsx"])(
+    "%s imports SITE_STATS and hand-types no NNN+ tool/app/action claims",
+    (page) => {
+      const src = read(page);
+      expect(src).toContain("SITE_STATS");
+      expect(src).not.toMatch(/\d{3,}\+ (tools|apps|actions|endpoints|MCP Tools)/);
+    },
+  );
+
+  it("static surfaces carry no counts from retired generations", () => {
+    for (const file of ["index.html", "public/llms.txt", "scripts/prerender-routes.mjs"]) {
+      const src = read(file);
+      expect(src, `${file} still claims 178+`).not.toContain("178+");
+      expect(src, `${file} still claims 450+`).not.toContain("450+");
+      expect(src, `${file} still claims 900+`).not.toContain("900+");
+    }
+  });
+});
+
 describe("crews page does not argue with itself", () => {
   const src = read("src/pages/Crews.tsx");
 

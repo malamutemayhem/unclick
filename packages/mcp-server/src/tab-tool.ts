@@ -19,7 +19,7 @@ async function tabGet(path: string, params?: Record<string, string>): Promise<un
     res = await fetch(`${TAB_BASE}${path}${qs}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });

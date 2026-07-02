@@ -30,6 +30,16 @@ function mcpUrl(key: string) {
   return `${MCP_ORIGIN}?key=${key}`;
 }
 
+/** localStorage writes throw in some private/locked-down browsers; the flows
+ *  here must still complete without persistence. Reads are already guarded. */
+function safeStore(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* Continue without persistence. */
+  }
+}
+
 function maskPrivateValue(value: string) {
   return value.replace(/uc_[A-Za-z0-9_-]{8,}/g, (key) => `${key.slice(0, 6)}...${key.slice(-4)}`);
 }
@@ -60,7 +70,13 @@ function CopyField({
   const displayValue = privateValue ? maskPrivateValue(value) : value;
 
   async function copy() {
-    await navigator.clipboard.writeText(value);
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Clipboard access can be blocked (permissions, insecure context).
+      // Leave the value selectable rather than crashing the click.
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   }
@@ -162,7 +178,7 @@ const InstallSection = () => {
 
     setBusy("magic");
     try {
-      localStorage.setItem(EMAIL_KEY, trimmed);
+      safeStore(EMAIL_KEY, trimmed);
       await signInWithMagicLink(trimmed, "/admin/you");
       setMessage(`Check your email. We sent a sign-in link to ${trimmed}.`);
     } catch (err) {
@@ -181,8 +197,8 @@ const InstallSection = () => {
     setBusy("fallback");
     try {
       const newKey = await requestCompatibilityKey(trimmed);
-      localStorage.setItem(EMAIL_KEY, trimmed);
-      localStorage.setItem(STORAGE_KEY, newKey);
+      safeStore(EMAIL_KEY, trimmed);
+      safeStore(STORAGE_KEY, newKey);
       setApiKey(newKey);
       setMessage("Static address ready. Keep it private and use it only when browser sign-in fails.");
     } catch (err) {

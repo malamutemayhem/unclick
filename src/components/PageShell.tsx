@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import FadeIn from "@/components/FadeIn";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -97,20 +98,28 @@ const PageShell = ({
             {cta && (
               <FadeIn delay={0.15}>
                 <div className="mt-10 flex justify-center">
-                  <a
-                    href={cta.href}
-                    onClick={(e) => {
-                      if (cta.href.startsWith("#")) {
-                        e.preventDefault();
-                        document
-                          .getElementById(cta.href.slice(1))
-                          ?.scrollIntoView({ behavior: "smooth" });
-                      }
-                    }}
-                    className={presets.ctaPrimary}
-                  >
-                    {cta.label}
-                  </a>
+                  {cta.href.startsWith("/") ? (
+                    // Internal destinations stay client-side; a raw anchor
+                    // here would hard-reload the SPA on the page's only CTA.
+                    <Link to={cta.href} className={presets.ctaPrimary}>
+                      {cta.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={cta.href}
+                      onClick={(e) => {
+                        if (cta.href.startsWith("#")) {
+                          e.preventDefault();
+                          document
+                            .getElementById(cta.href.slice(1))
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
+                      className={presets.ctaPrimary}
+                    >
+                      {cta.label}
+                    </a>
+                  )}
                 </div>
               </FadeIn>
             )}

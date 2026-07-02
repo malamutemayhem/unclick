@@ -29,7 +29,7 @@ async function troveGet(
   let res: Response;
   try {
     res = await fetch(`${TROVE_BASE}${path}?${qs}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

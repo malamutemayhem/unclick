@@ -508,7 +508,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { api_key_hash: XGATE_SETTINGS_KEY, mode, updated_at: new Date().toISOString() },
           { onConflict: "api_key_hash" },
         );
-      if (retry.error) return json(res, 503, { error: "Could not save XGate mode", detail: error.message });
+      if (retry.error) return json(res, 503, { error: "Could not save XGate mode", detail: retry.error.message });
       settingsCache = { settings: { mode, gateModes: {} }, at: Date.now() };
       return json(res, 200, { mode, gateModes: {}, gateModesPersisted: false });
     }

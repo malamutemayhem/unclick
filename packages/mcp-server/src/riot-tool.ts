@@ -43,7 +43,7 @@ async function riotFetch<T>(
     res = await fetch(url, {
       headers: {
         "X-Riot-Token": apiKey,
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });

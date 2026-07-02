@@ -52,11 +52,16 @@ const BrochurePage = ({ slug }: { slug: BrochureSlug }) => {
             {(page.primaryCta || page.secondaryCta) && (
               <FadeIn delay={0.15}>
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                  {page.primaryCta && (
-                    <a href={page.primaryCta.href} className={presets.ctaPrimary}>
-                      {page.primaryCta.label}
-                    </a>
-                  )}
+                  {page.primaryCta &&
+                    (page.primaryCta.href.startsWith("/") ? (
+                      <Link to={page.primaryCta.href} className={presets.ctaPrimary}>
+                        {page.primaryCta.label}
+                      </Link>
+                    ) : (
+                      <a href={page.primaryCta.href} className={presets.ctaPrimary}>
+                        {page.primaryCta.label}
+                      </a>
+                    ))}
                   {page.secondaryCta && (
                     <Link to={page.secondaryCta.href} className={presets.ctaGhost}>
                       {page.secondaryCta.label}

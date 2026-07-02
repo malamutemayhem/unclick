@@ -10,7 +10,9 @@ import { Link } from "react-router-dom";
 const PRODUCT_LINKS = [
   { label: "Apps", href: "/apps" },
   { label: "Memory", href: "/memory" },
-  { label: "Connections", href: "/admin/keychain" },
+  // Public brochure for Connections (Passport). The signed-in surface lives
+  // at /admin/keychain, which would bounce logged-out visitors to a login wall.
+  { label: "Connections", href: "/passport" },
   { label: "XPass", href: "/xpass" },
 ];
 

@@ -47,7 +47,7 @@ async function rebrickableFetch<T>(
     res = await fetch(url.toString(), {
       headers: {
         Authorization: `key ${apiKey}`,
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });
@@ -255,7 +255,7 @@ async function bricksetFetch(
   let res: Response;
   try {
     res = await fetch(url.toString(), {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

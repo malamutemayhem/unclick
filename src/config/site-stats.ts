@@ -1,12 +1,14 @@
 // SINGLE SOURCE OF TRUTH for all site-wide statistics
 // Update these numbers here and they propagate everywhere
-// Last updated: 2026-05-01
+// Last updated: 2026-07-02 (audited against src/data/app-catalog.generated.json:
+// 675 apps, 1606 callable actions). Public claims round DOWN so the live /apps
+// page (catalog minus apps pulled by failed tests) always shows at least this.
 
 export const SITE_STATS = {
   // Tool counts
   TOOL_GROUPS: 21,           // Number of tool groups in the hosted API catalog
-  TOOL_FILES: 178,           // Number of tool files in the repo
-  CALLABLE_ENDPOINTS: 450,   // Total callable endpoints across all tools
+  TOOL_FILES: 650,           // Apps/connectors public claim (catalog: 675)
+  CALLABLE_ENDPOINTS: 1500,  // Callable actions public claim (catalog: 1606)
 
   // Passport
   BACKSTAGEPASS_PLATFORMS: 20, // Number of supported platform connectors

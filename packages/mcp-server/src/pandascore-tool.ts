@@ -39,7 +39,7 @@ async function pandascoreFetch<T>(
     res = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${token}`,
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });

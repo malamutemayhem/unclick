@@ -17,7 +17,7 @@ async function radioFetch(path: string, params?: URLSearchParams): Promise<unkno
   try {
     res = await fetch(url, {
       headers: {
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
         "Accept": "application/json",
       },
       signal: controller.signal,

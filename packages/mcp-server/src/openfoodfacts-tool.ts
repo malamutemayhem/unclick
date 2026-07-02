@@ -15,7 +15,7 @@ async function offFetch<T>(url: string): Promise<T> {
   let res: Response;
   try {
     res = await fetch(url, {
-      headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.io)" },
+      headers: { "User-Agent": "UnClick-MCP/1.0 (mcp@unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

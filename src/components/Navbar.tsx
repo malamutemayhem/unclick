@@ -196,12 +196,21 @@ const Navbar = () => {
               >
                 Log in
               </Link>
-              <a
-                href={installHref}
-                className="hidden min-h-9 items-center whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
-              >
-                Get started
-              </a>
+              {isHome ? (
+                <a
+                  href={installHref}
+                  className="hidden min-h-9 items-center whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
+                >
+                  Get started
+                </a>
+              ) : (
+                <Link
+                  to={installHref}
+                  className="hidden min-h-9 items-center whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
+                >
+                  Get started
+                </Link>
+              )}
             </>
           )}
 
@@ -311,13 +320,23 @@ const Navbar = () => {
                     >
                       Log in
                     </Link>
-                    <a
-                      href={installHref}
-                      onClick={() => setOpen(false)}
-                      className="mt-2 rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
-                    >
-                      Get started
-                    </a>
+                    {isHome ? (
+                      <a
+                        href={installHref}
+                        onClick={() => setOpen(false)}
+                        className="mt-2 block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                      >
+                        Get started
+                      </a>
+                    ) : (
+                      <Link
+                        to={installHref}
+                        onClick={() => setOpen(false)}
+                        className="mt-2 block rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
+                      >
+                        Get started
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
