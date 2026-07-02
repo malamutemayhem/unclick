@@ -311,7 +311,7 @@ describe("AdminOrchestratorPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Today's running story" })).toBeInTheDocument();
     expect(screen.getByText("Timeline")).toBeInTheDocument();
-    expect(screen.getByLabelText("Native notes")).not.toBeChecked();
+    expect(screen.getByLabelText("Source notes")).not.toBeChecked();
     expect(screen.getByText("Worker Health Stays Visible")).toBeInTheDocument();
     expect(screen.getAllByText(/A handoff stalled around/i).length).toBeGreaterThan(0);
     expect(screen.getByText("A Decision Sets Direction")).toBeInTheDocument();
@@ -432,7 +432,7 @@ describe("AdminOrchestratorPage", () => {
 
     expect(await screen.findByText("Continuity Feed")).toBeInTheDocument();
     expect(screen.getByLabelText("Plain-language view")).toBeChecked();
-    expect(screen.getByLabelText("Dripfeed Education")).toBeChecked();
+    expect(screen.getByLabelText("Learning hints")).toBeChecked();
     expect(screen.getByLabelText("Analogies")).toBeChecked();
     expect(screen.getByPlaceholderText("Filter Orchestrator feed")).toBeInTheDocument();
     expect(

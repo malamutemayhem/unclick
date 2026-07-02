@@ -845,7 +845,7 @@ function storyNarrativeForMoment(
   if (kind === "ask") {
     return [
       `You asked: ${subject}.`,
-      "The important part is the shape of the request: keep the page readable, keep the trail continuous, and make the next step obvious without turning the story into raw machinery.",
+      "The important part is the shape of the request: keep the page readable, keep the trail continuous, and make the next step obvious without turning the story into a wall of technical notes.",
     ].join(" ");
   }
 
@@ -884,7 +884,7 @@ function storyNarrativeForMoment(
   if (kind === "handoff") {
     return [
       `A handoff moved through the system: ${subject}.`,
-      "The story keeps the human version of that movement, while Timeline keeps the exact packet and source details for anyone checking the machinery.",
+      "The story keeps the human version of that movement, while Timeline keeps the exact packet and source details for anyone who wants to check them.",
       nearby.trim(),
     ].filter(Boolean).join(" ");
   }
@@ -967,7 +967,7 @@ function storyBeatNarrative(
     }
     return [
       ask ? `The thread was pulled back to the real question: ${ask}.` : "The thread was pulled back to the real question.",
-      "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the machinery.",
+      "That set the tone for the next push: fewer vague updates, more useful todos, cleaner proof, and a page that tells the actual story instead of repeating the same technical updates.",
       "The room stayed pointed at the next action rather than another round of describing the same problem. ✅",
     ].join(" ");
   }
@@ -986,7 +986,7 @@ function storyBeatNarrative(
     return [
       prMatches ? `The Orchestrator Story work moved forward around ${prMatches}.` : "The Orchestrator Story work moved forward.",
       "Story is becoming the friendly front door, with Timeline holding the raw receipts underneath for anyone who needs the exact trail.",
-      "The shape is clearer now: the operator should be able to read the day like a running account, with enough context to understand why each moment mattered, while the machine notes stay tucked away for proof. ✅",
+      "The shape is clearer now: the operator should be able to read the day like a running account, with enough context to understand why each moment mattered, while the source notes stay tucked away for proof. ✅",
     ].join(" ");
   }
 
@@ -1382,7 +1382,7 @@ function OrchestratorStoryPanel({
               onChange={(event) => toggleNativeNotes(event.target.checked)}
               className="h-3.5 w-3.5 accent-[#61C1C4]"
             />
-            Native notes
+            Source notes
           </label>
         </div>
       </div>
@@ -1424,7 +1424,7 @@ function OrchestratorStoryPanel({
                   </p>
                   {nativeNotes && (
                     <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-xs leading-6 text-white/42">
-                      <div className="mb-2 font-medium text-white/55">Native notes from this chapter</div>
+                      <div className="mb-2 font-medium text-white/55">Source notes from this chapter</div>
                       <ul className="space-y-1">
                         {chapter.nativeNotes.map((note) => (
                           <li key={note}>{note}</li>
@@ -1668,7 +1668,7 @@ function OrchestratorContinuityPanel({
           <span>
             <span className="block text-xs font-medium text-white/75">Plain-language view</span>
             <span className="block text-[10px] text-white/35">
-              {easyRead ? "Friendly layer on" : "Natural context view"}
+              {easyRead ? "Simple English on" : "Showing the exact saved notes"}
             </span>
           </span>
           <input
@@ -1684,58 +1684,59 @@ function OrchestratorContinuityPanel({
         </label>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-5 py-3 text-xs text-white/55">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-white/35">Sources</span>
-        {SOURCE_VISIBILITY_FILTERS.map((filter) => {
-          const selected = filter.value === sourceVisibility;
-          return (
-            <button
-              key={filter.value}
-              type="button"
-              aria-label={`${filter.label} sources`}
-              aria-pressed={selected}
-              onClick={() => updateSourceVisibility(filter.value)}
-              className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition ${
-                selected
-                  ? "border-[#61C1C4]/35 bg-[#61C1C4]/15 text-[#A9EEF0]"
-                  : "border-white/[0.06] bg-white/[0.03] text-white/45 hover:border-white/[0.12] hover:text-white/70"
-              }`}
-            >
-              {filter.label}
-            </button>
-          );
-        })}
-        {sourceVisibility !== "all" && (
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white/[0.06] px-5 py-3 text-xs text-white/55">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-white/35">Sources</span>
+          {SOURCE_VISIBILITY_FILTERS.map((filter) => {
+            const selected = filter.value === sourceVisibility;
+            return (
+              <button
+                key={filter.value}
+                type="button"
+                aria-label={`${filter.label} sources`}
+                aria-pressed={selected}
+                onClick={() => updateSourceVisibility(filter.value)}
+                className={`rounded-md border px-2.5 py-1.5 text-[11px] font-medium transition ${
+                  selected
+                    ? "border-[#61C1C4]/35 bg-[#61C1C4]/15 text-[#A9EEF0]"
+                    : "border-white/[0.06] bg-white/[0.03] text-white/45 hover:border-white/[0.12] hover:text-white/70"
+                }`}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+          {sourceVisibility !== "all" && (
+            <span className="text-[11px] text-white/30">
+              {sourceVisibleCount} loaded event{sourceVisibleCount === 1 ? "" : "s"} in this source view.
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="inline-flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              aria-label="Learning hints"
+              checked={dripfeedEducation}
+              onChange={(event) => toggleDripfeedEducation(event.target.checked)}
+              className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
+            />
+            <span>Learning hints</span>
+          </label>
+          <label className="inline-flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              aria-label="Analogies"
+              checked={analogies}
+              onChange={(event) => toggleAnalogies(event.target.checked)}
+              className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
+            />
+            <span>Analogies</span>
+          </label>
           <span className="text-[11px] text-white/30">
-            {sourceVisibleCount} loaded event{sourceVisibleCount === 1 ? "" : "s"} in this source view.
+            Adds small helper notes in Plain-language view.
           </span>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 border-b border-white/[0.06] px-5 py-3 text-xs text-white/55">
-        <label className="inline-flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            aria-label="Dripfeed Education"
-            checked={dripfeedEducation}
-            onChange={(event) => toggleDripfeedEducation(event.target.checked)}
-            className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
-          />
-          <span>Dripfeed Education</span>
-        </label>
-        <label className="inline-flex cursor-pointer items-center gap-2">
-          <input
-            type="checkbox"
-            aria-label="Analogies"
-            checked={analogies}
-            onChange={(event) => toggleAnalogies(event.target.checked)}
-            className="h-4 w-4 rounded border-white/[0.12] bg-white/[0.06] accent-[#61C1C4]"
-          />
-          <span>Analogies</span>
-        </label>
-        <span className="text-[11px] text-white/30">
-          These only add friendly hints in Plain-language view.
-        </span>
+        </div>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
@@ -1744,8 +1745,8 @@ function OrchestratorContinuityPanel({
         )}
         {!loading && events.length === 0 && (
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-6 text-white/55">
-            No continuity events are available yet. Ask a connected AI seat to save a session, post to Boardroom,
-            or run the UnClick heartbeat so Orchestrator has something to show.
+            Nothing is saved here yet. Ask a connected AI seat to save a session, post to Boardroom,
+            or run the UnClick heartbeat. New events will show up here.
           </div>
         )}
         {!loading && events.length > 0 && filteredEventViews.length === 0 && (
@@ -1789,12 +1790,12 @@ function OrchestratorContinuityPanel({
               </button>
             ) : (
               <span className="text-[11px] text-white/30">
-                End of loaded Orchestrator history.
+                You are at the end of the loaded history.
               </span>
             )}
             {!trimmedSearchQuery && (
               <span className="text-[10px] text-white/25">
-                Loaded depth: {events.length} events from a {contextLimit}-row source window.
+                {events.length} events loaded so far.
               </span>
             )}
           </div>
@@ -1865,7 +1866,7 @@ function ContinuityFeedRow({
         </div>
       </div>
       {easyRead && (
-        <p className="sr-only">AI-native natural context: {event.summary}</p>
+        <p className="sr-only">Full saved note: {event.summary}</p>
       )}
       <p className="text-sm leading-6 text-white/70">
         {highlightSearchText(visibleMainText, searchQuery)}
@@ -1874,14 +1875,14 @@ function ContinuityFeedRow({
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="mt-2 rounded-md border border-[#61C1C4]/20 bg-[#61C1C4]/5 px-2 py-1 text-[11px] font-medium text-[#A9EEF0] hover:border-[#61C1C4]/35 hover:bg-[#61C1C4]/10"
+          className="mt-2 text-xs font-medium text-[#61C1C4] transition-colors hover:text-[#8ee3e6]"
         >
           {expanded ? "Show less" : "Show more"}
         </button>
       )}
       {easyRead && (
         <p className="mt-2 rounded-lg border border-white/[0.05] bg-white/[0.03] px-2 py-1.5 text-[11px] leading-4 text-white/35">
-          Natural context for AI: {highlightSearchText(visibleNaturalText, searchQuery)}
+          Exact saved note: {highlightSearchText(visibleNaturalText, searchQuery)}
         </p>
       )}
       {showFriendlyExtras && dripfeedEducation && (
@@ -2019,7 +2020,7 @@ function OrchestratorContextCard({
             />
           ))}
           {context.continuity_events.length === 0 && (
-            <p className="text-xs text-white/35">No continuity events loaded.</p>
+            <p className="text-xs text-white/35">No recent activity loaded.</p>
           )}
         </ContextSection>
 
