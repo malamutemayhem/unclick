@@ -1,4 +1,4 @@
-// File Workspace ("Large-PR Room") MCP tool surface - Increment 2.
+// File Workspace ("Large-PR Room") MCP tool surface.
 //
 // A thin, dependency-free proxy to the deployed /api/workspace endpoint so
 // agents can stage a large file as many small chunks and then push it to git BY
@@ -6,8 +6,17 @@
 // ~600KB inline-push wall). The endpoint resolves the caller's stored GitHub
 // credential from their UnClick key, so there are no keys at the user's end.
 // See docs/prd/unclick-file-workspace.md and api/workspace.ts.
+//
+// Hardening: every call is bounded by an AbortController timeout so a hung
+// /api/workspace (the push step does git blob/tree/commit work and can stall
+// on a large tree) can never hang the agent. Aborts surface as a clean error.
 
 type ToolResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
+
+// Per-call timeouts. push does real git Data API work (blobs, tree, commit,
+// ref) and is allowed longer; put/list are cheap.
+const PUT_LIST_TIMEOUT_MS = 30_000;
+const PUSH_TIMEOUT_MS = 120_000;
 
 function workspaceBase(): string {
   return (
@@ -15,6 +24,25 @@ function workspaceBase(): string {
     process.env.UNCLICK_MEMORY_BASE_URL ||
     "https://unclick.world"
   ).replace(/\/$/, "");
+}
+
+/**
+ * fetch with an AbortController deadline. Clears the timer on settle so a fast
+ * response never leaves a dangling timeout. Throws an AbortError on timeout,
+ * which handleWorkspaceTool turns into a readable message.
+ */
+async function fetchWithTimeout(
+  url: string,
+  init: { method: string; headers: Record<string, string>; body?: string },
+  ms: number,
+) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const WORKSPACE_VISIBLE_TOOLS = [
@@ -109,20 +137,28 @@ export async function handleWorkspaceTool(
   try {
     if (name === "workspace_list") {
       const wid = encodeURIComponent(String(args.workspace_id ?? ""));
-      const resp = await fetch(`${base}/api/workspace?workspace_id=${wid}`, { method: "GET", headers });
+      const resp = await fetchWithTimeout(
+        `${base}/api/workspace?workspace_id=${wid}`,
+        { method: "GET", headers },
+        PUT_LIST_TIMEOUT_MS,
+      );
       return result(await resp.json().catch(() => ({})), !resp.ok);
     }
 
     const action = name === "workspace_put" ? "put" : "push";
-    const resp = await fetch(`${base}/api/workspace?action=${action}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(args),
-    });
+    const resp = await fetchWithTimeout(
+      `${base}/api/workspace?action=${action}`,
+      { method: "POST", headers, body: JSON.stringify(args) },
+      action === "push" ? PUSH_TIMEOUT_MS : PUT_LIST_TIMEOUT_MS,
+    );
     return result(await resp.json().catch(() => ({})), !resp.ok);
   } catch (e) {
-    return result({ error: e instanceof Error ? e.message : "workspace call failed" }, true);
+    const msg =
+      e instanceof Error && e.name === "AbortError"
+        ? `Workspace ${name} timed out. The endpoint may be slow or the file very large; retry, or split into more chunks.`
+        : e instanceof Error
+          ? e.message
+          : "workspace call failed";
+    return result({ error: msg }, true);
   }
 }
-
-// Increment 2: registered into server.ts via the wire-workspace-room workflow.
