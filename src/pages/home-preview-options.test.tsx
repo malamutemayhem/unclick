@@ -18,6 +18,7 @@ import HomePreviewO from "./HomePreviewO";
 import HomePreviewP from "./HomePreviewP";
 import HomePreviewQ from "./HomePreviewQ";
 import HomePreviewR from "./HomePreviewR";
+import HomePreviewS from "./HomePreviewS";
 
 vi.mock("@/lib/auth", () => ({
   useSession: () => ({ session: null }),
@@ -49,7 +50,8 @@ const OPTIONS = [
   { id: "o", Page: HomePreviewO, signature: /Flip one/ },
   { id: "p", Page: HomePreviewP, signature: /new\s?dock\./ },
   { id: "q", Page: HomePreviewQ, signature: /Every tool\./ },
-  { id: "r", Page: HomePreviewR, signature: /One\s?bubble\./ },
+  { id: "r", Page: HomePreviewR, signature: /One\s?context\./ },
+  { id: "s", Page: HomePreviewS, signature: /One memory\./ },
 ] as const;
 
 function renderPage(Page: React.ComponentType) {
