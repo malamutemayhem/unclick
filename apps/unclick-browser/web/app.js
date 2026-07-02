@@ -30,17 +30,36 @@
   // Native shows it. liveOk flips off permanently if it cannot be created,
   // and every path then falls back to the fetch-and-read pipeline.
   var liveOk = !!invoke;
-  var live = { ready: false, visible: false, tabId: 0, token: 0, url: "" };
+  var live = { ready: false, visible: false, tabId: 0, token: 0, url: "", parked: false };
 
   function showProgress(on) { document.body.classList.toggle("loading", !!on); }
 
   function sendLiveBounds(visible) {
     live.visible = !!visible;
-    if (!invoke || !live.ready) return;
+    if (!invoke || !live.ready) return;   // re-applied by applyWantedBounds once ready
     var r = mainEl.getBoundingClientRect();
     invoke("live_bounds", { x: r.left, y: r.top, w: r.width, h: r.height, visible: !!visible }).catch(function () {});
   }
+  function applyWantedBounds() { sendLiveBounds(live.visible); }
   window.addEventListener("resize", function () { if (live.visible) sendLiveBounds(true); });
+
+  // Park the live page (about:blank) once Zen has a good read and the user is
+  // not watching it live, so background ads and timers stop costing CPU. Any
+  // navigation or flip to Native brings it straight back.
+  var parkTimer = null;
+  function scheduleLivePark() {
+    if (parkTimer) clearTimeout(parkTimer);
+    if (!liveOk) return;
+    parkTimer = setTimeout(function () {
+      parkTimer = null;
+      var t = activeTab();
+      if (!live.ready || live.visible || live.parked) return;
+      if (t && t.mode === "native") return;
+      if (t && t.pending) return;
+      live.parked = true;
+      invoke("live_navigate", { url: "about:blank" }).catch(function () {});
+    }, 30000);
+  }
 
   // ---------- persistence: tiny JSON blobs in localStorage, zero deps ----------
   function readStore(key, fallback) {
@@ -496,6 +515,7 @@
     setMode("zen");
     sendLiveBounds(false);
     showProgress(false);
+    scheduleLivePark();
     reader.innerHTML =
       '<div class="welcome">' +
       '<p class="kicker">UnClick / Browser</p>' +
@@ -687,6 +707,7 @@
       t.zenGood = 1;
       if (t.zenWait) { clearTimeout(t.zenWait); t.zenWait = null; }
       showProgress(false);
+      scheduleLivePark();
       return;
     }
     var built = buildReader(t.html, t.final || t.url);
@@ -727,6 +748,7 @@
     if (t.zenWait) { clearTimeout(t.zenWait); t.zenWait = null; }
     setStatus("");
     showProgress(false);
+    scheduleLivePark();
     bindLinks();
     scrollTop();
     prefetchImageSizes();
@@ -799,21 +821,37 @@
   function renderNative(t) {
     // Preferred: the embedded REAL webview. Real cookies, real scripts, real
     // logins and captchas - google and friends genuinely work here.
-    if (liveOk && live.ready && t.viaLive) {
+    if (liveOk && t.viaLive) {
       setMode("native");
+      if (parkTimer) { clearTimeout(parkTimer); parkTimer = null; }
       reader.innerHTML = "";
-      if (live.tabId !== t.id) {
+      if (live.tabId !== t.id || live.parked) {
         live.tabId = t.id;
         live.token = t.loadSeq || 0;
+        live.parked = false;
         invoke("live_navigate", { url: t.final || t.url }).catch(function () {});
       }
       setStatus("");
       showProgress(false);
       sendLiveBounds(true);
       scrollTop();
+      // If the live view never comes up on this machine, fall back to the
+      // sandboxed copy rather than leaving an empty pane.
+      if (!live.ready) {
+        var tk = t.loadSeq;
+        setTimeout(function () {
+          if (live.ready) return;
+          if (t.id !== activeId || t.mode !== "native" || t.loadSeq !== tk) return;
+          renderNativeFrame(t);
+        }, 3500);
+      }
       return;
     }
-    // Fallback (live view unavailable): the sandboxed copy, as before.
+    renderNativeFrame(t);
+  }
+
+  // Fallback native view (live webview unavailable): the sandboxed copy.
+  function renderNativeFrame(t) {
     if (isWebApp(t.host, t.html)) { renderUnsupported(t); return; }
     setMode("native");
     sendLiveBounds(false);
@@ -1066,34 +1104,36 @@
       showProgress(false);
       if (t.id === activeId) setStatus("That page took too long to load. Press Ctrl+R to try again.");
     }, LOAD_TIMEOUT_MS);
-    // Live-first: load the real page in the embedded webview; Zen renders from
-    // the DOM snapshots it streams (onLiveDom). If the live view cannot start,
-    // fall back to the fetch-and-read pipeline for good.
+    // Race both engines. The quick fetch usually paints first (snappy), the
+    // live webview loads the REAL page in parallel and upgrades the read with
+    // the rendered DOM when it lands. If either engine is dead on this
+    // machine, the other one still delivers - no path can hang on "Loading".
     if (liveOk) {
       t.viaLive = 1;
       live.tabId = t.id;
       live.token = token;
+      live.parked = false;
       invoke("live_navigate", { url: url }).then(function () {
         live.ready = true;
+        applyWantedBounds();
       }).catch(function () {
         liveOk = false;
-        if (t.loadSeq !== token) return;
-        t.viaLive = 0;
-        goFetch(t, url, token, watchdog);
+        if (t.loadSeq === token) t.viaLive = 0;
       });
-    } else {
-      goFetch(t, url, token, watchdog);
     }
+    goFetch(t, url, token, watchdog);
   }
 
   function goFetch(t, url, token, watchdog) {
     invoke("fetch_url", { url: url }).then(function (page) {
+      if (t.loadSeq !== token || !t.pending) return;   // live already painted, or stale
       clearTimeout(watchdog);
-      if (t.loadSeq !== token || !t.pending) return;
       t.pending = false;
       t.html = (page && page.html) || "";
       t.final = (page && page.final_url) || url;
       t.rendered = 0;                     // fresh load may try the render pass again
+      t.paintSource = "fetch";
+      t.paintedAt = Date.now();
       var metaDoc = new DOMParser().parseFromString(t.html, "text/html");
       t.title = pageTitle(metaDoc) || hostOf(t.final);
       t.host = hostOf(t.final);
@@ -1105,20 +1145,28 @@
       recordHistory(t);
       saveSession();
     }).catch(function (err) {
-      clearTimeout(watchdog);
       if (t.loadSeq !== token || !t.pending) return;
+      // The live engine may still deliver this page; only surface the failure
+      // when nothing else is coming (the watchdog covers total silence).
+      if (t.viaLive) return;
+      clearTimeout(watchdog);
       t.pending = false;
       showProgress(false);
       if (t.id === activeId) setStatus("Could not load that page. " + (err && err.toString ? err.toString() : ""));
     });
   }
 
-  // A DOM snapshot streamed from the live webview. The first one for a load
-  // settles the tab; later ones upgrade the Zen read until it is good.
+  // A DOM snapshot streamed from the live webview. The first paint for a load
+  // wins the race; later snapshots upgrade the read: always when the current
+  // read is poor, and within a short window when the quick fetch painted
+  // first (so real rendered links replace the server shell's before the user
+  // has settled into reading).
   function onLiveDom(ev) {
     var p = ev && ev.payload;
     if (!p || !p.html) return;
+    if (String(p.url || "").indexOf("about:") === 0) return;   // parked page, ignore
     live.ready = true;                    // a snapshot proves the live view exists
+    applyWantedBounds();
     var t = null;
     for (var i = 0; i < tabs.length; i++) if (tabs[i].id === live.tabId) t = tabs[i];
     if (!t || t.loadSeq !== live.token) return;
@@ -1132,12 +1180,19 @@
     t.favicon = faviconOf(metaDoc, t.final);
     if (first) {
       t.mode = nativeLock ? "native" : "zen";
+      t.paintSource = "live";
+      t.paintedAt = Date.now();
       recordHistory(t);
       saveSession();
       if (t.id === activeId) { renderActive(); syncChrome(); }
       renderTabs();
-    } else if (!t.zenGood && t.mode === "zen") {
-      // The page kept hydrating; re-distill with the richer DOM.
+      return;
+    }
+    if (t.mode !== "zen") { renderTabs(); return; }
+    var upgrade = !t.zenGood ||
+      (t.paintSource === "fetch" && (Date.now() - (t.paintedAt || 0)) < 4000);
+    if (upgrade) {
+      t.paintSource = "live";
       if (t.id === activeId) { renderActive(); syncChrome(); }
       renderTabs();
     }
@@ -1276,7 +1331,18 @@
   }
 
   // Start where you left off; first run gets one Zen tab on the welcome screen.
+  // The window paints immediately; a restored tab starts loading a beat later
+  // so launch never feels blocked on the network.
   if (!restoreSession()) newTab();
   renderTabs();
-  showActive();
+  var bootTab = activeTab();
+  if (bootTab && bootTab.url && !bootTab.html) {
+    setMode("zen");
+    reader.innerHTML = "";
+    setStatus("Loading " + bootTab.url + " ...");
+    syncChrome();
+    setTimeout(showActive, 250);
+  } else {
+    showActive();
+  }
 })();

@@ -144,11 +144,12 @@ const LIVE_SNAPSHOT_JS: &str = r#"
       window.__TAURI__.event.emit("ucb-live-dom", { url: location.href, html: html.slice(0, 6 * 1024 * 1024) });
     } catch (e) {}
   }
-  if (document.readyState !== "loading") setTimeout(snap, 400);
-  else document.addEventListener("DOMContentLoaded", function () { setTimeout(snap, 400); });
-  window.addEventListener("load", function () { setTimeout(snap, 900); });
-  setTimeout(snap, 5000);
-  setTimeout(snap, 10000);
+  if (document.readyState !== "loading") setTimeout(snap, 150);
+  else document.addEventListener("DOMContentLoaded", function () { setTimeout(snap, 150); });
+  window.addEventListener("load", function () { setTimeout(snap, 700); });
+  setTimeout(snap, 2000);
+  setTimeout(snap, 4500);
+  setTimeout(snap, 9500);
 })();
 "#;
 
@@ -162,13 +163,20 @@ fn live_navigate(
     state: tauri::State<LiveState>,
     url: String,
 ) -> Result<(), String> {
-    if !is_http_url(&url) {
+    // about:blank is the parking spot: the front end sends the live view there
+    // once Zen has a good read, so a finished page's ads and timers stop
+    // burning CPU in the background.
+    let is_blank = url == "about:blank";
+    if !is_blank && !is_http_url(&url) {
         return Err("only http(s) urls are allowed".into());
     }
     let parsed: tauri::Url = url.parse().map_err(|e| format!("bad url: {e}"))?;
     let mut guard = state.0.lock().map_err(|_| "live view is busy".to_string())?;
     if let Some(wv) = guard.as_mut() {
         return wv.navigate(parsed).map_err(|e| format!("navigate failed: {e}"));
+    }
+    if is_blank {
+        return Ok(());
     }
     let window = app.get_window("main").ok_or("no main window")?;
     let handle = app.clone();
@@ -181,6 +189,9 @@ fn live_navigate(
         let _ = handle.emit_to("main", "ucb-live-nav", u.to_string());
         true
     });
+    // Parked at 1x1 in the corner rather than hidden: hidden child webviews
+    // are the flakiest path on Windows (pages may not load at all), while a
+    // one-pixel webview loads normally and is invisible in practice.
     let wv = window
         .add_child(
             builder,
@@ -188,7 +199,6 @@ fn live_navigate(
             tauri::LogicalSize::new(1.0, 1.0),
         )
         .map_err(|e| format!("live view failed: {e}"))?;
-    let _ = wv.hide();
     *guard = Some(wv);
     Ok(())
 }
@@ -215,14 +225,18 @@ fn live_bounds(
             return Ok(());
         }
     };
-    wv.set_position(tauri::LogicalPosition::new(x, y))
-        .map_err(|e| e.to_string())?;
-    wv.set_size(tauri::LogicalSize::new(w.max(1.0), h.max(1.0)))
-        .map_err(|e| e.to_string())?;
+    // "Hidden" means parked at one pixel, never actually hidden: the hide/show
+    // path is unreliable for child webviews on Windows, size juggling is not.
     if visible {
-        wv.show().map_err(|e| e.to_string())?;
+        wv.set_position(tauri::LogicalPosition::new(x, y))
+            .map_err(|e| e.to_string())?;
+        wv.set_size(tauri::LogicalSize::new(w.max(1.0), h.max(1.0)))
+            .map_err(|e| e.to_string())?;
     } else {
-        wv.hide().map_err(|e| e.to_string())?;
+        wv.set_position(tauri::LogicalPosition::new(0.0, 0.0))
+            .map_err(|e| e.to_string())?;
+        wv.set_size(tauri::LogicalSize::new(1.0, 1.0))
+            .map_err(|e| e.to_string())?;
     }
     Ok(())
 }
@@ -314,6 +328,9 @@ fn main() {
         .setup(|app| {
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
+                // Give the window a head start; the update check can wait a
+                // few seconds without anyone noticing.
+                tokio::time::sleep(Duration::from_secs(4)).await;
                 if let Ok(updater) = handle.updater() {
                     if let Ok(Some(update)) = updater.check().await {
                         let _ = update
@@ -323,6 +340,16 @@ fn main() {
                 }
             });
             Ok(())
+        })
+        // Closing the app must be instant. The embedded live webview (and any
+        // in-flight hidden render window) would otherwise keep the process
+        // lingering after the main window is dismissed.
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                if window.label() == "main" {
+                    window.app_handle().exit(0);
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             fetch_url,
