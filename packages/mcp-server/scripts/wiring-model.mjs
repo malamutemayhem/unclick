@@ -76,21 +76,43 @@ function reconstructFromWiring(srcDir) {
   // generator emits both from the same order list, so they cannot drift).
   const orderFrom = (file, kind) => {
     const text = fs.readFileSync(path.join(srcDir, file), "utf8");
-    return [...text.matchAll(new RegExp(`import \\{ \\w+${kind} \\} from \"\\./wiring/([a-z0-9-]+)\\.js\";`, "g"))].map((x) => x[1]);
+    return [...text.matchAll(new RegExp(`import \\{ \\w+${kind} \\} from "\\./wiring/([a-z0-9-]+)\\.js";`, "g"))].map((x) => x[1]);
   };
   const toolsBody = walk(orderFrom("additional-tools.ts", "Tools"), manifest.toolLits, extractTools);
   const mapBody = walk(orderFrom("additional-handlers.ts", "Handlers"), manifest.handlerLits, extractHandlers);
 
-  // Synthesize a category-tagged import region so parseImportCategories keeps
-  // producing the same slug -> category map the monolith's imports produced.
-  // Each wiring file records its category in a "// category:" header.
+  // Synthesize a category-tagged import region. Two jobs:
+  //   1. parseImportCategories must keep producing the same slug -> category
+  //      map the monolith's imports produced. Each wiring file records its
+  //      category in a "// category:" header, and the file's OWN connector
+  //      import sits directly under that header (first-import-wins keeps the
+  //      map stable).
+  //   2. Consumers that map imported function names to source files (the
+  //      schema-handler-contract static fallback) need the REAL import lines,
+  //      so each file's imports are re-emitted with "../" rewritten to "./"
+  //      (wiring/ is one level deeper than the monolith was). Cross-module
+  //      imports (a chunk that hosts handlers for sibling connectors) are
+  //      emitted LAST so they cannot claim another slug's category slot.
   let importsText = "";
+  const crossImports = new Set();
   for (const f of fs.readdirSync(wdir).filter((x) => x.endsWith(".ts")).sort()) {
     const slug = f.replace(/\.ts$/, "");
-    const cat = (wfile(slug).match(/^\/\/ category: (.+)$/m) || [])[1];
+    const src = wfile(slug);
+    const cat = (src.match(/^\/\/ category: (.+)$/m) || [])[1];
     if (!cat) continue;
     importsText += `// ─── ${cat} ───\n`;
-    importsText += `import { _ } from "./${slug}-tool.js";\n`;
+    const own = [];
+    for (const line of src.match(/^import .+$/gm) || []) {
+      const rewritten = line.replace(/from "\.\.\//, 'from "./');
+      if (line.endsWith(`from "../${slug}-tool.js";`)) own.push(rewritten);
+      else crossImports.add(rewritten);
+    }
+    if (own.length) importsText += own.join("\n") + "\n";
+    else importsText += `import { _ } from "./${slug}-tool.js";\n`;
+  }
+  if (crossImports.size) {
+    importsText += "// cross-module imports used by handler chunks\n";
+    importsText += [...crossImports].join("\n") + "\n";
   }
 
   const toolsText = `${manifest.toolMarker}${toolsBody}${manifest.toolsTail}`;
@@ -132,7 +154,7 @@ export function section(wiring, marker, openTok) {
   return wiring.slice(open, close);
 }
 
-// ─── Import-region category map ──────────────────────────────────────
+// ─── Import-region category map ────────────────────────────────────
 export function parseImportCategories(wiring) {
   const cut = ["export const ADDITIONAL_TOOLS", "export const ADDITIONAL_HANDLERS"]
     .map((m) => wiring.indexOf(m))
@@ -150,7 +172,7 @@ export function parseImportCategories(wiring) {
   return slugCategory;
 }
 
-// ─── Tool index ────────────────────────────────────────────────────
+// ─── Tool index ──────────────────────────────────────────────────
 export function parseToolIndex(toolsText, importsText) {
   const slugCategory = parseImportCategories(importsText ?? toolsText);
 
@@ -174,9 +196,9 @@ export function parseToolIndex(toolsText, importsText) {
   return index;
 }
 
-// ─── Per-connector standalone extraction ─────────────────────────────────
+// ─── Per-connector standalone extraction ─────────────────────────────
 export function toolDefsFor(toolsBody, slug) {
-  const re = new RegExp(`//\\s*[─-]+\\s*${slug}-tool\\.ts\\s*[─-]*`, "g");
+  const re = new RegExp(`//\\s*[\\u2500-]+\\s*${slug}-tool\\.ts\\s*[\\u2500-]*`, "g");
   const m = re.exec(toolsBody);
   if (!m) return null;
   const from = m.index + m[0].length;
@@ -202,7 +224,7 @@ export function handlersFor(handlersBody, slug) {
   return entries.length ? entries : null;
 }
 
-// ─── Audit blocks ────────────────────────────────────────────────
+// ─── Audit blocks ──────────────────────────────────────────
 export function loadWiringBlocks(wiring) {
   const start = wiring.indexOf("export const ADDITIONAL_TOOLS");
   const end = wiring.indexOf("export const ADDITIONAL_HANDLERS");
