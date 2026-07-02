@@ -38,6 +38,7 @@ import {
   laneForUserId,
 } from "./lib/account-lane.js";
 import { redactSensitive } from "./lib/orchestrator-context.js";
+import { captureFromChatTurn } from "./lib/chat-capture.js";
 
 function sbHeaders(serviceKey: string): Record<string, string> {
   return {
@@ -630,6 +631,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await persistChatContextTurn({
       rest,
+      serviceKey,
+      ownerLane,
+      threadId,
+      role: "user",
+      content,
+    });
+
+    // Auto-capture pasted code / reference docs from the human turn into the
+    // Code and Library memory layers. Flag-gated, managed tenants only, and
+    // best-effort - the same hook the legacy ingest path got in #1295. Without
+    // this, chat-session turns bypass the only capture-wired write paths and
+    // those layers stay empty no matter what the capture flags say.
+    await captureFromChatTurn({
+      supabaseUrl,
       serviceKey,
       ownerLane,
       threadId,
