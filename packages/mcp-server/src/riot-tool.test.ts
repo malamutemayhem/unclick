@@ -27,6 +27,19 @@ describe("riot connector resilience (L2)", () => {
     expect(String(result.error)).toMatch(/summonerName/i);
   });
 
+  it("returns the standard not-connected card when the key is missing", async () => {
+    const saved = process.env.RIOT_API_KEY;
+    delete process.env.RIOT_API_KEY;
+    try {
+      const result = await riotSummoner({ summonerName: "Faker" }) as Record<string, unknown>;
+      expect(result.not_connected).toBe(true);
+      expect(result.connector).toBe("riot");
+      expect(Array.isArray(result.how_to_connect)).toBe(true);
+    } finally {
+      if (saved !== undefined) process.env.RIOT_API_KEY = saved;
+    }
+  });
+
   it("maps summoner responses into a clean shape", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true, status: 200, headers: { get: (): string | null => null },

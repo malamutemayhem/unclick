@@ -32,6 +32,19 @@ describe("rawg connector resilience (L2)", () => {
     expect(r.error).toMatch(/search is required/i);
   });
 
+  it("returns the standard not-connected card when the key is missing", async () => {
+    const saved = process.env.RAWG_API_KEY;
+    delete process.env.RAWG_API_KEY;
+    try {
+      const r = await rawgSearchGames({ search: "zelda" }) as Record<string, unknown>;
+      expect(r.not_connected).toBe(true);
+      expect(r.connector).toBe("rawg");
+      expect(Array.isArray(r.how_to_connect)).toBe(true);
+    } finally {
+      if (saved !== undefined) process.env.RAWG_API_KEY = saved;
+    }
+  });
+
   it("normalizes search results", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true,

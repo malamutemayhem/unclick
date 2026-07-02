@@ -1,4 +1,5 @@
 import { stampMeta } from "./connector-meta.js";
+import { notConnectedFor } from "./connector-setup.js";
 
 const UA = "UnClick-MCP/1.0";
 const BASE = "https://the-one-api.dev/v2";
@@ -13,7 +14,8 @@ async function fetchJson(url: string, token?: string): Promise<unknown> {
     const res = await fetch(url, { headers, signal: ac.signal });
     clearTimeout(timer);
     if (res.status === 429) return { error: "Rate limit exceeded. Try again in a minute." };
-    if (res.status === 401) return { error: "API key required. Set LOTR_API_KEY (free at the-one-api.dev)." };
+    // 401 means no (or a bad) key reached the API: a setup gap, not a fault.
+    if (res.status === 401) return notConnectedFor("lotr");
     if (!res.ok) return { error: `HTTP ${res.status}: ${await res.text()}` };
     return await res.json();
   } catch (e: unknown) {

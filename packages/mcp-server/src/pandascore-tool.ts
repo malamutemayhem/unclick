@@ -4,21 +4,17 @@
 // Base URL: https://api.pandascore.co/
 
 import { stampMeta } from "./connector-meta.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const PANDASCORE_BASE = "https://api.pandascore.co";
 
 // ─── API helper ───────────────────────────────────────────────────────────────
 
-function requireKey(args: Record<string, unknown>): string {
-  const key = String(
-    args.api_key ?? process.env.PANDASCORE_TOKEN ?? ""
-  ).trim();
-  if (!key) {
-    throw new Error(
-      "PANDASCORE_TOKEN is required. Register at https://pandascore.co/"
-    );
-  }
-  return key;
+// Missing keys RETURN the standard not-connected card (two-lane rule); the
+// registry row for this connector lives under its internal id "esports".
+function requireKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("esports", args);
 }
 
 async function pandascoreFetch<T>(
@@ -74,6 +70,7 @@ export async function esportsMatches(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const params: Record<string, string> = {};
   if (args.status) params["filter[status]"] = String(args.status);
   if (args.page) params.page = String(args.page);
@@ -145,6 +142,7 @@ export async function esportsTournaments(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const params: Record<string, string> = {};
   if (args.tier) params["filter[tier]"] = String(args.tier);
 
@@ -190,6 +188,7 @@ export async function esportsTeams(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const game = String(args.game ?? "").toLowerCase();
   const path = game ? `/${game}/teams` : "/teams";
 
@@ -232,6 +231,7 @@ export async function esportsPlayers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const game = String(args.game ?? "").toLowerCase();
   const path = game ? `/${game}/players` : "/players";
 
@@ -274,6 +274,7 @@ export async function esportsGetMatch(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const token = requireKey(args);
+  if (typeof token !== "string") return token;
   const id = String((args.match_id ?? args.id) ?? "").trim();
   if (!id) return { error: "id is required (PandaScore match ID)." };
 

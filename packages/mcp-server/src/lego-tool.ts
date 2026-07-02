@@ -16,16 +16,8 @@ const BRICKSET_BASE = "https://brickset.com/api/v3.asmx";
 
 // ─── Rebrickable helpers ──────────────────────────────────────────────────────
 
-function requireRebrickableKey(args: Record<string, unknown>): string {
-  const key = String(
-    args.rebrickable_api_key ?? process.env.REBRICKABLE_API_KEY ?? ""
-  ).trim();
-  if (!key) {
-    throw new Error(
-      "REBRICKABLE_API_KEY is required. Get a free key at https://rebrickable.com/api/"
-    );
-  }
-  return key;
+function requireRebrickableKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("lego", args);
 }
 
 const REBRICKABLE_TIMEOUT_MS = Number(process.env.REBRICKABLE_TIMEOUT_MS) || 10000;
@@ -80,6 +72,7 @@ export async function legoSearchSets(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireRebrickableKey(args);
+  if (typeof key !== "string") return key;
   const params: Record<string, string> = {};
   if (args.search) params.search = String(args.search);
   if (args.theme_id) params.theme_id = String(args.theme_id);
@@ -121,6 +114,7 @@ export async function legoGetSet(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireRebrickableKey(args);
+  if (typeof key !== "string") return key;
   const setNum = String(args.set_num ?? "").trim();
   if (!setNum) return { error: "set_num is required (e.g. 75192-1)." };
 
@@ -148,6 +142,7 @@ export async function legoSetParts(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireRebrickableKey(args);
+  if (typeof key !== "string") return key;
   const setNum = String(args.set_num ?? "").trim();
   if (!setNum) return { error: "set_num is required (e.g. 75192-1)." };
 
@@ -185,6 +180,7 @@ export async function legoSearchParts(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireRebrickableKey(args);
+  if (typeof key !== "string") return key;
   const params: Record<string, string> = {};
   if (args.search) params.search = String(args.search);
   if (args.color_id) params.color_id = String(args.color_id);
@@ -216,6 +212,7 @@ export async function legoThemes(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireRebrickableKey(args);
+  if (typeof key !== "string") return key;
   const data = await rebrickableFetch<Record<string, unknown>>(
     "/themes/",
     key

@@ -1,8 +1,13 @@
 // Supercell Games API integration: Clash of Clans, Clash Royale, Brawl Stars.
 // Three games, one file. Each game uses its own base URL and API key.
 // Env vars: COC_API_KEY, CR_API_KEY, BS_API_KEY
+//
+// Missing keys RETURN the standard not-connected card (two-lane rule): a setup
+// gap must never surface as a thrown tool fault.
 
 import { stampMeta } from "./connector-meta.js";
+import { requireCredential } from "./connector-setup.js";
+import { type NotConnectedResult } from "./connection-help.js";
 
 const COC_BASE = "https://api.clashofclans.com/v1";
 const CR_BASE = "https://api.clashroyale.com/v1";
@@ -54,14 +59,8 @@ function encodeTag(raw: string): string {
 
 // ─── Clash of Clans ───────────────────────────────────────────────────────────
 
-function requireCocKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.COC_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "COC_API_KEY is required. Register at https://developer.clashofclans.com/"
-    );
-  }
-  return key;
+function requireCocKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("coc", args);
 }
 
 // GET /players/{urlencoded_tag}
@@ -69,6 +68,7 @@ export async function cocPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans player tag)." };
 
@@ -116,6 +116,7 @@ export async function cocClan(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
@@ -160,6 +161,7 @@ export async function cocClanMembers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCocKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.clanTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash of Clans clan tag)." };
 
@@ -189,14 +191,8 @@ export async function cocClanMembers(
 
 // ─── Clash Royale ─────────────────────────────────────────────────────────────
 
-function requireCrKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.CR_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "CR_API_KEY is required. Register at https://developer.clashroyale.com/"
-    );
-  }
-  return key;
+function requireCrKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("cr", args);
 }
 
 // GET /players/{urlencoded_tag}
@@ -204,6 +200,7 @@ export async function crPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCrKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Clash Royale player tag)." };
 
@@ -249,6 +246,7 @@ export async function crTopPlayers(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireCrKey(args);
+  if (typeof key !== "string") return key;
   const location = String(args.location ?? "global");
 
   const data = await supercellFetch<Record<string, unknown>>(
@@ -277,14 +275,8 @@ export async function crTopPlayers(
 
 // ─── Brawl Stars ──────────────────────────────────────────────────────────────
 
-function requireBsKey(args: Record<string, unknown>): string {
-  const key = String(args.api_key ?? process.env.BS_API_KEY ?? "").trim();
-  if (!key) {
-    throw new Error(
-      "BS_API_KEY is required. Register at https://developer.brawlstars.com/"
-    );
-  }
-  return key;
+function requireBsKey(args: Record<string, unknown>): string | NotConnectedResult {
+  return requireCredential("bs", args);
 }
 
 // GET /players/{urlencoded_tag}
@@ -292,6 +284,7 @@ export async function bsPlayer(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.playerTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars player tag)." };
 
@@ -336,6 +329,7 @@ export async function bsClub(
   args: Record<string, unknown>
 ): Promise<unknown> {
   const key = requireBsKey(args);
+  if (typeof key !== "string") return key;
   const tag = String((args.clubTag ?? args.tag) ?? "").trim();
   if (!tag) return { error: "tag is required (Brawl Stars club tag)." };
 

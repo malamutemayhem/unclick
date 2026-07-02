@@ -11,19 +11,7 @@ import { useState } from "react";
 import { CheckCircle2, ExternalLink, KeyRound, Loader2, X, XCircle, AlertTriangle } from "lucide-react";
 import type { AppEntry } from "@/lib/appCatalog";
 import { CONNECTORS } from "@/lib/connectors";
-import connectorSetupData from "@/data/connector-setup.generated.json";
-
-interface ConnectorSetupRow {
-  displayName?: string;
-  credential?: string;
-  arg?: string;
-  envVar?: string;
-  setupUrl?: string;
-  note?: string;
-}
-
-const CONNECTOR_SETUP: Record<string, ConnectorSetupRow> =
-  (connectorSetupData as { connectors: Record<string, ConnectorSetupRow> }).connectors;
+import { connectorSetupFor } from "@/lib/appManualWork";
 
 export interface ConnectableConnector {
   id: string;
@@ -77,7 +65,9 @@ export function ConnectAppModal({
   onStartManagedConnection,
   onStartHostedMcpLogin,
 }: ConnectAppModalProps) {
-  const setup = CONNECTOR_SETUP[app.slug];
+  // Alias-aware: apps whose setup metadata lives under the connector's internal
+  // id (e.g. pandascore -> esports) still get their credential info and links.
+  const setup = connectorSetupFor(app.slug);
   const [credential, setCredential] = useState("");
   const [busy, setBusy] = useState(false);
   const [disconnectBusy, setDisconnectBusy] = useState(false);
