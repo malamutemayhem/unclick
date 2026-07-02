@@ -601,6 +601,17 @@ import { giphyTools } from "./wiring/giphy.js";
 import { miroTools } from "./wiring/miro.js";
 import { shortcutTools } from "./wiring/shortcut.js";
 import { wikipediaTools } from "./wiring/wikipedia.js";
+import { codaTools } from "./wiring/coda.js";
+import { brevoTools } from "./wiring/brevo.js";
+import { uptimerobotTools } from "./wiring/uptimerobot.js";
+import { dropboxTools } from "./wiring/dropbox.js";
+import { gmailTools } from "./wiring/gmail.js";
+import { googleDriveTools } from "./wiring/google-drive.js";
+import { onedriveTools } from "./wiring/onedrive.js";
+import { bitbucketTools } from "./wiring/bitbucket.js";
+import { cloudinaryTools } from "./wiring/cloudinary.js";
+import { wordpressTools } from "./wiring/wordpress.js";
+import { ghostTools } from "./wiring/ghost.js";
 import { zendeskTools } from "./wiring/zendesk.js";
 import { intercomTools } from "./wiring/intercom.js";
 import { typeformTools } from "./wiring/typeform.js";
@@ -1259,6 +1270,17 @@ export const ADDITIONAL_TOOLS: readonly AdditionalTool[] = [
   ...(miroTools as readonly AdditionalTool[]),
   ...(shortcutTools as readonly AdditionalTool[]),
   ...(wikipediaTools as readonly AdditionalTool[]),
+  ...(codaTools as readonly AdditionalTool[]),
+  ...(brevoTools as readonly AdditionalTool[]),
+  ...(uptimerobotTools as readonly AdditionalTool[]),
+  ...(dropboxTools as readonly AdditionalTool[]),
+  ...(gmailTools as readonly AdditionalTool[]),
+  ...(googleDriveTools as readonly AdditionalTool[]),
+  ...(onedriveTools as readonly AdditionalTool[]),
+  ...(bitbucketTools as readonly AdditionalTool[]),
+  ...(cloudinaryTools as readonly AdditionalTool[]),
+  ...(wordpressTools as readonly AdditionalTool[]),
+  ...(ghostTools as readonly AdditionalTool[]),
   ...(zendeskTools as readonly AdditionalTool[]),
   ...(intercomTools as readonly AdditionalTool[]),
   ...(typeformTools as readonly AdditionalTool[]),
