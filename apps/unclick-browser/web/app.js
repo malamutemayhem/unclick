@@ -1218,7 +1218,19 @@
   if (tauri && tauri.event && typeof tauri.event.listen === "function") {
     tauri.event.listen("ucb-live-dom", onLiveDom);
     tauri.event.listen("ucb-live-nav", onLiveNav);
+    tauri.event.listen("ucb-updated", function (ev) {
+      flash("Updated to v" + (ev && ev.payload ? ev.payload : "") + " - restarting ...");
+    });
   }
+
+  // The version badge: every screenshot should say what build it shows.
+  (function () {
+    var verEl = document.getElementById("ver");
+    if (!verEl) return;
+    if (tauri && tauri.app && typeof tauri.app.getVersion === "function") {
+      tauri.app.getVersion().then(function (v) { verEl.textContent = "v" + v; }).catch(function () { verEl.textContent = ""; });
+    }
+  })();
   function stopLoading() {
     var t = activeTab();
     if (!t || !t.pending) return false;

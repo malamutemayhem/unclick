@@ -173,6 +173,9 @@
   mark.uc-hit{background:var(--warm-bg);color:inherit;outline:1px solid var(--warm-line);border-radius:3px;padding:0 1px;}
   mark.uc-hit.cur{background:var(--warm);color:var(--warm-ink);}
 
+  /* Always-visible version badge so every screenshot says what build it is. */
+  #ver{position:fixed;right:8px;bottom:6px;color:var(--soft);opacity:.55;font-size:10px;letter-spacing:.04em;pointer-events:none;z-index:60;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+
   /* Loading rail: instant feedback the moment a link or address is opened. */
   #loadbar{height:2px;flex:none;background:transparent;}
   body.loading #loadbar{background:linear-gradient(90deg,transparent,var(--teal) 40%,var(--teal) 60%,transparent);background-size:45% 100%;background-repeat:no-repeat;animation:uc-load 1.1s linear infinite;}
@@ -215,6 +218,7 @@
     <div id="reader"></div>
   </main>
   <div id="toast"></div>
+  <div id="ver" title="UnClick Browser version"></div>
   <script src="baskets/segment.js"></script>
   <script src="baskets/fingerprint.js"></script>
   <script src="baskets/learn.js"></script>

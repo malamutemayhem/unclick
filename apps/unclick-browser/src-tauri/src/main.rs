@@ -333,9 +333,19 @@ fn main() {
                 tokio::time::sleep(Duration::from_secs(4)).await;
                 if let Ok(updater) = handle.updater() {
                     if let Ok(Some(update)) = updater.check().await {
-                        let _ = update
+                        let version = update.version.clone();
+                        if update
                             .download_and_install(|_chunk: usize, _total: Option<u64>| {}, || {})
-                            .await;
+                            .await
+                            .is_ok()
+                        {
+                            // Restart INTO the new version. Without this the
+                            // user keeps running the old code until some
+                            // future relaunch and nothing seems to change.
+                            let _ = handle.emit_to("main", "ucb-updated", version);
+                            tokio::time::sleep(Duration::from_millis(1800)).await;
+                            handle.restart();
+                        }
                     }
                 }
             });
