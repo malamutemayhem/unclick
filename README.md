@@ -4,6 +4,21 @@
 
 Persistent memory, shared coordination and a growing catalogue of tools for MCP-compatible AI clients. See [UnClick](https://unclick.world) for the current catalogue and connection options.
 
+## Repository status
+
+This repository is the public home for UnClick's MCP client, standalone connectors, documentation and examples.
+
+It also contains an older platform source snapshot. The platform baseline is [July 2, 2026](https://github.com/malamutemayhem/unclick/commit/89d8792d452fb4e021c07a7eb8f501faa442417e); it is not a continuously updated copy of the hosted service. Later public client or documentation updates do not imply that the whole platform has been refreshed. See [unclick.world](https://unclick.world) for the current service and connection options.
+
+Public updates focus on reviewed client and connector releases, accurate setup instructions and useful examples. Each release should identify its version, requirements, tested capabilities and known limitations. An older archive or directory listing is not proof of current compatibility.
+
+## Public releases and support
+
+- Use the npm client below to connect to hosted UnClick. Cloning the platform snapshot is a separate development path.
+- For standalone connectors, check the individual package README, licence and [release notes](https://github.com/malamutemayhem/unclick/releases). Provider accounts, credentials or usage restrictions may apply.
+- Report reproducible public client and connector problems in [GitHub Issues](https://github.com/malamutemayhem/unclick/issues), including the package version and redacted error details. Follow [SECURITY.md](./SECURITY.md) for security reports. Never include keys or private account data.
+- Updates are selected and reviewed before publication. The public repository is not an automatic mirror of private platform development. Existing licences and any corresponding-source obligations still apply.
+
 ## Install
 
 **From npm:**
@@ -36,13 +51,13 @@ This repo follows the AGENTS.md fence rules for agent work.
 
 ## Run
 
-For local web development:
+For local development of the source snapshot:
 
 ```bash
 npm run dev
 ```
 
-For the API workspace:
+For the source snapshot's API workspace:
 
 ```bash
 npm run dev:api
