@@ -2,18 +2,22 @@
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
-450+ callable endpoints across 178+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
-<!-- Update counts from src/config/site-stats.ts -->
+Persistent memory, shared coordination and a growing catalogue of tools for MCP-compatible AI clients. See [UnClick](https://unclick.world) for the current catalogue and connection options.
 
 ## Install
 
-**Using the latest GitHub release (no npm account required):**
+**From npm:**
+
+Get an API key from [UnClick](https://unclick.world), then replace `your_key_here` in this configuration.
 ```json
 {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"]
+      "args": ["-y", "@unclick/mcp-server"],
+      "env": {
+        "UNCLICK_API_KEY": "your_key_here"
+      }
     }
   }
 }
@@ -21,9 +25,9 @@
 
 Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsurf, etc).
 
-**Or install globally from GitHub:**
+**Or install globally from npm:**
 ```bash
-npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
+npm install -g @unclick/mcp-server
 ```
 
 ## Operational Notes
@@ -103,7 +107,7 @@ Or pass it via the MCP config:
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
+      "args": ["-y", "@unclick/mcp-server"],
       "env": {
         "UNCLICK_API_KEY": "your_key_here"
       }
