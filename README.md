@@ -91,24 +91,30 @@ Gives your agent access to a growing catalog of tools across developer utilities
 
 ## Tool Surface
 
-UnClick exposes a small direct surface for daily agent workflows, plus hidden internal discovery tools for the full catalog.
+The npm client advertises the full tool catalogue by default. For a smaller tool list in your chat client, add `UNCLICK_TOOL_SURFACE` to the same `env` object as your API key:
 
-| Tool group | Tools |
-|------------|-------|
-| Memory session protocol | `load_memory`, `save_fact`, `search_memory`, `save_identity`, `save_session` |
-| Signals and Boardroom coordination | `check_signals`, `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, `promote_idea_to_todo` |
-| Hidden internal catalog tools | `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call` |
+```json
+{
+  "UNCLICK_API_KEY": "your_key_here",
+  "UNCLICK_TOOL_SURFACE": "lean"
+}
+```
 
-The agent starts with memory, uses direct Boardroom tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
+Lean mode advertises these tools:
+
+- Memory: `load_memory`, `save_fact`, `search_memory`, `save_session`.
+- Discovery and execution: `unclick_search`, `unclick_tool_info`, `unclick_call`.
+
+Use discovery to find other operations, then call their endpoint IDs through `unclick_call`. For example, Boardroom jobs are available through `boardroom.list_todos`. Lean mode changes the advertised tool list; account permissions and provider credentials still apply.
 
 ### Compatibility and advanced memory operations
 
 - Legacy memory names still work as aliases: `get_startup_context` -> `load_memory`, `write_session_summary` -> `save_session`, `add_fact` -> `save_fact`, `set_business_context` -> `save_identity`.
-- The remaining memory operations are intentionally not listed in `ListTools` and are called through `unclick_call` with `endpoint_id: "memory.<op>"` (for example `memory.manage_decay`, `memory.store_code`, `memory.log_conversation`, `memory.supersede_fact`, `memory.upsert_library_doc`).
+- Additional memory operations can be called through `unclick_call` with `endpoint_id: "memory.<op>"` (for example `memory.manage_decay`, `memory.store_code`, `memory.log_conversation`, `memory.supersede_fact`, `memory.upsert_library_doc`).
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 22 or newer. The published 0.3.131 bundle includes dependencies that require Node.js 22; installation and MCP startup were verified with Node.js 24.14.0.
 - An API key from [unclick.world](https://unclick.world)
 
 Set your key as an environment variable:
