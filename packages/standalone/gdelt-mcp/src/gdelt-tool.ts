@@ -12,7 +12,7 @@ const GDELT_GEO = "https://api.gdeltproject.org/api/v2/geo/geo";
 async function gdeltFetch(base: string, params: URLSearchParams): Promise<unknown> {
   const url = `${base}?${params}`;
   const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`GDELT API HTTP ${res.status}`);
   return res.json() as Promise<unknown>;

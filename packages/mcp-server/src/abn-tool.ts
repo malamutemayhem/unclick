@@ -28,7 +28,7 @@ async function fetchJsonp(url: string): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(url, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {
@@ -52,7 +52,11 @@ async function fetchJsonp(url: string): Promise<unknown> {
   if (!match) {
     throw new Error("Unexpected ABR API response format (not JSONP).");
   }
-  return JSON.parse(match[1]) as unknown;
+  try {
+    return JSON.parse(match[1]) as unknown;
+  } catch {
+    throw new Error("Unexpected ABR API response format (JSONP payload is not valid JSON).");
+  }
 }
 
 // The ABR JSON AbnDetails endpoint returns BusinessName (trading names) as an

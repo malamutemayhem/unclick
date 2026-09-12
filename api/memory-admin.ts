@@ -2824,7 +2824,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       case "sessions": {
         const apiKeyHash = await resolveApiKeyHash(req, supabaseUrl, supabaseKey);
         if (!apiKeyHash) return res.status(401).json({ error: "Authorization header required" });
-        const limit = parseInt(req.query.limit as string) || 20;
+        // Clamp: a negative ?limit passes `|| 20` and 500s at PostgREST.
+        const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100);
 
         const { data, error } = await supabase
           .from("mc_session_summaries")
@@ -2987,7 +2988,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const query = req.query.query as string;
         if (!query) return res.status(400).json({ error: "query parameter required" });
 
-        const maxResults = parseInt(req.query.max_results as string) || 20;
+        const maxResults = Math.min(Math.max(parseInt(req.query.max_results as string) || 20, 1), 100);
         const { data, error } = await supabase.rpc("search_memory", {
           search_query: query,
           max_results: maxResults,
@@ -3558,7 +3559,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .select("*")
           .eq("api_key_hash", apiKeyHash)
           .order("created_at", { ascending: false })
-          .limit(parseInt(String(req.query.limit ?? "200")) || 200);
+          .limit(Math.min(Math.max(parseInt(String(req.query.limit ?? "200")) || 200, 1), 500));
         if (agentId) q = q.eq("agent_id", agentId);
 
         const { data, error } = await q;
@@ -4485,7 +4486,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       case "check_duplicates": {
-        const threshold = parseFloat((req.query.threshold as string) ?? "0.6");
+        // NaN (e.g. ?threshold=abc) makes every similarity comparison false
+        // and silently reports zero duplicates; fall back to the default.
+        const parsedThreshold = parseFloat((req.query.threshold as string) ?? "0.6");
+        const threshold = Number.isFinite(parsedThreshold) ? parsedThreshold : 0.6;
         const { data, error } = await supabase
           .from("extracted_facts")
           .select("id,fact")

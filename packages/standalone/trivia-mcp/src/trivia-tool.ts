@@ -50,7 +50,7 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
   }
 
   const res = await fetch(`${OPENTDB_BASE}/api.php?${params}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`Open Trivia DB HTTP ${res.status}`);
 
@@ -82,7 +82,7 @@ export async function triviaQuestions(args: Record<string, unknown>): Promise<un
 
 export async function triviaCategories(_args: Record<string, unknown>): Promise<unknown> {
   const res = await fetch(`${OPENTDB_BASE}/api_category.php`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`Open Trivia DB HTTP ${res.status}`);
 

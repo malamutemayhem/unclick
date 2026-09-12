@@ -8,7 +8,7 @@ const ABN_BASE = "https://abr.business.gov.au/json";
 
 async function fetchJsonp(url: string): Promise<unknown> {
   const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) {
     throw new Error(`ABR API HTTP ${res.status}`);

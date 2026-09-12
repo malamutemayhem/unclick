@@ -16,7 +16,7 @@ const parser = new XMLParser({
 
 async function bggFetch(path: string): Promise<Record<string, unknown>> {
   const res = await fetch(`${BGG_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`BGG API HTTP ${res.status}`);
   const xml = await res.text();
@@ -31,7 +31,7 @@ async function bggFetchWithRetry(
 ): Promise<Record<string, unknown>> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const res = await fetch(`${BGG_BASE}${path}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
     });
     if (res.status === 202) {
       if (attempt < maxRetries - 1) {

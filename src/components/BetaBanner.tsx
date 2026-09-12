@@ -30,9 +30,12 @@ export default function BetaBanner() {
         <span className="mr-1.5 text-[#ff7b2b]" aria-hidden>&#9889;</span>
         <span className="font-semibold text-heading">UnClick is in beta.</span>
         <span className="hidden sm:inline"> Free to try while we polish.</span>
+        {/* Vertical padding on the inline link stretches its hit area to the
+            full banner strip without moving the text (inline padding does not
+            change the line box). The visible 13px link was a 15px tap target. */}
         <Link
           to={ctaHref}
-          className="ml-3 text-[#61C1C4] transition-colors hover:text-[#7dd4d7]"
+          className="ml-3 px-2 py-3 -mx-2 text-[#61C1C4] transition-colors hover:text-[#7dd4d7]"
         >
           {ctaLabel}
         </Link>

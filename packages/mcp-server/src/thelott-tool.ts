@@ -34,7 +34,7 @@ async function lottPost(path: string, body: unknown): Promise<unknown> {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       body: JSON.stringify(body),
       signal: controller.signal,

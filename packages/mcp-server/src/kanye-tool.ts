@@ -13,7 +13,7 @@ export async function kanyeQuote(_args: Record<string, unknown>): Promise<unknow
     let res: Response;
     try {
       res = await fetch("https://api.kanye.rest/", {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
         signal: controller.signal,
       });
     } catch (err) {

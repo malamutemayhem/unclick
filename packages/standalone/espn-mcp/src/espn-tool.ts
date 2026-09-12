@@ -6,7 +6,7 @@ const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports";
 
 async function espnFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${ESPN_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`ESPN API HTTP ${res.status}`);
   return res.json() as Promise<T>;

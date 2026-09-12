@@ -126,16 +126,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/${ANALYTICS_TABLE}`, {
-    method: "POST",
-    headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=minimal",
-    },
-    body: JSON.stringify(result.row),
-  });
+  // The beacon contract is "always accept": a network throw here must land in
+  // the same 202 storage_error lane as a non-ok response, never a 500.
+  let response: Response;
+  try {
+    response = await fetch(`${supabaseUrl}/rest/v1/${ANALYTICS_TABLE}`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(result.row),
+    });
+  } catch (err) {
+    console.error("native analytics insert threw", err);
+    return res.status(202).json({
+      accepted: true,
+      persisted: false,
+      reason: "storage_error",
+    });
+  }
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "");

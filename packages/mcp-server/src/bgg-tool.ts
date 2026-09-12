@@ -26,7 +26,7 @@ async function bggFetch(path: string): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BGG_TIMEOUT_MS);
   const headers: Record<string, string> = {
-    "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+    "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
   };
   const token = bggToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -66,7 +66,7 @@ async function bggFetchWithRetry(
     let res: Response;
     try {
       const retryHeaders: Record<string, string> = {
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       };
       const retryToken = bggToken();
       if (retryToken) retryHeaders["Authorization"] = `Bearer ${retryToken}`;

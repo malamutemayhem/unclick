@@ -11,7 +11,7 @@ const NVD_BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0";
 async function nvdGet(params: Record<string, string>, apiKey?: string): Promise<Record<string, unknown>> {
   const qs = new URLSearchParams(params);
   const headers: Record<string, string> = {
-    "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+    "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
   };
   if (apiKey) headers["apiKey"] = apiKey;
 

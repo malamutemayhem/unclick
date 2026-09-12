@@ -1,6 +1,6 @@
 {
   "name": "UnClick",
-  "description": "One MCP install that gives AI agents 450+ callable endpoints across 60+ integrations plus persistent cross-session memory, with XPass verification checks. Works with Claude, ChatGPT, Cursor, and any MCP-compatible client.",
+  "description": "One MCP install that gives AI agents 1500+ callable actions across 650+ apps plus persistent cross-session memory, with XPass verification checks. Works with Claude, ChatGPT, Cursor, and any MCP-compatible client.",
   "url": "https://unclick.world",
   "protocol": "mcp",
   "install": "npx @unclick/mcp-server",

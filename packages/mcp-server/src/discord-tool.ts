@@ -16,7 +16,7 @@ async function discordFetch(
 ): Promise<unknown> {
   const headers: Record<string, string> = {
     Authorization: `Bot ${token}`,
-    "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+    "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
   };
 
   if (body !== undefined) {

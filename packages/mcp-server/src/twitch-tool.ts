@@ -11,14 +11,16 @@ const TWITCH_API = "https://api.twitch.tv/helix";
 const TWITCH_AUTH = "https://id.twitch.tv/oauth2/token";
 
 // ── App access token cache ─────────────────────────────────────────────────────
+// Keyed by client id: in the multi-tenant hosted process, one shared global
+// would hand tenant B a token minted with tenant A's credentials.
 
-let cachedToken: string | null = null;
-let tokenExpiry = 0;
+const tokenCache = new Map<string, { token: string; expiry: number }>();
 
 const TWITCH_TIMEOUT_MS = Number(process.env.TWITCH_TIMEOUT_MS) || 15000;
 
 async function getAppToken(clientId: string, clientSecret: string): Promise<string> {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
+  const cached = tokenCache.get(clientId);
+  if (cached && Date.now() < cached.expiry) return cached.token;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TWITCH_TIMEOUT_MS);
   let res: Response;
@@ -37,9 +39,11 @@ async function getAppToken(clientId: string, clientSecret: string): Promise<stri
   }
   if (!res.ok) throw new Error(`Twitch auth HTTP ${res.status}: ${res.statusText}`);
   const data = (await res.json()) as { access_token: string; expires_in: number };
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-  return cachedToken;
+  tokenCache.set(clientId, {
+    token: data.access_token,
+    expiry: Date.now() + (data.expires_in - 60) * 1000,
+  });
+  return data.access_token;
 }
 
 async function twitchGet(

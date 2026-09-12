@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
  * Full-width image with slightly rounded corners that expands to a centered
  * lightbox on tap/click (Esc or click-outside to close). If the source is
  * missing it renders nothing, so a not-yet-added asset never shows broken.
+ * While open, focus moves to the close button and returns to the trigger on
+ * close, so keyboard users are never left focused behind the overlay.
  */
 export default function ExpandableImage({
   src,
@@ -18,14 +20,25 @@ export default function ExpandableImage({
 }) {
   const [open, setOpen] = useState(false);
   const [ok, setOk] = useState(true);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
+      // Single-control dialog: keep Tab on the close button.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      triggerRef.current?.focus();
+    };
   }, [open]);
 
   if (!ok) return null;
@@ -33,6 +46,7 @@ export default function ExpandableImage({
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Expand image: ${alt}`}
@@ -54,6 +68,7 @@ export default function ExpandableImage({
         <div
           role="dialog"
           aria-modal="true"
+          aria-label={alt}
           onClick={() => setOpen(false)}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-[#04141c]/90 p-4 backdrop-blur-sm"
         >
@@ -64,6 +79,7 @@ export default function ExpandableImage({
             className="max-h-[92vh] max-w-[95vw] rounded-xl object-contain shadow-2xl"
           />
           <button
+            ref={closeRef}
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close"

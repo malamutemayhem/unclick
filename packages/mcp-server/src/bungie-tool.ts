@@ -33,7 +33,7 @@ async function bungieFetch<T>(
     res = await fetch(url.toString(), {
       headers: {
         "X-API-Key": apiKey,
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });

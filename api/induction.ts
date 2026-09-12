@@ -41,7 +41,7 @@ const DEFAULT_SECTIONS: { section: string; rows: { rule: string; why: string }[]
   {
     section: "Use the tools",
     rows: [
-      { rule: "One UnClick connection gives you 450+ tools.", why: "You rarely need a separate plugin or a web search." },
+      { rule: "One UnClick connection gives you 1500+ callable actions.", why: "You rarely need a separate plugin or a web search." },
       { rule: "Find a tool with unclick_search, then run it with unclick_call.", why: "Prefer a real tool over guessing." },
     ],
   },

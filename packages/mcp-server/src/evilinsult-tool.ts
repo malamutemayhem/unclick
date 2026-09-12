@@ -14,7 +14,7 @@ export async function evilInsultRandom(args: Record<string, unknown>): Promise<u
     let res: Response;
     try {
       res = await fetch(`https://evilinsult.com/generate_insult.php?lang=${encodeURIComponent(lang)}&type=json`, {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
         signal: controller.signal,
       });
     } catch (err) {

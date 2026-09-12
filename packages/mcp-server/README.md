@@ -3,7 +3,7 @@
 **MCP server for the [UnClick](https://unclick.world) tool marketplace.**
 
 One install gives any MCP-compatible AI agent (Claude, Cursor, etc.) access to:
-- **450+ callable endpoints** across 60+ integrations (social, e-commerce, accounting, messaging, and more)
+- **1500+ callable actions** across 650+ apps (social, e-commerce, accounting, messaging, and more)
 - **Persistent cross-session memory** - the agent remembers you across sessions, zero config
 
 ## Quick Start

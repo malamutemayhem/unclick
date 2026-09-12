@@ -32,7 +32,7 @@ function buildPtvUrl(path: string, params: Record<string, string>): string {
 async function ptvFetch(path: string, params: Record<string, string> = {}): Promise<unknown> {
   const url = buildPtvUrl(path, params);
   const res = await fetch(url, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");

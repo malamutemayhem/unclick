@@ -26,7 +26,7 @@ async function hunterGet(apiKey: string, path: string, params: Record<string, st
   let res: Response;
   try {
     res = await fetch(`${HUNTER_BASE}${path}?${qs}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

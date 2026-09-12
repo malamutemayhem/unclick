@@ -24,7 +24,7 @@ async function triviaFetch<T>(path: string): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${OPENTDB_BASE}${path}`, {
-      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+      headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
       signal: controller.signal,
     });
   } catch (err) {

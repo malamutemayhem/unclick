@@ -211,12 +211,12 @@ function VercelPanel(): ReactNode {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <a
-          href="/connect/vercel"
+        <Link
+          to="/connect/vercel"
           className="inline-flex items-center gap-1.5 rounded-md border border-[#61C1C4]/30 bg-[#61C1C4]/10 px-3 py-1.5 text-xs font-semibold text-[#9be4e6] transition-colors hover:bg-[#61C1C4]/15"
         >
           <Cable className="h-3.5 w-3.5" /> Connect in UnClick
-        </a>
+        </Link>
         <a
           href="https://vercel.com/docs/agent-resources/vercel-mcp"
           target="_blank"
@@ -284,12 +284,12 @@ function SupabasePanel(): ReactNode {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <a
-          href="/connect/supabase"
+        <Link
+          to="/connect/supabase"
           className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition-colors hover:bg-emerald-300/15"
         >
           <Cable className="h-3.5 w-3.5" /> Connect in UnClick
-        </a>
+        </Link>
         <a
           href="https://supabase.com/docs/guides/ai-tools/mcp"
           target="_blank"

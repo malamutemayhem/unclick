@@ -22,7 +22,7 @@ async function lottGet(path: string, params?: Record<string, string>): Promise<u
   const res = await fetch(`${LOTT_BASE}${path}${qs}`, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+      "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
     },
   });
   if (res.status === 404) throw new Error("Game or draw not found.");

@@ -13,7 +13,7 @@ export async function corporateBsPhrase(_args: Record<string, unknown>): Promise
     let res: Response;
     try {
       res = await fetch("https://corporatebs-generator.sameerkumar.website/", {
-        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+        headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
         signal: controller.signal,
       });
     } catch (err) {

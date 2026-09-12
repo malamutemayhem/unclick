@@ -6,7 +6,7 @@ const SLEEPER_BASE = "https://api.sleeper.app/v1";
 
 async function sleeperFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${SLEEPER_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`Sleeper API HTTP ${res.status}`);
   return res.json() as Promise<T>;

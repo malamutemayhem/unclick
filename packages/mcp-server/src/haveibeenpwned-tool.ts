@@ -26,7 +26,7 @@ async function hibpGet(apiKey: string, path: string, params?: Record<string, str
     res = await fetch(`${HIBP_BASE}${path}${qs}`, {
       headers: {
         "hibp-api-key": apiKey,
-        "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+        "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
       },
       signal: controller.signal,
     });
@@ -162,7 +162,7 @@ export async function checkPassword(args: Record<string, unknown>): Promise<unkn
     try {
       res = await fetch(`${HIBP_PASS_BASE}/range/${prefix}`, {
         headers: {
-          "User-Agent": "UnClickMCP/1.0 (https://unclick.io)",
+          "User-Agent": "UnClickMCP/1.0 (https://unclick.world)",
           "Add-Padding": "true",
         },
         signal: controller.signal,

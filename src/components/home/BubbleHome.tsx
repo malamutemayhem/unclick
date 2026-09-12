@@ -814,7 +814,8 @@ function JourneyField() {
               >
                 <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary/70" />
                 <span className="text-primary/80">remembers ›</span>
-                <span className="truncate text-body">{fact}</span>
+                {/* Narrow viewports truncate; title keeps the full fact reachable. */}
+                <span className="truncate text-body" title={fact}>{fact}</span>
               </div>
             ))}
           </div>

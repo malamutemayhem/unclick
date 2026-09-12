@@ -216,16 +216,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Increment the counter (non-blocking, fire-and-forget)
-    supabase
+    // Increment the counter before running the tool. This must be awaited:
+    // a fire-and-forget write can be dropped when the function freezes after
+    // the response, which slowly resets the daily counter.
+    const { error: rateError } = await supabase
       .from("demo_rate_limits")
       .upsert(
         { ip_hash: ipHash, call_date: callDate, call_count: currentCount + 1 },
         { onConflict: "ip_hash,call_date" }
-      )
-      .then(({ error }) => {
-        if (error) console.error("Rate limit upsert error:", error.message);
-      });
+      );
+    if (rateError) console.error("Rate limit upsert error:", rateError.message);
   } else {
     console.warn("Supabase service env vars missing - demo rate limiting disabled");
   }

@@ -8,7 +8,7 @@ const HN_BASE = "https://hacker-news.firebaseio.com/v0";
 
 async function hnFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${HN_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`HN API HTTP ${res.status}`);
   return res.json() as Promise<T>;

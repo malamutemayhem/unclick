@@ -6,7 +6,7 @@ const DEEZER_BASE = "https://api.deezer.com";
 
 async function deezerFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${DEEZER_BASE}${path}`, {
-    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.io)" },
+    headers: { "User-Agent": "UnClickMCP/1.0 (https://unclick.world)" },
   });
   if (!res.ok) throw new Error(`Deezer API HTTP ${res.status}`);
   return res.json() as Promise<T>;

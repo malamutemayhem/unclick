@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { SITE_STATS } from "@/config/site-stats";
 import { motion } from "framer-motion";
 import FadeIn from "./FadeIn";
@@ -179,17 +180,17 @@ const FAQ = () => {
               Still have questions?{" "}
               <a
                 href="mailto:hello@unclick.world"
-                className="text-primary underline-offset-4 hover:underline"
+                className="px-1 py-3 -mx-1 text-primary underline-offset-4 hover:underline"
               >
                 Get in touch
               </a>{" "}
               or{" "}
-              <a
-                href="/docs"
-                className="text-primary underline-offset-4 hover:underline"
+              <Link
+                to="/docs"
+                className="px-1 py-3 -mx-1 text-primary underline-offset-4 hover:underline"
               >
                 read the docs
-              </a>
+              </Link>
               .
             </p>
           </div>
