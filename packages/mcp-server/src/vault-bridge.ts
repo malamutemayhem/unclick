@@ -64,6 +64,33 @@ export function unclickCredentialsBearer(): string | null {
   return null;
 }
 
+/**
+ * Bearer for a request that is already scoped by the hosted MCP endpoint.
+ *
+ * This deliberately differs from unclickCredentialsBearer(): a verified
+ * public-pair/OAuth session may call account-owned operational APIs without
+ * enabling the optional personal-credential login feature. It must never be
+ * used to read a user's personal connector vault.
+ */
+export function unclickAuthenticatedRequestBearer(): string | null {
+  return currentApiKey() ?? currentSessionToken();
+}
+
+/**
+ * Authorization for the project-owned master connector broker only.
+ *
+ * A public-pair/OAuth MCP session is already cryptographically verified by the
+ * MCP endpoint and has a scoped session token.  Unlike a user's personal
+ * credential vault, the master broker also requires that token's caller to be
+ * a Superuser *and* an internal deployment-held broker secret, so it must not
+ * inherit the optional personal-login connector feature flag.  Otherwise a
+ * paired Superuser can use Memory but is incorrectly denied the UnClick
+ * project connectors whenever personal connector login is disabled.
+ */
+function systemConnectorBearer(): string | null {
+  return unclickAuthenticatedRequestBearer();
+}
+
 export async function markCredentialLiveTested(slug: string): Promise<void> {
   const bearer = unclickCredentialsBearer();
   if (!bearer) return;
@@ -186,7 +213,7 @@ async function tryResolveSystemCredentials(
   if (!currentRequestIsSuperuser() || !SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) {
     return stillMissing;
   }
-  const bearer = unclickCredentialsBearer();
+  const bearer = systemConnectorBearer();
   const brokerSecret = (
     process.env.UNCLICK_SYSTEM_CONNECTOR_BROKER_SECRET ||
     process.env.UNCLICK_AI_KEY_SECRET ||

@@ -11,7 +11,7 @@ import { createClient, type UnClickClient } from "./client.js";
 import { ADDITIONAL_TOOLS, ADDITIONAL_HANDLERS } from "./tool-wiring.js";
 import { getDisabledApps, filterDisabledTools, isToolDisabled, appForTool } from "./tool-gating.js";
 import { crewsStartRun } from "./crews-tool.js";
-import { unclickCredentialsBearer } from "./vault-bridge.js";
+import { unclickAuthenticatedRequestBearer } from "./vault-bridge.js";
 import { LOCAL_CATALOG_HANDLERS } from "./local-catalog-handlers.js";
 import { xgatePreflight } from "./xgate-preflight.js";
 import { MEMORY_HANDLERS } from "./memory/handlers.js";
@@ -2059,7 +2059,7 @@ export function createServer(): Server {
         // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
         // (bare https://unclick.world/api/mcp + magic-link login) this is the
         // verified MCP session token instead. Only truly disconnected -> null.
-        const apiKey = unclickCredentialsBearer();
+        const apiKey = unclickAuthenticatedRequestBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2123,7 +2123,7 @@ export function createServer(): Server {
         // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
         // (bare https://unclick.world/api/mcp + magic-link login) this is the
         // verified MCP session token instead. Only truly disconnected -> null.
-        const apiKey = unclickCredentialsBearer();
+        const apiKey = unclickAuthenticatedRequestBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2192,7 +2192,7 @@ export function createServer(): Server {
         // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
         // (bare https://unclick.world/api/mcp + magic-link login) this is the
         // verified MCP session token instead. Only truly disconnected -> null.
-        const apiKey = unclickCredentialsBearer();
+        const apiKey = unclickAuthenticatedRequestBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2273,7 +2273,7 @@ export function createServer(): Server {
         // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
         // (bare https://unclick.world/api/mcp + magic-link login) this is the
         // verified MCP session token instead. Only truly disconnected -> null.
-        const apiKey = unclickCredentialsBearer();
+        const apiKey = unclickAuthenticatedRequestBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
@@ -2306,7 +2306,7 @@ export function createServer(): Server {
         // Key-or-session bearer: the plaintext key wins; on a keyless OAuth seat
         // (bare https://unclick.world/api/mcp + magic-link login) this is the
         // verified MCP session token instead. Only truly disconnected -> null.
-        const apiKey = unclickCredentialsBearer();
+        const apiKey = unclickAuthenticatedRequestBearer();
         const base =
           process.env.UNCLICK_MEMORY_BASE_URL ||
           process.env.UNCLICK_SITE_URL ||
