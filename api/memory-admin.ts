@@ -120,6 +120,7 @@ import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
 import { deriveConnectionActivity } from "./lib/connection-activity.js";
+import { deriveUserManagementRole } from "./lib/admin-roles.js";
 import {
   isValidPublicMcpPairId,
   publicMcpPairDeviceId,
@@ -1250,7 +1251,7 @@ async function resolveSessionUser(
   req: VercelRequest,
   supabaseUrl: string,
   serviceRoleKey: string,
-): Promise<{ id: string; email: string | null } | null> {
+): Promise<{ id: string; email: string | null; app_metadata: unknown } | null> {
   const token = bearerFrom(req);
   if (!token) return null;
   // Tokens that look like UnClick api_keys (uc_* / agt_*) are never
@@ -1267,7 +1268,11 @@ async function resolveSessionUser(
     });
     const { data, error } = await scoped.auth.getUser(token);
     if (error || !data?.user) return null;
-    return { id: data.user.id, email: data.user.email ?? null };
+    return {
+      id: data.user.id,
+      email: data.user.email ?? null,
+      app_metadata: data.user.app_metadata ?? null,
+    };
   } catch {
     return null;
   }
@@ -5044,18 +5049,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
           : null;
 
-        // Derive is_admin from the ADMIN_EMAILS env var. Comma-separated
-        // list, case-insensitive trim-equal. Fixes the 401 console noise
-        // on /admin/memory for non-admin signers by giving the frontend
-        // a clean role flag to gate admin-only surfaces behind.
-        const adminEmailsRaw = process.env.ADMIN_EMAILS ?? "";
-        const adminEmails = adminEmailsRaw
-          .split(",")
-          .map((s) => s.trim().toLowerCase())
-          .filter(Boolean);
-        const isAdmin = user.email
-          ? adminEmails.includes(user.email.toLowerCase())
-          : false;
+        // Keep the route gate aligned with /api/admin-users: an env-listed,
+        // assigned, or GOD superuser can reach the same admin surfaces.
+        const isAdmin = deriveUserManagementRole(user.email, user.app_metadata).role !== "user";
         const [operatorTime, aiStyle, aboutYou] = keyRow?.key_hash
           ? await Promise.all([
               readOperatorTimeContext(supabase, keyRow.key_hash),
