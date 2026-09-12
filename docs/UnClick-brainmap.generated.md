@@ -22,7 +22,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | docs/fleet-worker-roles.md | 2afb4e183159 | 5499 |
 | docs/adr/0005-two-layer-admin-gating.md | cefe739796f2 | 2186 |
 | docs/adr/0006-orchestrator-is-user-chat.md | ba6451ea1765 | 2034 |
-| src/App.tsx | 0fd0c27849b9 | 24600 |
+| src/App.tsx | 62d178b1b47e | 24739 |
 | src/pages/admin/AdminShell.tsx | 58c7376858b1 | 34482 |
 | src/pages/admin/AdminControlTower.tsx | 4c84cc958957 | 21800 |
 | src/lib/controltower.ts | c9d18e61e7d8 | 21703 |
@@ -96,7 +96,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/AdminBrainmap.tsx | 48525d7a37d1 | 26608 |
 | src/pages/admin/AdminBrowser.tsx | c3b7c8dbb483 | 4193 |
 | src/pages/admin/AdminCapabilityBalance.tsx | f8080095c92c | 13774 |
-| src/pages/admin/AdminChat.tsx | b33b09a8cad7 | 46220 |
+| src/pages/admin/AdminChat.tsx | a932e972e28a | 51778 |
 | src/pages/admin/AdminCircle.tsx | 005cabb745d2 | 28861 |
 | src/pages/admin/AdminCodebase.tsx | d51790b275a5 | 8068 |
 | src/pages/admin/copypass/CopyPassCatalog.tsx | 64459f24dc61 | 7324 |
@@ -126,9 +126,9 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/admin/testpass/RunDetail.tsx | 0029d0d93d20 | 22801 |
 | src/pages/admin/testpass/TestPassCatalog.tsx | ee00d5d30b04 | 21877 |
 | src/pages/admin/AdminTruthRate.tsx | b99175b21cc1 | 8880 |
-| src/pages/admin/AdminUsers.tsx | 222654ee0f22 | 866 |
+| src/pages/admin/AdminUsers.tsx | 01ffcf0403a4 | 27682 |
 | src/pages/admin/AdminXGate.tsx | 193295e6e4dc | 26811 |
-| src/pages/admin/AdminYou.tsx | 0d003cff06ff | 72598 |
+| src/pages/admin/AdminYou.tsx | 2dca3df8c652 | 72811 |
 | src/pages/AppDetail.tsx | 7b0b653f2082 | 8200 |
 | src/pages/Apps.tsx | 65bd43917eab | 3135 |
 | src/pages/AuthCallback.tsx | e9ee37622f98 | 5086 |
@@ -160,15 +160,16 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/HomePreviewO.tsx | 0a7c61aba798 | 7398 |
 | src/pages/HomePreviewP.tsx | 0926126a670a | 6256 |
 | src/pages/HomePreviewQ.tsx | 24989092c44b | 5097 |
-| src/pages/HomePreviewR.tsx | a9c7e1529e7a | 1315 |
+| src/pages/HomePreviewR.tsx | 362ac590bf36 | 1317 |
+| src/pages/HomePreviewS.tsx | 960cc0b3a96b | 11816 |
 | src/pages/HomePreview.tsx | 4768b94b20d1 | 7592 |
 | src/pages/InstallRecover.tsx | 56c822e69817 | 6971 |
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | dce8bcccd23f | 8743 |
 | src/pages/McpAuthorize.tsx | e72687e0881f | 3961 |
-| src/pages/MemoryConnect.tsx | 128a2dddc94f | 18504 |
+| src/pages/MemoryConnect.tsx | d31fce7bd001 | 19240 |
 | src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
-| src/pages/Memory.tsx | 6ad6ab79dad3 | 19343 |
+| src/pages/Memory.tsx | 5d68e78449d7 | 11063 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
 | src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
@@ -275,8 +276,8 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Division | Meaning | Items |
 | --- | --- | --- |
 | Admin surfaces | Private operator views and internal control panels. | 64 |
-| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 57 |
-| Tools | MCP and gateway capabilities available to seats. | 677 |
+| Public surfaces | Public product, docs, marketplace, and user-facing routes. | 58 |
+| Tools | MCP and gateway capabilities available to seats. | 678 |
 | Rooms | PinballWake and Boardroom lanes that route work. | 23 |
 | Workers and seats | Human and AI roles that move work through the system. | 11 |
 | Passes and gates | Quality, proof, safety, and fidelity checks. | 17 |
@@ -284,7 +285,7 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | Automations | Scheduled jobs, wake routes, cron workflows, and recurring checks. | 128 |
 | Ledgers and proof | Receipts, audits, evidence, and proof-of-work surfaces. | 8 |
 | Source of truth | Canonical state, queue, memory, and context surfaces. | 14 |
-| Modules and apps | Apps, packages, and product modules that make up UnClick. | 136 |
+| Modules and apps | Apps, packages, and product modules that make up UnClick. | 137 |
 | Launch and onboarding | Launchpad, Heartbeat, Brainmap, and first-seat orientation. | 7 |
 
 ## UnClick Structure
@@ -415,6 +416,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | /home-preview-p | Home Preview P | User-facing page for Home Preview P. | src/pages/HomePreviewP.tsx |
 | /home-preview-q | Home Preview Q | User-facing page for Home Preview Q. | src/pages/HomePreviewQ.tsx |
 | /home-preview-r | Home Preview R | User-facing page for Home Preview R. | src/pages/HomePreviewR.tsx |
+| /home-preview-s | Home Preview S | User-facing page for Home Preview S. | src/pages/HomePreviewS.tsx |
 | /home-preview | Home Preview | User-facing page for Home Preview. | src/pages/HomePreview.tsx |
 | /i | Install Recover | User-facing page for Install Recover. | src/pages/InstallRecover.tsx |
 | /jobsmith | Jobsmith | User-facing page for Jobsmith. | src/pages/Jobsmith.tsx |
@@ -683,6 +685,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | ghibli | ghibli MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ghibli-tool.ts |
 | ghost | ghost MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/ghost-tool.ts |
 | giphy | giphy MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/giphy-tool.ts |
+| gitea | gitea MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitea-tool.ts |
 | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-emoji-tool.ts |
 | github | github MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/github-tool.ts |
 | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | packages/mcp-server/src/gitlab-tool.ts |
@@ -1358,6 +1361,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Modules and apps | component | Ideas | Admin surface for Ideas. | - | src/pages/admin/boardroom/Ideas.tsx |
 | Modules and apps | component | Info Card | Memory admin panel for Info Card. | - | src/pages/admin/memory/InfoCard.tsx |
 | Modules and apps | component | Library Tab | Memory admin panel for Library Tab. | - | src/pages/admin/memory/LibraryTab.tsx |
+| Modules and apps | component | Master Connectors Panel | Admin surface for Master Connectors Panel. | - | src/pages/admin/MasterConnectorsPanel.tsx |
 | Modules and apps | component | Memory Activity Tab | Memory admin panel for Memory Activity Tab. | - | src/pages/admin/memory/MemoryActivityTab.tsx |
 | Modules and apps | component | Not Found | User-facing page for Not Found. | - | src/pages/NotFound.tsx |
 | Modules and apps | component | Recycle Bin Tab | Memory admin panel for Recycle Bin Tab. | - | src/pages/admin/memory/RecycleBinTab.tsx |
@@ -1516,6 +1520,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Public surfaces | public page | Home Preview P | User-facing page for Home Preview P. | /home-preview-p | src/pages/HomePreviewP.tsx |
 | Public surfaces | public page | Home Preview Q | User-facing page for Home Preview Q. | /home-preview-q | src/pages/HomePreviewQ.tsx |
 | Public surfaces | public page | Home Preview R | User-facing page for Home Preview R. | /home-preview-r | src/pages/HomePreviewR.tsx |
+| Public surfaces | public page | Home Preview S | User-facing page for Home Preview S. | /home-preview-s | src/pages/HomePreviewS.tsx |
 | Public surfaces | public page | Homepage Sample | User-facing page for Homepage Sample. | /uipass-home-sample | src/pages/HomepageSample.tsx |
 | Public surfaces | public page | Index | Public home and first explanation of UnClick. | / | src/pages/Index.tsx |
 | Public surfaces | public page | Install Recover | User-facing page for Install Recover. | /i | src/pages/InstallRecover.tsx |
@@ -1819,6 +1824,7 @@ Every seat should pass through this path before acting on UnClick work. It keeps
 | Tools | MCP tool | ghibli | ghibli MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ghibli-tool.ts |
 | Tools | MCP tool | ghost | ghost MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/ghost-tool.ts |
 | Tools | MCP tool | giphy | giphy MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/giphy-tool.ts |
+| Tools | MCP tool | gitea | gitea MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitea-tool.ts |
 | Tools | MCP tool | github | github MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-tool.ts |
 | Tools | MCP tool | github emoji | github emoji MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/github-emoji-tool.ts |
 | Tools | MCP tool | gitlab | gitlab MCP capability, available through the UnClick tool gateway. | - | packages/mcp-server/src/gitlab-tool.ts |

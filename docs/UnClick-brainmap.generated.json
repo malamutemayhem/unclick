@@ -9,10 +9,10 @@
   },
   "counts": {
     "divisions": 12,
-    "inventory": 1145,
-    "source_manifest": 256,
-    "pages": 121,
-    "tools": 677,
+    "inventory": 1148,
+    "source_manifest": 257,
+    "pages": 122,
+    "tools": 678,
     "rooms": 23,
     "workers": 8
   },
@@ -27,13 +27,13 @@
       "id": "public-surfaces",
       "name": "Public surfaces",
       "meaning": "Public product, docs, marketplace, and user-facing routes.",
-      "count": 57
+      "count": 58
     },
     {
       "id": "tools",
       "name": "Tools",
       "meaning": "MCP and gateway capabilities available to seats.",
-      "count": 677
+      "count": 678
     },
     {
       "id": "rooms",
@@ -81,7 +81,7 @@
       "id": "modules-and-apps",
       "name": "Modules and apps",
       "meaning": "Apps, packages, and product modules that make up UnClick.",
-      "count": 136
+      "count": 137
     },
     {
       "id": "launch-and-onboarding",
@@ -2412,6 +2412,16 @@
       "tags": []
     },
     {
+      "id": "modules-and-apps-component-master-connectors-panel-src-pages-admin-masterconnectorspanel-tsx-no-route",
+      "division": "Modules and apps",
+      "name": "Master Connectors Panel",
+      "kind": "component",
+      "meaning": "Admin surface for Master Connectors Panel.",
+      "source": "src/pages/admin/MasterConnectorsPanel.tsx",
+      "route": "",
+      "tags": []
+    },
+    {
       "id": "modules-and-apps-component-memory-activity-tab-src-pages-admin-memory-memoryactivitytab-tsx-no-route",
       "division": "Modules and apps",
       "name": "Memory Activity Tab",
@@ -3989,6 +3999,16 @@
       "meaning": "User-facing page for Home Preview R.",
       "source": "src/pages/HomePreviewR.tsx",
       "route": "/home-preview-r",
+      "tags": []
+    },
+    {
+      "id": "public-surfaces-public-page-home-preview-s-src-pages-homepreviews-tsx-home-preview-s",
+      "division": "Public surfaces",
+      "name": "Home Preview S",
+      "kind": "public page",
+      "meaning": "User-facing page for Home Preview S.",
+      "source": "src/pages/HomePreviewS.tsx",
+      "route": "/home-preview-s",
       "tags": []
     },
     {
@@ -7018,6 +7038,16 @@
       "kind": "MCP tool",
       "meaning": "giphy MCP capability, available through the UnClick tool gateway.",
       "source": "packages/mcp-server/src/giphy-tool.ts",
+      "route": "",
+      "tags": []
+    },
+    {
+      "id": "tools-mcp-tool-gitea-packages-mcp-server-src-gitea-tool-ts-no-route",
+      "division": "Tools",
+      "name": "gitea",
+      "kind": "MCP tool",
+      "meaning": "gitea MCP capability, available through the UnClick tool gateway.",
+      "source": "packages/mcp-server/src/gitea-tool.ts",
       "route": "",
       "tags": []
     },
@@ -12126,6 +12156,12 @@
       "src/pages/HomePreviewR.tsx"
     ],
     [
+      "/home-preview-s",
+      "Home Preview S",
+      "User-facing page for Home Preview S.",
+      "src/pages/HomePreviewS.tsx"
+    ],
+    [
       "/home-preview",
       "Home Preview",
       "User-facing page for Home Preview.",
@@ -13537,6 +13573,11 @@
       "giphy",
       "giphy MCP capability, available through the UnClick tool gateway.",
       "packages/mcp-server/src/giphy-tool.ts"
+    ],
+    [
+      "gitea",
+      "gitea MCP capability, available through the UnClick tool gateway.",
+      "packages/mcp-server/src/gitea-tool.ts"
     ],
     [
       "github emoji",
@@ -16055,8 +16096,8 @@
     },
     {
       "source": "src/App.tsx",
-      "hash": "0fd0c27849b9",
-      "bytes": 24600
+      "hash": "62d178b1b47e",
+      "bytes": 24739
     },
     {
       "source": "src/pages/admin/AdminShell.tsx",
@@ -16425,8 +16466,8 @@
     },
     {
       "source": "src/pages/admin/AdminChat.tsx",
-      "hash": "b33b09a8cad7",
-      "bytes": 46220
+      "hash": "a932e972e28a",
+      "bytes": 51778
     },
     {
       "source": "src/pages/admin/AdminCircle.tsx",
@@ -16575,8 +16616,8 @@
     },
     {
       "source": "src/pages/admin/AdminUsers.tsx",
-      "hash": "222654ee0f22",
-      "bytes": 866
+      "hash": "01ffcf0403a4",
+      "bytes": 27682
     },
     {
       "source": "src/pages/admin/AdminXGate.tsx",
@@ -16585,8 +16626,8 @@
     },
     {
       "source": "src/pages/admin/AdminYou.tsx",
-      "hash": "0d003cff06ff",
-      "bytes": 72598
+      "hash": "2dca3df8c652",
+      "bytes": 72811
     },
     {
       "source": "src/pages/AppDetail.tsx",
@@ -16745,8 +16786,13 @@
     },
     {
       "source": "src/pages/HomePreviewR.tsx",
-      "hash": "a9c7e1529e7a",
-      "bytes": 1315
+      "hash": "362ac590bf36",
+      "bytes": 1317
+    },
+    {
+      "source": "src/pages/HomePreviewS.tsx",
+      "hash": "960cc0b3a96b",
+      "bytes": 11816
     },
     {
       "source": "src/pages/HomePreview.tsx",
@@ -16775,8 +16821,8 @@
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
-      "hash": "128a2dddc94f",
-      "bytes": 18504
+      "hash": "d31fce7bd001",
+      "bytes": 19240
     },
     {
       "source": "src/pages/MemorySetup.tsx",
@@ -16785,8 +16831,8 @@
     },
     {
       "source": "src/pages/Memory.tsx",
-      "hash": "6ad6ab79dad3",
-      "bytes": 19343
+      "hash": "5d68e78449d7",
+      "bytes": 11063
     },
     {
       "source": "src/pages/NewToAI.tsx",
