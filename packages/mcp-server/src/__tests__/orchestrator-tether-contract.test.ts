@@ -5,6 +5,7 @@ import { MCP_SERVER_INSTRUCTIONS, VISIBLE_TOOLS } from "../server.js";
 describe("Orchestrator tether contract", () => {
   it("keeps the continuity instructions compact, forceful, and multi-path", () => {
     expect(MCP_SERVER_INSTRUCTIONS).toContain("ORCHESTRATOR TETHER CONTRACT");
+    expect(MCP_SERVER_INSTRUCTIONS).toContain("only for a live chat or heartbeat wake");
     expect(MCP_SERVER_INSTRUCTIONS).toContain("Receipt-first rule");
     expect(MCP_SERVER_INSTRUCTIONS).toContain("save_conversation_turn");
     expect(MCP_SERVER_INSTRUCTIONS).toContain("unclick_save_conversation_turn");
@@ -15,6 +16,8 @@ describe("Orchestrator tether contract", () => {
     expect(MCP_SERVER_INSTRUCTIONS).toContain("Partial capture path");
     expect(MCP_SERVER_INSTRUCTIONS).toContain("UNTETHERED:");
     expect(MCP_SERVER_INSTRUCTIONS).toContain("First real Orchestrator receipt wins");
+    expect(MCP_SERVER_INSTRUCTIONS).toContain("Do not run synthetic self-checks during ordinary user sessions");
+    expect(MCP_SERVER_INSTRUCTIONS).not.toContain("Self-check path");
     expect(MCP_SERVER_INSTRUCTIONS.length).toBeLessThan(3800);
   });
 

@@ -3919,7 +3919,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(200).json({
             connected: false, configured: false, has_context: false,
             context_count: 0, fact_count: 0, last_session: null,
-            last_session_platform: null, last_used_at: null,
+            last_session_platform: null, last_used_at: null, paired: false,
           });
         }
 
@@ -3932,7 +3932,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const [apiKeyRes, bcRes, factsRes, lastFactRes, sessionRes] = await Promise.all([
           supabase
             .from("api_keys")
-            .select("last_used_at")
+            .select("user_id,last_used_at")
             .eq("is_active", true)
             .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`)
             .order("last_used_at", { ascending: false, nullsFirst: false })
@@ -3963,29 +3963,63 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const factCount = factsRes.count ?? 0;
         const contextCount = bcRes.count ?? 0;
+        const activeKey = apiKeyRes.data?.[0] as {
+          user_id?: string | null;
+          last_used_at?: string | null;
+        } | undefined;
+        const ownerUserId = typeof activeKey?.user_id === "string"
+          ? activeKey.user_id
+          : null;
+        // Public MCP pairing writes an auth_devices receipt before the first
+        // protected tool call. Count only that explicit device type, never an
+        // unrelated browser/device session, so the dashboard and pairing page
+        // agree without pretending a memory read happened.
+        const pairedDeviceRes = ownerUserId
+          ? await supabase
+              .from("auth_devices")
+              .select("paired_at,last_seen_at")
+              .eq("user_id", ownerUserId)
+              .eq("device_name", "Public MCP connection")
+              .is("revoked_at", null)
+              .order("last_seen_at", { ascending: false })
+              .limit(1)
+          : null;
+        const lastPairedAt = pairedDeviceRes?.error
+          ? null
+          : ((pairedDeviceRes?.data?.[0] as {
+              paired_at?: string | null;
+              last_seen_at?: string | null;
+            } | undefined)?.last_seen_at
+              ?? (pairedDeviceRes?.data?.[0] as {
+                paired_at?: string | null;
+              } | undefined)?.paired_at
+              ?? null);
         const lastSession = sessionRes.data?.[0]?.created_at ?? null;
         const lastSessionPlatform = sessionRes.data?.[0]?.platform ?? null;
         const activity = deriveConnectionActivity({
-          apiKeyLastUsedAt: apiKeyRes.data?.[0]?.last_used_at ?? null,
+          apiKeyLastUsedAt: activeKey?.last_used_at ?? null,
           memoryLastUsedAt: cfg?.last_used_at ?? null,
           lastSessionAt: lastSession,
           lastMemoryWriteAt: lastFactRes.data?.[0]?.created_at ?? null,
+          lastPairedAt,
         });
 
-        // A durable activity record, including an already-persisted memory write,
-        // is proof that an authenticated client has connected to this account.
-        // Never make an optional memory_configs row the source of truth.
+        // A durable activity record, including a completed public pairing or an
+        // already-persisted memory write, is proof that an authenticated client
+        // has connected to this account. Never make an optional memory_configs
+        // row the source of truth.
         const connected = activity.connected;
 
         return res.status(200).json({
           connected,
-          configured: Boolean(cfg || apiKeyRes.data?.length || activity.connected),
+          configured: Boolean(cfg || activeKey || activity.connected),
           has_context: contextCount > 0,
           context_count: contextCount,
           fact_count: factCount,
           last_session: lastSession,
           last_session_platform: lastSessionPlatform,
           last_used_at: activity.lastUsedAt,
+          paired: lastPairedAt !== null,
         });
       }
 

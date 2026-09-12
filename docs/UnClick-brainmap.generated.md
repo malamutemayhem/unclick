@@ -167,12 +167,12 @@ Internal admin only. Auto-generated from tracked source so new AI seats can unde
 | src/pages/Jobsmith.tsx | d0763d5d4c38 | 62520 |
 | src/pages/Login.tsx | dce8bcccd23f | 8743 |
 | src/pages/McpAuthorize.tsx | e72687e0881f | 3961 |
-| src/pages/MemoryConnect.tsx | d31fce7bd001 | 19240 |
+| src/pages/MemoryConnect.tsx | 264a13bbfdfd | 20044 |
 | src/pages/MemorySetup.tsx | 8ecebdff32de | 20089 |
 | src/pages/Memory.tsx | 5d68e78449d7 | 11063 |
 | src/pages/NewToAI.tsx | 4fdcf1fa25d2 | 13105 |
 | src/pages/Organiser.tsx | ae35be237d83 | 16581 |
-| src/pages/PairingComplete.tsx | 93f97943a8a3 | 12470 |
+| src/pages/PairingComplete.tsx | 339219fd4b4c | 14303 |
 | src/pages/Pricing.tsx | b9834637502c | 8724 |
 | src/pages/Privacy.tsx | c377de0c911d | 13282 |
 | src/pages/Signup.tsx | bb69e5123b4b | 8623 |

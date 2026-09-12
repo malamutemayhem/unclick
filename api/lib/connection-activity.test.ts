@@ -17,4 +17,10 @@ describe("deriveConnectionActivity", () => {
       lastMemoryWriteAt: "2026-09-12T01:30:00.000Z",
     })).toEqual({ connected: true, lastUsedAt: "2026-09-12T02:00:00.000Z" });
   });
+
+  it("treats a completed public pairing as connected before the first memory call", () => {
+    expect(deriveConnectionActivity({
+      lastPairedAt: "2026-09-12T02:06:25.000Z",
+    })).toEqual({ connected: true, lastUsedAt: "2026-09-12T02:06:25.000Z" });
+  });
 });
