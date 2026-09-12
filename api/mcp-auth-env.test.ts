@@ -36,6 +36,7 @@ describe("applyMcpRequestEnv", () => {
       user_id: "user-123",
       account_email: "user@example.test",
       memory_quota_exempt: true,
+      is_superuser: true,
     };
 
     applyMcpRequestEnv("uc_valid", ctx, null);
@@ -57,6 +58,7 @@ describe("applyMcpRequestEnv", () => {
       user_id: "user-456",
       account_email: null,
       memory_quota_exempt: false,
+      is_superuser: false,
     };
 
     // Login path: no plaintext api key, but a verifiable MCP OAuth token.
@@ -81,6 +83,7 @@ describe("applyMcpRequestEnv", () => {
       user_id: "user-789",
       account_email: null,
       memory_quota_exempt: false,
+      is_superuser: false,
     };
     applyMcpRequestEnv("uc_valid", ctx, null);
 

@@ -22,10 +22,16 @@ import { vaultAction }                   from "./vault-tool.js";
 import { CONNECTORS, type ConnectorConfig } from "./connectors/index.js";
 import { keychainGetCredential }         from "./keychain-tool.js";
 import { isBackstagePassVaultEnabled }    from "./memory/tenant-settings.js";
+import {
+  currentApiKey,
+  currentRequestIsSuperuser,
+  currentSessionToken,
+} from "./memory/request-context.js";
 
 // ─── Helpers ───────────────────────────────────────────
 
 const UNCLICK_CREDENTIAL_SOURCE = "__unclick_credential_source";
+const SYSTEM_CREDENTIAL_PROVIDERS = new Set(["gitea", "vercel", "supabase"]);
 
 export function credentialResolvedFromUnClick(args: Record<string, unknown>): boolean {
   return args[UNCLICK_CREDENTIAL_SOURCE] === "user_credentials";
@@ -51,9 +57,9 @@ export function loginConnectEnabled(): boolean {
 // leaks via room membership). Connectors with their own /api/credentials read
 // (e.g. higgsfield-tool.ts) reuse this so the rule stays in one place.
 export function unclickCredentialsBearer(): string | null {
-  const apiKey = process.env.UNCLICK_API_KEY?.trim();
+  const apiKey = currentApiKey();
   if (apiKey) return apiKey;
-  const sessionToken = process.env.UNCLICK_MCP_SESSION_TOKEN?.trim();
+  const sessionToken = currentSessionToken();
   if (sessionToken && loginConnectEnabled()) return sessionToken;
   return null;
 }
@@ -166,6 +172,52 @@ async function tryResolveFromUnClickApi(
   return stillMissing;
 }
 
+/**
+ * Superusers can use project-owned maintenance credentials only after their
+ * personal credential sources miss. The token crosses the browser boundary
+ * never: this internal request additionally proves it came from the hosted
+ * MCP process with a deployment-held broker secret.
+ */
+async function tryResolveSystemCredentials(
+  slug: string,
+  resolved: Record<string, unknown>,
+  stillMissing: ConnectorConfig["credentialFields"],
+): Promise<ConnectorConfig["credentialFields"]> {
+  if (!currentRequestIsSuperuser() || !SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) {
+    return stillMissing;
+  }
+  const bearer = unclickCredentialsBearer();
+  const brokerSecret = (
+    process.env.UNCLICK_SYSTEM_CONNECTOR_BROKER_SECRET ||
+    process.env.UNCLICK_AI_KEY_SECRET ||
+    process.env.UNCLICK_AI_KEY_SECRET_V2 ||
+    ""
+  ).trim();
+  if (!bearer || !brokerSecret) return stillMissing;
+
+  const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+  try {
+    const response = await fetch(
+      `${apiBase}/api/system-connectors?action=resolve&provider=${encodeURIComponent(slug)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${bearer}`,
+          "X-UnClick-System-Connector-Broker": brokerSecret,
+        },
+      },
+    );
+    if (!response.ok) return stillMissing;
+    const data = await response.json() as { credentials?: Record<string, unknown> };
+    for (const field of stillMissing) {
+      const value = data.credentials?.[field.key];
+      if (typeof value === "string" && value.trim()) resolved[field.key] = value.trim();
+    }
+  } catch {
+    // A project master is optional. Preserve the regular connector setup path.
+  }
+  return unresolvedFields(stillMissing, resolved);
+}
+
 // ─── Core: resolveCredentials ───────────────────────────────────────
 
 /**
@@ -252,6 +304,9 @@ export async function resolveCredentials(
     stillMissing = await tryResolveFromUnClickApi(slug, resolved, stillMissing);
     if (stillMissing.length === 0) return resolved;
   }
+
+  stillMissing = await tryResolveSystemCredentials(slug, resolved, stillMissing);
+  if (stillMissing.length === 0) return resolved;
 
   // ── 4. Return actionable error ──────────────────────────
   return buildSetupError(connector, slug, stillMissing.map((f) => f.key));

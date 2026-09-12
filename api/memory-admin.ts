@@ -119,6 +119,7 @@ import { parseDueAtInput } from "./lib/todo-due.js";
 import { inferFishbowlJobPipeline } from "./lib/fishbowl-job-pipeline.js";
 import { statusFromFishbowlPost } from "./lib/fishbowl-status.js";
 import { buildRecallFactSections, isRecallVisibleFact } from "./lib/memory-recall-sections.js";
+import { deriveConnectionActivity } from "./lib/connection-activity.js";
 import {
   isValidPublicMcpPairId,
   publicMcpPairDeviceId,
@@ -3923,7 +3924,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .eq("api_key_hash", apiKeyHash)
           .maybeSingle();
 
-        const [bcRes, factsRes, sessionRes] = await Promise.all([
+        const [apiKeyRes, bcRes, factsRes, lastFactRes, sessionRes] = await Promise.all([
+          supabase
+            .from("api_keys")
+            .select("last_used_at")
+            .eq("is_active", true)
+            .or(`key_hash.eq.${apiKeyHash},lane_hash.eq.${apiKeyHash}`)
+            .order("last_used_at", { ascending: false, nullsFirst: false })
+            .limit(1),
           supabase
             .from("mc_business_context")
             .select("id", { count: "exact", head: true })
@@ -3933,6 +3941,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .select("id", { count: "exact", head: true })
             .eq("api_key_hash", apiKeyHash)
             .eq("status", "active"),
+          supabase
+            .from("mc_extracted_facts")
+            .select("created_at")
+            .eq("api_key_hash", apiKeyHash)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1),
           supabase
             .from("mc_session_summaries")
             .select("created_at,platform")
@@ -3945,22 +3960,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const contextCount = bcRes.count ?? 0;
         const lastSession = sessionRes.data?.[0]?.created_at ?? null;
         const lastSessionPlatform = sessionRes.data?.[0]?.platform ?? null;
-        const lastUsedAt = cfg?.last_used_at ?? null;
+        const activity = deriveConnectionActivity({
+          apiKeyLastUsedAt: apiKeyRes.data?.[0]?.last_used_at ?? null,
+          memoryLastUsedAt: cfg?.last_used_at ?? null,
+          lastSessionAt: lastSession,
+          lastMemoryWriteAt: lastFactRes.data?.[0]?.created_at ?? null,
+        });
 
-        // "Connected" means we've seen a successful MCP handshake (last_used_at)
-        // OR there's session activity. If neither, the user has set up cloud
-        // memory but no client has spoken to it yet.
-        const connected = Boolean(lastUsedAt || lastSession);
+        // A durable activity record, including an already-persisted memory write,
+        // is proof that an authenticated client has connected to this account.
+        // Never make an optional memory_configs row the source of truth.
+        const connected = activity.connected;
 
         return res.status(200).json({
           connected,
-          configured: Boolean(cfg),
+          configured: Boolean(cfg || apiKeyRes.data?.length || activity.connected),
           has_context: contextCount > 0,
           context_count: contextCount,
           fact_count: factCount,
           last_session: lastSession,
           last_session_platform: lastSessionPlatform,
-          last_used_at: lastUsedAt,
+          last_used_at: activity.lastUsedAt,
         });
       }
 

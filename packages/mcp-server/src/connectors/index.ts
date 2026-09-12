@@ -58,6 +58,7 @@ import { dbxConnector }        from "./dropbox.js";
 import { gmailConnector }      from "./gmail.js";
 import { googleDriveConnector } from "./google-drive.js";
 import { onedriveConnector }   from "./onedrive.js";
+import { giteaConnector }      from "./gitea.js";
 
 export {
   xeroConnector,
@@ -85,6 +86,7 @@ export {
   gmailConnector,
   googleDriveConnector,
   onedriveConnector,
+  giteaConnector,
 };
 
 export const CONNECTORS: Record<string, ConnectorConfig> = {
@@ -113,4 +115,5 @@ export const CONNECTORS: Record<string, ConnectorConfig> = {
   gmail:      gmailConnector,
   "google-drive": googleDriveConnector,
   onedrive:   onedriveConnector,
+  gitea:      giteaConnector,
 };

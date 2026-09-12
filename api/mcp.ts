@@ -52,6 +52,8 @@ import {
   effectiveMemoryTier,
   isMemoryQuotaExemptEmail,
 } from "../packages/mcp-server/src/memory/quota-policy.js";
+import { runWithRequestContext } from "../packages/mcp-server/src/memory/request-context.js";
+import { deriveRole, envAdminEmails } from "./lib/admin-roles.js";
 
 function sha256hex(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
@@ -356,6 +358,11 @@ export interface ApiKeyContext {
   user_id: string | null;
   account_email: string | null;
   memory_quota_exempt: boolean;
+  is_superuser: boolean;
+}
+
+export function isProjectSuperuser(email: string | null, appMetadata: unknown): boolean {
+  return deriveRole(email, appMetadata, envAdminEmails()) !== "user";
 }
 
 function getSupabaseEnv(): { url: string; key: string } | null {
@@ -450,24 +457,27 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
   }
 
   let accountEmail: string | null = null;
+  let accountAppMetadata: unknown = null;
   if (data.user_id) {
     try {
       const { data: userData } = await supabase.auth.admin.getUserById(
         data.user_id,
       );
       accountEmail = userData.user?.email ?? null;
+      accountAppMetadata = userData.user?.app_metadata ?? null;
     } catch {
       accountEmail = null;
     }
   }
   const memoryQuotaExempt = isMemoryQuotaExemptEmail(accountEmail);
 
-  // Fire-and-forget last_used_at + usage_count bump
-  supabase
+  // Persist this heartbeat before the serverless request can end. A detached
+  // promise is frequently discarded by the runtime, which made real MCP
+  // activity look like "never connected" on the dashboard.
+  await supabase
     .from("api_keys")
     .update({ last_used_at: new Date().toISOString() })
-    .eq("key_hash", apiKeyHash)
-    .then(() => {});
+    .eq("key_hash", apiKeyHash);
 
   return {
     api_key_hash: tenancyHash,
@@ -475,6 +485,7 @@ async function validateApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     user_id: data.user_id ?? null,
     account_email: accountEmail,
     memory_quota_exempt: memoryQuotaExempt,
+    is_superuser: isProjectSuperuser(accountEmail, accountAppMetadata),
   };
 }
 
@@ -482,6 +493,7 @@ async function apiKeyContextForUser(
   supabase: SupabaseClient,
   userId: string,
   email: string | null,
+  appMetadata: unknown = null,
 ): Promise<ApiKeyContext | null> {
   const { data: keyRow, error: keyErr } = await supabase
     .from("api_keys")
@@ -493,11 +505,10 @@ async function apiKeyContextForUser(
     .maybeSingle();
   if (keyErr || !keyRow) return null;
 
-  supabase
+  await supabase
     .from("api_keys")
     .update({ last_used_at: new Date().toISOString() })
-    .eq("key_hash", keyRow.key_hash)
-    .then(() => {});
+    .eq("key_hash", keyRow.key_hash);
 
   return {
     api_key_hash: (keyRow.lane_hash as string | null) ?? keyRow.key_hash,
@@ -505,6 +516,7 @@ async function apiKeyContextForUser(
     user_id: userId,
     account_email: email,
     memory_quota_exempt: isMemoryQuotaExemptEmail(email),
+    is_superuser: isProjectSuperuser(email, appMetadata),
   };
 }
 
@@ -553,7 +565,12 @@ async function validateSessionCookie(
   // user_id where the old-shape api_keys.email matches an auth.users
   // row; the claim flow fills in the rest over time. Take the most
   // recently used key if the user has more than one.
-  return apiKeyContextForUser(supabase, userId, userData.user.email ?? null);
+  return apiKeyContextForUser(
+    supabase,
+    userId,
+    userData.user.email ?? null,
+    userData.user.app_metadata ?? null,
+  );
 }
 
 async function validatePublicMcpPair(
@@ -581,7 +598,12 @@ async function validatePublicMcpPair(
 
   const { data: userData } = await supabase.auth.admin.getUserById(userId);
   const email = userData?.user?.email ?? null;
-  const ctx = await apiKeyContextForUser(supabase, userId, email);
+  const ctx = await apiKeyContextForUser(
+    supabase,
+    userId,
+    email,
+    userData?.user?.app_metadata ?? null,
+  );
   if (!ctx) return null;
 
   supabase
@@ -612,7 +634,12 @@ async function validateMcpOAuthAccessToken(
   });
   const { data: userData } = await supabase.auth.admin.getUserById(payload.sub);
   const email = userData?.user?.email ?? null;
-  return apiKeyContextForUser(supabase, payload.sub, email);
+  return apiKeyContextForUser(
+    supabase,
+    payload.sub,
+    email,
+    userData?.user?.app_metadata ?? null,
+  );
 }
 
 /**
@@ -897,42 +924,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // unvalidated Bearer token into the MCP server environment.
   applyMcpRequestEnv(apiKey, ctx, sessionToken);
 
-  // ── MCP over Streamable HTTP (stateless per-request) ───────────────────
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless mode - no sessions in serverless
-  });
-
-  // Normalize the Accept header before delegating to the SDK. The SDK's
-  // Streamable HTTP transport bounces requests that lack both
-  // "application/json" and "text/event-stream" with HTTP 406 + -32000 +
-  // id:null - which cascades into RPC-002 (id null), RPC-004/MCP-006
-  // (-32000 instead of -32601), and MCP-001/003/004 (initialize never
-  // returns a real result). Spec-strict clients send both; spec-curious
-  // ones (TestPass-core, plain JSON-RPC tools) send only application/json.
-  // Stateless mode always replies with a JSON body, so being more
-  // permissive than the SDK here is safe.
-  normalizeAcceptHeader(req);
-
-  let server: Awaited<ReturnType<typeof createServer>> | null = null;
-  try {
-    server = await createServer();
-    await server.connect(transport);
-    // Vercel parses the body automatically; pass it through to avoid re-parsing
-    await transport.handleRequest(req, res, req.body);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[/api/mcp] Unhandled error:", message);
-    if (!res.headersSent) {
-      res.status(500).json({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: "Internal server error" },
-        id: peeked.id,
+  await runWithRequestContext(
+    {
+      apiKey: apiKey && ctx ? apiKey : undefined,
+      sessionToken: sessionToken ?? undefined,
+      isSuperuser: ctx?.is_superuser ?? false,
+    },
+    async () => {
+      // ── MCP over Streamable HTTP (stateless per-request) ─────────────────
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined, // stateless mode - no sessions in serverless
       });
-    }
-  } finally {
-    // Clean up after the response is sent
-    server?.close().catch(() => {});
-  }
+
+      // Normalize the Accept header before delegating to the SDK. The SDK's
+      // Streamable HTTP transport bounces requests that lack both
+      // "application/json" and "text/event-stream" with HTTP 406 + -32000 +
+      // id:null - which cascades into RPC-002 (id null), RPC-004/MCP-006
+      // (-32000 instead of -32601), and MCP-001/003/004 (initialize never
+      // returns a real result). Spec-strict clients send both; spec-curious
+      // ones (TestPass-core, plain JSON-RPC tools) send only application/json.
+      // Stateless mode always replies with a JSON body, so being more
+      // permissive than the SDK here is safe.
+      normalizeAcceptHeader(req);
+
+      let server: Awaited<ReturnType<typeof createServer>> | null = null;
+      try {
+        server = await createServer();
+        await server.connect(transport);
+        // Vercel parses the body automatically; pass it through to avoid re-parsing
+        await transport.handleRequest(req, res, req.body);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[/api/mcp] Unhandled error:", message);
+        if (!res.headersSent) {
+          res.status(500).json({
+            jsonrpc: "2.0",
+            error: { code: -32603, message: "Internal server error" },
+            id: peeked.id,
+          });
+        }
+      } finally {
+        // Clean up after the response is sent
+        server?.close().catch(() => {});
+      }
+    },
+  );
 }
 
 // Mint a short-lived MCP OAuth access token for a resolved login user so the

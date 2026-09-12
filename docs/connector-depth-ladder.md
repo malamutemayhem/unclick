@@ -14,7 +14,7 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | Can emit a signal or wake, not only answer on demand. |
 | L5 | Agentic | Stamps source and freshness on the result and hands the agent its next step. |
 
-## Distribution (651 external connectors)
+## Distribution (652 external connectors)
 
 | Level | Name | Connectors | Share |
 |:-----:|------|-----------:|------:|
@@ -22,9 +22,9 @@ Graded against the house standard in [`docs/connector-standard.md`](./connector-
 | L4 | Proactive | 0 | 0% |
 | L3 | Memory-aware | 0 | 0% |
 | L2 | Reliable | 37 | 6% |
-| L1 | Wrapper | 3 | 0% |
+| L1 | Wrapper | 4 | 1% |
 
-**Hardened (reliability bar met): 246 of 651 (38%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
+**Hardened (reliability bar met): 246 of 652 (38%).** Depth and hardening are independent: a connector can be agentic yet not hardened.
 
 ### Capped at L2 by design (36)
 
@@ -34,7 +34,7 @@ The L5 markers (source + freshness, then a next-step handoff) describe a **data 
 - **write/send** (write/send tool, no data to stamp): `line`, `postmark`, `pushover`, `resend`, `sendgrid`, `telegram`, `whatsapp`
 - **generation** (model output, not a fetched source): `perplexity`
 
-**L5-reachable connectors at L5: 611 of 615 (99%).** The remaining 1 L2 row is a genuine upgrade candidate: `xpass-aggregated-verdict`.
+**L5-reachable connectors at L5: 611 of 616 (99%).** The remaining 1 L2 row is a genuine upgrade candidate: `xpass-aggregated-verdict`.
 
 ### Climbed in depth but not yet hardened
 
@@ -1096,6 +1096,7 @@ These reached L3+ capability but have not met the L2 reliability bar. Hardening 
 | L2 Reliable | `xero` | Yes | - | - | - | - | L2 by design (action-multiplexer) |
 | L2 Reliable | `xpass-aggregated-verdict` | Yes | - | - | - | - | no-memory, no-source-stamp |
 | L1 Wrapper | `geopass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-memory, no-source-stamp |
+| L1 Wrapper | `gitea` | - | - | - | - | - | not-hardened, no-rate-limit, no-memory, no-source-stamp |
 | L1 Wrapper | `securitypass` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-test, no-memory, no-source-stamp |
 | L1 Wrapper | `workspace` | - | - | - | - | - | not-hardened, no-timeout, no-rate-limit, no-memory, no-source-stamp |
 
