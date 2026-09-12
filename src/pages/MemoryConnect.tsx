@@ -9,13 +9,14 @@
  * below as secondary paths, not the headline.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 import { useCanonical } from "@/hooks/use-canonical";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth";
 import {
   Plug,
   Copy,
@@ -35,6 +36,7 @@ const CLAUDE_MD_SNIPPET =
 
 interface CheckResult {
   connected: boolean;
+  paired?: boolean;
   configured: boolean;
   has_context: boolean;
   context_count: number;
@@ -109,6 +111,8 @@ const DOOR_STEPS: { title: string; detail: string }[] = [
 export default function MemoryConnectPage() {
   useCanonical("/memory/connect");
 
+  const { session, loading: sessionLoading } = useSession();
+
   const [apiKey, setApiKey] = useState<string>("");
   const [addressCopied, setAddressCopied] = useState(false);
 
@@ -182,19 +186,20 @@ export default function MemoryConnectPage() {
     });
   };
 
-  const handleCheck = async () => {
+  const checkConnection = useCallback(async () => {
     setCheckError("");
-    if (!apiKey) {
+    if (!apiKey && !session) {
       setCheckError(
-        "This browser has no UnClick key saved. Connect above, then check from your dashboard.",
+        "Sign in to see your connection status.",
       );
       return;
     }
     setChecking(true);
     try {
-      const res = await fetch(
-        `/api/memory-admin?action=admin_check_connection&api_key=${encodeURIComponent(apiKey)}`,
-      );
+      const headers: Record<string, string> = {};
+      if (session) headers.Authorization = `Bearer ${session.access_token}`;
+      else if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      const res = await fetch("/api/memory-admin?action=admin_check_connection", { headers });
       const data = (await res.json()) as CheckResult & { error?: string };
       if (!res.ok) {
         setCheckError(data.error ?? "Check failed.");
@@ -206,12 +211,22 @@ export default function MemoryConnectPage() {
     } finally {
       setChecking(false);
     }
-  };
+  }, [apiKey, session]);
+
+  // This is proof, not another onboarding step. A signed-in user sees the
+  // state automatically and can refresh only when they want a new reading.
+  useEffect(() => {
+    if (sessionLoading || (!session && !apiKey)) return;
+    void checkConnection();
+  }, [apiKey, checkConnection, session, sessionLoading]);
 
   const checkLine = useMemo(() => {
     if (!check) return null;
     if (!check.connected) {
       return "Not connected yet. Paste the address into your AI, then start a session.";
+    }
+    if (check.paired && !check.last_session && check.fact_count === 0 && check.context_count === 0) {
+      return "Paired and ready. Your first AI session will start using Memory.";
     }
     const parts: string[] = [];
     parts.push(`${check.fact_count} ${check.fact_count === 1 ? "fact" : "facts"} stored`);
@@ -404,14 +419,14 @@ export default function MemoryConnectPage() {
           <section className="mt-6 rounded-2xl border border-border/40 bg-card/30 p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-heading">Already connected?</h2>
+                <h2 className="text-base font-semibold text-heading">Connection status</h2>
                 <p className="mt-1 text-xs text-body">
-                  Verify your AI is reaching your memory.
+                  Checked automatically when this page opens.
                 </p>
               </div>
               <Button
                 variant="outline"
-                onClick={handleCheck}
+                onClick={() => void checkConnection()}
                 disabled={checking}
                 className="shrink-0"
               >
@@ -421,7 +436,7 @@ export default function MemoryConnectPage() {
                     Checking
                   </>
                 ) : (
-                  "Check connection"
+                  "Refresh"
                 )}
               </Button>
             </div>

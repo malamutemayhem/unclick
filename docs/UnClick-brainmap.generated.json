@@ -16821,8 +16821,8 @@
     },
     {
       "source": "src/pages/MemoryConnect.tsx",
-      "hash": "d31fce7bd001",
-      "bytes": 19240
+      "hash": "264a13bbfdfd",
+      "bytes": 20044
     },
     {
       "source": "src/pages/MemorySetup.tsx",
@@ -16846,8 +16846,8 @@
     },
     {
       "source": "src/pages/PairingComplete.tsx",
-      "hash": "93f97943a8a3",
-      "bytes": 12470
+      "hash": "339219fd4b4c",
+      "bytes": 14303
     },
     {
       "source": "src/pages/Pricing.tsx",

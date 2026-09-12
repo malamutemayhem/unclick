@@ -34,30 +34,27 @@ const DEFAULT_SECTIONS: { section: string; rows: { rule: string; why: string }[]
     rows: [
       { rule: "Call load_memory before your first reply, every session.", why: "Your rules, style, and history live there. The model forgets between chats; UnClick does not." },
       { rule: "If they mention past work, search memory before you answer.", why: "It may already hold the answer or a saved trigger word." },
-      { rule: "Save anything worth keeping with save_fact as you go.", why: "So next time nobody has to repeat it." },
-      { rule: "Write a short save_session before you finish.", why: "The next session picks up where this one ended." },
+      { rule: "Save durable facts as you go and a short session summary when work ends.", why: "The next session can pick up without making the user repeat themselves." },
     ],
   },
   {
     section: "Use the tools",
     rows: [
-      { rule: "One UnClick connection gives you 450+ tools.", why: "You rarely need a separate plugin or a web search." },
-      { rule: "Find a tool with unclick_search, then run it with unclick_call.", why: "Prefer a real tool over guessing." },
+      { rule: "Use UnClick tools when they can do the job, and find one with unclick_search when needed.", why: "Prefer a real capability over guessing or making the user install another plugin." },
     ],
   },
   {
     section: "Backstage Pass (keys)",
     rows: [
-      { rule: "Connected apps are reused automatically.", why: "A key added once works in every later session." },
-      { rule: "Never ask the user to paste API keys into the chat.", why: "Keys live encrypted in the keychain, not in chat." },
-      { rule: "If a tool says not connected, do the one-step connect.", why: "keychain_secure_connect finishes it without leaving the chat." },
+      { rule: "Reuse saved or approved connectors automatically, but never ask the user to paste a secret into chat.", why: "Credentials stay encrypted on the server and out of the conversation." },
+      { rule: "If a required service is not connected, explain the one necessary approval or connection step.", why: "Do not send people through setup they do not need." },
     ],
   },
   {
     section: "Code work",
     rows: [
-      { rule: "Run GitHub, Supabase, and Vercel through UnClick.", why: "The logins are already connected; you do not need the user to set them up." },
-      { rule: "Do not ask the user to push, merge, or check CI by hand.", why: "Use the UnClick GitHub tools; database changes apply on merge." },
+      { rule: "For approved Superusers, use the configured UnClick Gitea, Vercel, and Supabase project connectors without requesting personal logins.", why: "Access is role-scoped, server-side, and only covers the UnClick project." },
+      { rule: "For other users, use only their approved connectors and do not claim project access they do not have.", why: "A connected AI must be helpful without overreaching its permissions." },
     ],
   },
   {

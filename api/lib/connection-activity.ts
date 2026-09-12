@@ -7,6 +7,8 @@ export interface ConnectionActivityInput {
   memoryLastUsedAt?: string | null;
   lastSessionAt?: string | null;
   lastMemoryWriteAt?: string | null;
+  /** A completed public-MCP pairing is also durable proof of a live connection. */
+  lastPairedAt?: string | null;
 }
 
 export interface ConnectionActivity {
@@ -36,6 +38,7 @@ export function deriveConnectionActivity(input: ConnectionActivityInput): Connec
     input.memoryLastUsedAt,
     input.lastSessionAt,
     input.lastMemoryWriteAt,
+    input.lastPairedAt,
   ]);
   return { connected: lastUsedAt !== null, lastUsedAt };
 }

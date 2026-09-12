@@ -21,6 +21,11 @@ type PublicPairResponse = {
   error?: string;
 };
 
+type ConnectionCheckResponse = {
+  connected?: boolean;
+  paired?: boolean;
+};
+
 function maskPrivateValue(value: string) {
   return value
     .replace(
@@ -48,6 +53,8 @@ export default function PairingCompletePage() {
   const [publicPairStatus, setPublicPairStatus] = useState<
     "idle" | "none" | "paired" | "error"
   >("idle");
+  const [connectionCheck, setConnectionCheck] =
+    useState<ConnectionCheckResponse | null>(null);
   const [copied, setCopied] = useState<"public" | "paired" | "compat" | null>(
     null,
   );
@@ -125,6 +132,18 @@ export default function PairingCompletePage() {
             return;
           }
           setPublicPairStatus("paired");
+          // The browser just persisted the pairing. Confirm the same
+          // connection-status endpoint that powers the dashboard sees it too,
+          // so a successful induction cannot land on a contradictory red UI.
+          const checkRes = await fetch(
+            "/api/memory-admin?action=admin_check_connection",
+            { headers: { Authorization: `Bearer ${session.access_token}` } },
+          );
+          if (checkRes.ok) {
+            setConnectionCheck(
+              (await checkRes.json().catch(() => ({}))) as ConnectionCheckResponse,
+            );
+          }
         } else {
           setPublicPairStatus("none");
         }
@@ -180,7 +199,9 @@ export default function PairingCompletePage() {
                   <Check className="h-6 w-6 text-primary" />
                 </div>
                 <h1 className="mt-4 text-2xl font-semibold text-heading">
-                  UnClick is ready
+                  {publicPairStatus === "paired" && connectionCheck?.connected
+                    ? "UnClick is connected"
+                    : "UnClick is ready"}
                 </h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {email ? `${email} is signed in. ` : ""}
@@ -193,6 +214,26 @@ export default function PairingCompletePage() {
               {error ? (
                 <div className="rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-100">
                   {error}
+                </div>
+              ) : null}
+
+              {publicPairStatus === "paired" ? (
+                <div className="rounded-xl border border-emerald-300/25 bg-emerald-300/10 p-4 text-left">
+                  <div className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-100">
+                        {connectionCheck?.connected
+                          ? "Connection confirmed"
+                          : "Pairing saved"}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-emerald-100/80">
+                        Your AI and dashboard now use the same pairing record. No API key,
+                        separate app connection, or manual health check is required to finish
+                        UnClick setup. Add another service later only when you need that service.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : null}
 
@@ -297,13 +338,10 @@ export default function PairingCompletePage() {
                   asChild
                   className="bg-primary text-black hover:opacity-90"
                 >
-                  <Link to="/admin/apps">
-                    Connect apps
+                  <Link to="/admin/you">
+                    Open dashboard
                     <ExternalLink className="ml-2 h-3.5 w-3.5" />
                   </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/#install">Open installer</Link>
                 </Button>
               </div>
             </div>
