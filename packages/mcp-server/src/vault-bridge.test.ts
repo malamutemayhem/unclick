@@ -199,3 +199,34 @@ describe("unclickCredentialsBearer", () => {
     expect(unclickCredentialsBearer()).toBeNull();
   });
 });
+
+describe("unclickAuthenticatedRequestBearer", () => {
+  afterEach(() => {
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    delete process.env.UNCLICK_API_KEY_HASH;
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
+  });
+
+  it("allows a verified public-pair session to reach account APIs while personal login connectors stay disabled", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    process.env.UNCLICK_MCP_SESSION_TOKEN = "mcp.session.token";
+    // The personal-credential feature is intentionally off by default.
+    delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
+
+    const { unclickAuthenticatedRequestBearer, unclickCredentialsBearer } = await import("./vault-bridge.js");
+
+    expect(unclickAuthenticatedRequestBearer()).toBe("mcp.session.token");
+    expect(unclickCredentialsBearer()).toBeNull();
+  });
+
+  it("never substitutes a bare lane hash for a bearer", async () => {
+    delete process.env.UNCLICK_API_KEY;
+    delete process.env.UNCLICK_MCP_SESSION_TOKEN;
+    process.env.UNCLICK_API_KEY_HASH = "lane_hash_must_not_leak";
+
+    const { unclickAuthenticatedRequestBearer } = await import("./vault-bridge.js");
+
+    expect(unclickAuthenticatedRequestBearer()).toBeNull();
+  });
+});
