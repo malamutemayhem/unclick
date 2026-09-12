@@ -1,6 +1,9 @@
 import { Users } from "lucide-react";
+import { useSession } from "@/lib/auth";
+import { MasterConnectorsPanel } from "./MasterConnectorsPanel";
 
 export default function AdminUsers() {
+  const { session } = useSession();
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
@@ -17,6 +20,7 @@ export default function AdminUsers() {
           into a user's account to help them, or revoke their keys if something goes wrong.
         </p>
       </div>
+      <MasterConnectorsPanel token={session?.access_token} />
     </div>
   );
 }

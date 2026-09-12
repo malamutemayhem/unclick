@@ -12980,6 +12980,26 @@
     }
   },
   {
+    "connector": "gitea",
+    "level": 1,
+    "levelName": "Wrapper",
+    "hardened": false,
+    "cappedByDesign": false,
+    "capReason": null,
+    "signals": {
+      "hasTimeout": true,
+      "handles429": false,
+      "hasRetry": false,
+      "readsErrorBody": true,
+      "bareStatusErrors": 0,
+      "errorStyleClean": true,
+      "memoryAware": false,
+      "proactive": false,
+      "agentic": false,
+      "sourceStamped": false
+    }
+  },
+  {
     "connector": "securitypass",
     "level": 1,
     "levelName": "Wrapper",
