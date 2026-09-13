@@ -2,18 +2,37 @@
 
 **The app store for AI agents.** [unclick.world](https://unclick.world)
 
-450+ callable endpoints across 178+ tools, available to any MCP-compatible AI client. New tools ship to the API continuously. Your agent picks them up automatically; no package update is needed.
-<!-- Update counts from src/config/site-stats.ts -->
+Persistent memory, shared coordination and a growing catalogue of tools for MCP-compatible AI clients. See [UnClick](https://unclick.world) for the current catalogue and connection options.
+
+## Repository status
+
+This repository is the public home for UnClick's MCP client, standalone connectors, documentation and examples.
+
+It also contains an older platform source snapshot. The platform baseline is [July 2, 2026](https://github.com/malamutemayhem/unclick/commit/89d8792d452fb4e021c07a7eb8f501faa442417e); it is not a continuously updated copy of the hosted service. Later public client or documentation updates do not imply that the whole platform has been refreshed. See [unclick.world](https://unclick.world) for the current service and connection options.
+
+Public updates focus on reviewed client and connector releases, accurate setup instructions and useful examples. Each release should identify its version, requirements, tested capabilities and known limitations. An older archive or directory listing is not proof of current compatibility.
+
+## Public releases and support
+
+- Use the npm client below to connect to hosted UnClick. Cloning the platform snapshot is a separate development path.
+- For standalone connectors, check the individual package README, licence and [release notes](https://github.com/malamutemayhem/unclick/releases). Provider accounts, credentials or usage restrictions may apply.
+- Report reproducible public client and connector problems in [GitHub Issues](https://github.com/malamutemayhem/unclick/issues), including the package version and redacted error details. Follow [SECURITY.md](./SECURITY.md) for security reports. Never include keys or private account data.
+- Updates are selected and reviewed before publication. The public repository is not an automatic mirror of private platform development. Existing licences and any corresponding-source obligations still apply.
 
 ## Install
 
-**Using the latest GitHub release (no npm account required):**
+**From npm:**
+
+Get an API key from [UnClick](https://unclick.world), then replace `your_key_here` in this configuration.
 ```json
 {
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"]
+      "args": ["-y", "@unclick/mcp-server"],
+      "env": {
+        "UNCLICK_API_KEY": "your_key_here"
+      }
     }
   }
 }
@@ -21,9 +40,9 @@
 
 Add this to your `claude_desktop_config.json` (or equivalent for Cursor, Windsurf, etc).
 
-**Or install globally from GitHub:**
+**Or install globally from npm:**
 ```bash
-npm install -g https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz
+npm install -g @unclick/mcp-server
 ```
 
 ## Operational Notes
@@ -32,13 +51,13 @@ This repo follows the AGENTS.md fence rules for agent work.
 
 ## Run
 
-For local web development:
+For local development of the source snapshot:
 
 ```bash
 npm run dev
 ```
 
-For the API workspace:
+For the source snapshot's API workspace:
 
 ```bash
 npm run dev:api
@@ -72,24 +91,30 @@ Gives your agent access to a growing catalog of tools across developer utilities
 
 ## Tool Surface
 
-UnClick exposes a small direct surface for daily agent workflows, plus hidden internal discovery tools for the full catalog.
+The npm client advertises the full tool catalogue by default. For a smaller tool list in your chat client, add `UNCLICK_TOOL_SURFACE` to the same `env` object as your API key:
 
-| Tool group | Tools |
-|------------|-------|
-| Memory session protocol | `load_memory`, `save_fact`, `search_memory`, `save_identity`, `save_session` |
-| Signals and Boardroom coordination | `check_signals`, `read_messages`, `post_message`, `create_todo`, `list_todos`, `update_todo`, `complete_todo`, `create_idea`, `list_ideas`, `vote_on_idea`, `promote_idea_to_todo` |
-| Hidden internal catalog tools | `unclick_search`, `unclick_browse`, `unclick_tool_info`, `unclick_call` |
+```json
+{
+  "UNCLICK_API_KEY": "your_key_here",
+  "UNCLICK_TOOL_SURFACE": "lean"
+}
+```
 
-The agent starts with memory, uses direct Boardroom tools for coordination, and can still call the hidden catalog tools by name when it needs dynamic endpoint discovery.
+Lean mode advertises these tools:
+
+- Memory: `load_memory`, `save_fact`, `search_memory`, `save_session`.
+- Discovery and execution: `unclick_search`, `unclick_tool_info`, `unclick_call`.
+
+Use discovery to find other operations, then call their endpoint IDs through `unclick_call`. For example, Boardroom jobs are available through `boardroom.list_todos`. Lean mode changes the advertised tool list; account permissions and provider credentials still apply.
 
 ### Compatibility and advanced memory operations
 
 - Legacy memory names still work as aliases: `get_startup_context` -> `load_memory`, `write_session_summary` -> `save_session`, `add_fact` -> `save_fact`, `set_business_context` -> `save_identity`.
-- The remaining memory operations are intentionally not listed in `ListTools` and are called through `unclick_call` with `endpoint_id: "memory.<op>"` (for example `memory.manage_decay`, `memory.store_code`, `memory.log_conversation`, `memory.supersede_fact`, `memory.upsert_library_doc`).
+- Additional memory operations can be called through `unclick_call` with `endpoint_id: "memory.<op>"` (for example `memory.manage_decay`, `memory.store_code`, `memory.log_conversation`, `memory.supersede_fact`, `memory.upsert_library_doc`).
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 22 or newer. The published 0.3.131 bundle includes dependencies that require Node.js 22; installation and MCP startup were verified with Node.js 24.14.0.
 - An API key from [unclick.world](https://unclick.world)
 
 Set your key as an environment variable:
@@ -103,7 +128,7 @@ Or pass it via the MCP config:
   "mcpServers": {
     "unclick": {
       "command": "npx",
-      "args": ["-y", "https://github.com/malamutemayhem/unclick/releases/latest/download/unclick.tgz"],
+      "args": ["-y", "@unclick/mcp-server"],
       "env": {
         "UNCLICK_API_KEY": "your_key_here"
       }
