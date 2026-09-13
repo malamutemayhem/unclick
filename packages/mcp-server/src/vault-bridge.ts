@@ -24,7 +24,6 @@ import { keychainGetCredential }         from "./keychain-tool.js";
 import { isBackstagePassVaultEnabled }    from "./memory/tenant-settings.js";
 import {
   currentApiKey,
-  currentRequestIsSuperuser,
   currentSessionToken,
 } from "./memory/request-context.js";
 
@@ -210,7 +209,7 @@ async function tryResolveSystemCredentials(
   resolved: Record<string, unknown>,
   stillMissing: ConnectorConfig["credentialFields"],
 ): Promise<ConnectorConfig["credentialFields"]> {
-  if (!currentRequestIsSuperuser() || !SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) {
+  if (!SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) {
     return stillMissing;
   }
   const bearer = systemConnectorBearer();
@@ -233,6 +232,12 @@ async function tryResolveSystemCredentials(
         },
       },
     );
+    // The broker is the authorization boundary: it independently derives the
+    // caller's current role from the signed API/session token. Do not duplicate
+    // that decision from a transient MCP request flag here; an out-of-date
+    // local flag would otherwise deny a valid Superuser before the canonical
+    // server-side role check can run. A non-Superuser receives 403 and no
+    // credential bytes are returned.
     if (!response.ok) return stillMissing;
     const data = await response.json() as { credentials?: Record<string, unknown> };
     for (const field of stillMissing) {
