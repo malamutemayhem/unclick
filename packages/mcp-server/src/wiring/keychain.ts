@@ -9,21 +9,21 @@ export const keychainTools = [
   // ── keychain-tool.ts ─────────────────────────────────────────────────────────
   {
     name: "keychain_connect",
-    description: "Store an encrypted platform credential in the UnClick Keychain. Tests the credential against the platform API before saving. Scoped to the caller's UNCLICK_API_KEY.",
+    description: "Connect a platform to the current UnClick account. In a hosted paired session this returns the signed-in secure web setup URL; do not pass third-party credentials through chat. The direct credential form is retained for local API-key installations.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
       properties: {
         platform:   { type: "string", description: "Platform ID: github, supabase, vercel, stripe, cloudflare." },
-        credential: { type: "string", description: "API key or token for the platform." },
+        credential: { type: "string", description: "Local-installation only: API key or token for the platform. Omit for hosted paired sessions." },
         label:      { type: "string", description: "Optional label to distinguish multiple credentials for the same platform (default: 'default')." },
       },
-      required: ["platform", "credential"],
+      required: ["platform"],
     },
   },
   {
     name: "keychain_status",
-    description: "Check the connection status of one or all platform credentials stored in the UnClick Keychain for the current UNCLICK_API_KEY.",
+    description: "Check connection status for one or all platform credentials in the current UnClick account.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -34,7 +34,7 @@ export const keychainTools = [
   },
   {
     name: "keychain_disconnect",
-    description: "Remove a platform credential from the UnClick Keychain. Scoped to the caller's UNCLICK_API_KEY.",
+    description: "Remove a platform credential. Hosted paired sessions receive the signed-in Apps URL, where removal stays account-scoped; local API-key installations may remove it directly.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -47,7 +47,7 @@ export const keychainTools = [
   },
   {
     name: "keychain_list_platforms",
-    description: "List all available platform connectors in the UnClick Keychain catalog, with connection status for the current UNCLICK_API_KEY.",
+    description: "List available platform connectors, with connection status for the current UnClick account.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,
@@ -58,7 +58,7 @@ export const keychainTools = [
   },
   {
     name: "keychain_secure_connect",
-    description: "Securely connect a platform credential without exposing the key in chat. Checks environment variables first; if not found, opens a localhost secure input page for the user to paste their key. Call once to get the URL, then call again after the user submits to complete the connection.",
+    description: "Securely connect a platform credential without exposing it in chat. Hosted paired sessions receive the signed-in UnClick web setup URL. Local API-key installations may use the legacy localhost input page.",
     inputSchema: {
       type: "object" as const,
       additionalProperties: false,

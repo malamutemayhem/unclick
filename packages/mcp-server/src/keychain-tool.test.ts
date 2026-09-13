@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 
 import { keychainAction, keychainGetCredential } from "./keychain-tool.js";
+import { runWithRequestContext } from "./memory/request-context.js";
 
 const savedEnv = { ...process.env };
 
@@ -303,5 +304,54 @@ describe("keychain connection status", () => {
     expect(stripe?.needs_recheck).toBe(false);
     expect(result.unverified_platforms).toContain("vercel");
     expect(result.warnings?.[0]).toContain("Stored credentials need live proof");
+  });
+});
+
+describe("hosted Keychain actions", () => {
+  afterEach(() => {
+    process.env = { ...savedEnv };
+  });
+
+  it("sends a paired caller to the signed-in web setup rather than accepting a chat secret", async () => {
+    process.env.UNCLICK_API_URL = "https://unclick.example.test";
+
+    const result = await runWithRequestContext(
+      { sessionToken: "public-pair-session-token" },
+      () => keychainAction("keychain_connect", { platform: "gitea", credential: "must-not-be-used" }),
+    );
+
+    expect(result).toEqual(expect.objectContaining({
+      status: "secure_web_setup_required",
+      platform: "gitea",
+      url: "https://unclick.example.test/connect/gitea",
+    }));
+  });
+
+  it("never returns a localhost setup URL to a paired caller", async () => {
+    process.env.UNCLICK_API_URL = "https://unclick.example.test";
+
+    const result = await runWithRequestContext(
+      { sessionToken: "public-pair-session-token" },
+      () => keychainAction("keychain_secure_connect", { platform: "vercel" }),
+    );
+
+    expect(result).toEqual(expect.objectContaining({
+      status: "secure_web_setup_required",
+      url: "https://unclick.example.test/connect/vercel",
+    }));
+  });
+
+  it("sends hosted disconnects to the account-scoped Apps page", async () => {
+    process.env.UNCLICK_API_URL = "https://unclick.example.test";
+
+    const result = await runWithRequestContext(
+      { sessionToken: "public-pair-session-token" },
+      () => keychainAction("keychain_disconnect", { platform: "supabase" }),
+    );
+
+    expect(result).toEqual(expect.objectContaining({
+      status: "secure_web_management_required",
+      url: "https://unclick.example.test/admin/apps",
+    }));
   });
 });

@@ -1,6 +1,9 @@
 // ─── UnClick Keychain ─────────────────────────────────────────────────────────
 // Encrypted credential vault for platform connections.
-// Tenant-isolated by the caller's UNCLICK_API_KEY (SHA-256 hashed for lookups).
+// The legacy local quick-connect path is tenant-isolated by the caller's
+// UNCLICK_API_KEY (SHA-256 hashed for lookups). Hosted, paired MCP sessions
+// must use the signed-in web flow instead: a raw API key is deliberately not
+// present in a multi-tenant server environment.
 // All credential values are AES-256-GCM encrypted at rest.
 //
 // Required env vars:
@@ -12,6 +15,39 @@
 import { encrypt, decrypt, hashKeyFull } from "./keychain-crypto.js";
 import { resolveCredential } from "./keychain-secure-input.js";
 import { scopesEnabled } from "./memory/scopes.js";
+import { currentApiKey, currentSessionToken } from "./memory/request-context.js";
+
+function webAppUrl(): string {
+  return (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
+}
+
+/**
+ * A public-paired/OAuth MCP caller is authenticated by a short-lived session
+ * token, not a raw account key. Never accept a third-party secret in that
+ * channel and never direct it to the server's localhost. The signed-in web
+ * page persists credentials through the account-scoped server-scheme API.
+ */
+function isHostedSession(): boolean {
+  return !currentApiKey() && Boolean(currentSessionToken());
+}
+
+function hostedConnectRequired(platform: string, label: string, action: "connect" | "manage") {
+  const url = action === "manage"
+    ? `${webAppUrl()}/admin/apps`
+    : `${webAppUrl()}/connect/${encodeURIComponent(platform)}`;
+  return {
+    status: action === "manage" ? "secure_web_management_required" : "secure_web_setup_required",
+    platform,
+    label,
+    url,
+    message: action === "manage"
+      ? "Manage this account connection in UnClick's signed-in Apps page."
+      : "Continue in UnClick's signed-in secure setup page. Do not paste third-party credentials into chat.",
+    next_step: action === "manage"
+      ? "Open the URL in a browser to manage or remove the connection."
+      : "Open the URL in a browser and finish the provider setup there.",
+  };
+}
 
 // ─── Supabase helpers ─────────────────────────────────────────────────────────
 
@@ -568,19 +604,21 @@ export async function testCredential(
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 async function keychainConnect(args: Record<string, unknown>): Promise<unknown> {
+  const platform   = String(args.platform   ?? "").trim().toLowerCase();
+  const label      = String(args.label      ?? "default").trim() || "default";
+
+  if (!platform)   return { error: "platform is required." };
+  if (isHostedSession()) return hostedConnectRequired(platform, label, "connect");
+
   const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
-  if (!apiKey)     return { error: "UNCLICK_API_KEY env var is not set." };
+  if (!apiKey)     return { error: "A local UnClick API key is required for the legacy local Keychain path." };
   if (!supaUrl)    return { error: "SUPABASE_URL env var is not set." };
   if (!serviceKey) return { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set." };
 
-  const platform   = String(args.platform   ?? "").trim().toLowerCase();
   const credential = String(args.credential ?? "").trim();
-  const label      = String(args.label      ?? "default").trim() || "default";
-
-  if (!platform)   return { error: "platform is required." };
   if (!credential) return { error: "credential is required." };
 
   const start   = Date.now();
@@ -739,25 +777,28 @@ async function keychainStatus(args: Record<string, unknown>): Promise<unknown> {
 }
 
 async function keychainDisconnect(args: Record<string, unknown>): Promise<unknown> {
+  const platform = String(args.platform ?? "").trim().toLowerCase();
+  const label    = args.label ? String(args.label).trim() : "default";
+
+  if (!platform) return { error: "platform is required." };
+  if (isHostedSession()) return hostedConnectRequired(platform, label, "manage");
+
   const apiKey     = String(process.env.UNCLICK_API_KEY ?? "").trim();
   const supaUrl    = String(process.env.SUPABASE_URL ?? "").trim();
   const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
 
-  if (!apiKey)     return { error: "UNCLICK_API_KEY env var is not set." };
+  if (!apiKey)     return { error: "A local UnClick API key is required for the legacy local Keychain path." };
   if (!supaUrl)    return { error: "SUPABASE_URL env var is not set." };
   if (!serviceKey) return { error: "SUPABASE_SERVICE_ROLE_KEY env var is not set." };
 
-  const platform = String(args.platform ?? "").trim().toLowerCase();
-  const label    = args.label ? String(args.label).trim() : null;
-
-  if (!platform) return { error: "platform is required." };
+  const localLabel = args.label ? String(args.label).trim() : null;
 
   const start    = Date.now();
   const keyHash  = hashKeyFull(apiKey);
 
   let deleteUrl = `${supaUrl}/rest/v1/platform_credentials?key_hash=eq.${encodeURIComponent(keyHash)}&platform=eq.${encodeURIComponent(platform)}`;
-  if (label) {
-    deleteUrl += `&label=eq.${encodeURIComponent(label)}`;
+  if (localLabel) {
+    deleteUrl += `&label=eq.${encodeURIComponent(localLabel)}`;
   }
 
   const { ok, status } = await sbFetch(deleteUrl, "DELETE", sbHeaders(serviceKey));
@@ -787,7 +828,7 @@ async function keychainDisconnect(args: Record<string, unknown>): Promise<unknow
 
   return {
     platform,
-    label:  label ?? "all",
+    label:  localLabel ?? "all",
     status: "disconnected",
     memory_quarantined,
   };
@@ -883,13 +924,14 @@ export async function keychainGetCredential(platform: string, label = "default")
   }
 }
 
-// ─── Secure connect (env detection + localhost input page) ────────────────────
+// ─── Secure connect (hosted web flow or legacy local input page) ──────────────
 
 async function keychainSecureConnect(args: Record<string, unknown>): Promise<unknown> {
   const platform = String(args.platform ?? "").trim().toLowerCase();
   const label    = String(args.label    ?? "default").trim() || "default";
 
   if (!platform) return { error: "platform is required." };
+  if (isHostedSession()) return hostedConnectRequired(platform, label, "connect");
 
   const state = resolveCredential(platform, args.setup_url ? String(args.setup_url) : undefined);
 

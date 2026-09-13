@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 describe("gitea_action", () => {
-  it("uses the server-held master for a public-paired Superuser even when personal login connectors are disabled", async () => {
+  it("defers master authorization to the server-held broker for a public-paired session", async () => {
     process.env.UNCLICK_API_URL = "https://unclick.world";
     process.env.UNCLICK_AI_KEY_SECRET = "test-only-server-secret";
     delete process.env.UNCLICK_LOGIN_CONNECT_ENABLED;
@@ -42,7 +42,9 @@ describe("gitea_action", () => {
     }));
 
     const result = await runWithRequestContext(
-      { sessionToken: "public-pair-session-token", isSuperuser: true },
+      // The broker independently derives the role from the signed session.
+      // A stale local boolean must not preempt that authoritative check.
+      { sessionToken: "public-pair-session-token", isSuperuser: false },
       () => giteaAction("get_repo", { owner: "example", repo: "unclick" }),
     );
 
