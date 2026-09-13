@@ -1,4 +1,4 @@
-export const SYSTEM_CONNECTOR_PROVIDERS = ["gitea", "vercel", "supabase"] as const;
+export const SYSTEM_CONNECTOR_PROVIDERS = ["gitea", "vercel", "supabase", "dropbox"] as const;
 
 export type SystemConnectorProvider = typeof SYSTEM_CONNECTOR_PROVIDERS[number];
 
@@ -27,6 +27,10 @@ export const SYSTEM_CONNECTOR_SPECS: Readonly<Record<SystemConnectorProvider, {
   supabase: {
     name: "Supabase",
     fields: [{ key: "access_token", label: "Management token", secret: true, placeholder: "Leave blank to retain the master token" }],
+  },
+  dropbox: {
+    name: "Dropbox workspace",
+    fields: [{ key: "access_token", label: "Workspace access token", secret: true, placeholder: "Leave blank to retain the master token" }],
   },
 };
 

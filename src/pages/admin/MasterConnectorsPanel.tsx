@@ -3,7 +3,7 @@ import { Crown, KeyRound, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 
 type Field = { key: string; label: string; secret: boolean; configured: boolean; public_value?: string; placeholder: string };
 type Connector = {
-  provider: "gitea" | "vercel" | "supabase";
+  provider: "gitea" | "vercel" | "supabase" | "dropbox";
   name: string;
   source: "master" | "deployment_fallback" | "missing";
   configured: boolean;
@@ -102,7 +102,7 @@ export function MasterConnectorsPanel({ token }: { token?: string }) {
           <div>
             <h2 className="text-base font-semibold text-[#f4d96f]">Master Superuser access</h2>
             <p className="mt-1 max-w-3xl text-sm leading-5 text-white/65">
-              Gitea, Vercel, and Supabase master credentials stay on the server. Superusers use configured project connectors for UnClick work without connecting personal accounts.
+              Gitea, Vercel, Supabase, and the restricted UnClick Dropbox workspace stay on the server. Superusers use project connectors without connecting personal accounts; Dropbox access is limited to Context and System Information.
             </p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function MasterConnectorsPanel({ token }: { token?: string }) {
       </div>
       {notice && <p className="mt-4 rounded-md border border-white/10 bg-black/10 px-3 py-2 text-xs text-white/75">{notice}</p>}
       {status ? <>
-        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="mt-4 grid gap-3 lg:grid-cols-4">
           {status.connectors.map((connector) => <article key={connector.provider} className="rounded-lg border border-white/10 bg-black/10 p-3">
             <div className="flex items-center justify-between gap-2"><h3 className="font-medium text-white/90">{connector.name}</h3><span className={`rounded-full px-2 py-0.5 text-[11px] ${connector.configured ? "bg-emerald-400/15 text-emerald-200" : "bg-red-400/15 text-red-200"}`}>{label(connector.source)}</span></div>
             <div className="mt-3 space-y-2">{connector.fields.map((field) => <label key={field.key} className="block text-xs text-white/60">

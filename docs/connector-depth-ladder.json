@@ -3170,7 +3170,7 @@
       "hasTimeout": true,
       "handles429": true,
       "hasRetry": true,
-      "readsErrorBody": false,
+      "readsErrorBody": true,
       "bareStatusErrors": 0,
       "errorStyleClean": true,
       "memoryAware": false,

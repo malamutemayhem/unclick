@@ -23,4 +23,12 @@ describe("system connector schema", () => {
     expect(publicSystemConnectorValues("gitea", credentials)).toEqual({ base_url: "https://git.example.test" });
     expect(credentials.access_token).toBe("deployment-token");
   });
+
+  it("recognises the Dropbox workspace deployment token without exposing it", () => {
+    const credentials = deploymentSystemConnectorDefaults("dropbox", {
+      UNCLICK_SYSTEM_DROPBOX_ACCESS_TOKEN: "deployment-token",
+    });
+    expect(publicSystemConnectorValues("dropbox", credentials)).toEqual({});
+    expect(credentials.access_token).toBe("deployment-token");
+  });
 });
