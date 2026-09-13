@@ -2606,6 +2606,18 @@ export const TOOL_INDEX: ToolIndexEntry[] = [
       {
         "name": "dropbox_get_account",
         "description": "Get the current Dropbox account profile."
+      },
+      {
+        "name": "unclick_workspace_list",
+        "description": "Superuser/God only: list the shared UnClick Dropbox workspace. No personal Dropbox connection is used. area is strictly Context or System Information."
+      },
+      {
+        "name": "unclick_workspace_read",
+        "description": "Superuser/God only: read a UTF-8 text file from the shared UnClick Dropbox workspace. No personal Dropbox connection is used; paths are hard-limited to Context or System Information."
+      },
+      {
+        "name": "unclick_workspace_write",
+        "description": "Superuser/God only: create a UTF-8 text file in the shared UnClick Dropbox workspace. No delete operation exists. Set overwrite=true only to replace an existing file."
       }
     ]
   },

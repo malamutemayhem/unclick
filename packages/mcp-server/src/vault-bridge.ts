@@ -30,7 +30,13 @@ import {
 // ─── Helpers ───────────────────────────────────────────
 
 const UNCLICK_CREDENTIAL_SOURCE = "__unclick_credential_source";
-const SYSTEM_CREDENTIAL_PROVIDERS = new Set(["gitea", "vercel", "supabase"]);
+// The ordinary project connectors may fall back to a master credential only
+// after a caller's personal sources miss. Dropbox is deliberately excluded:
+// its general-purpose tools can browse arbitrary paths and must always use a
+// caller's own connection. The restricted UnClick workspace calls the master
+// resolver explicitly below instead.
+const GENERIC_SYSTEM_CREDENTIAL_PROVIDERS = new Set(["gitea", "vercel", "supabase"]);
+const MASTER_CREDENTIAL_PROVIDERS = new Set(["gitea", "vercel", "supabase", "dropbox"]);
 
 export function credentialResolvedFromUnClick(args: Record<string, unknown>): boolean {
   return args[UNCLICK_CREDENTIAL_SOURCE] === "user_credentials";
@@ -204,14 +210,15 @@ async function tryResolveFromUnClickApi(
  * never: this internal request additionally proves it came from the hosted
  * MCP process with a deployment-held broker secret.
  */
-async function tryResolveSystemCredentials(
-  slug: string,
-  resolved: Record<string, unknown>,
-  stillMissing: ConnectorConfig["credentialFields"],
-): Promise<ConnectorConfig["credentialFields"]> {
-  if (!SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) {
-    return stillMissing;
-  }
+/**
+ * Resolves a project-owned connector only inside the hosted MCP process.
+ *
+ * This function must never be exposed as a tool. It is intentionally separate
+ * from resolveCredentials so a caller's inline, environment, local-vault, and
+ * personal Dropbox values cannot substitute for the owner-managed workspace.
+ */
+export async function resolveSystemConnectorCredentials(slug: string): Promise<Record<string, string>> {
+  if (!MASTER_CREDENTIAL_PROVIDERS.has(slug)) return {};
   const bearer = systemConnectorBearer();
   const brokerSecret = (
     process.env.UNCLICK_SYSTEM_CONNECTOR_BROKER_SECRET ||
@@ -219,7 +226,7 @@ async function tryResolveSystemCredentials(
     process.env.UNCLICK_AI_KEY_SECRET_V2 ||
     ""
   ).trim();
-  if (!bearer || !brokerSecret) return stillMissing;
+  if (!bearer || !brokerSecret) return {};
 
   const apiBase = (process.env.UNCLICK_API_URL ?? "https://unclick.world").replace(/\/$/, "");
   try {
@@ -238,14 +245,29 @@ async function tryResolveSystemCredentials(
     // local flag would otherwise deny a valid Superuser before the canonical
     // server-side role check can run. A non-Superuser receives 403 and no
     // credential bytes are returned.
-    if (!response.ok) return stillMissing;
+    if (!response.ok) return {};
     const data = await response.json() as { credentials?: Record<string, unknown> };
-    for (const field of stillMissing) {
-      const value = data.credentials?.[field.key];
-      if (typeof value === "string" && value.trim()) resolved[field.key] = value.trim();
+    const credentials: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data.credentials ?? {})) {
+      if (typeof value === "string" && value.trim()) credentials[key] = value.trim();
     }
+    return credentials;
   } catch {
     // A project master is optional. Preserve the regular connector setup path.
+    return {};
+  }
+}
+
+async function tryResolveSystemCredentials(
+  slug: string,
+  resolved: Record<string, unknown>,
+  stillMissing: ConnectorConfig["credentialFields"],
+): Promise<ConnectorConfig["credentialFields"]> {
+  if (!GENERIC_SYSTEM_CREDENTIAL_PROVIDERS.has(slug)) return stillMissing;
+  const credentials = await resolveSystemConnectorCredentials(slug);
+  for (const field of stillMissing) {
+    const value = credentials[field.key];
+    if (value) resolved[field.key] = value;
   }
   return unresolvedFields(stillMissing, resolved);
 }
