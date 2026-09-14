@@ -38,6 +38,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { verifyOAuthStateToken, type OAuthStatePayload } from "./oauth-state.js";
 import { encryptForAccount } from "./lib/chat-crypto.js";
+import { storeMasterDropboxOAuthCredentials } from "./system-connectors.js";
 
 // ─── Platform OAuth configs ────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ const OAUTH_API_KEY_COOKIE = "unclick_oauth_api_key";
 const OAUTH_LANE_COOKIE = "unclick_oauth_lane";
 const OAUTH_PKCE_VERIFIER_COOKIE = "unclick_oauth_pkce_verifier";
 const HIGGSFIELD_MCP_OAUTH_COOKIE = "unclick_higgsfield_mcp_oauth";
+const SYSTEM_DROPBOX_OAUTH_COOKIE = "unclick_system_dropbox_oauth";
 const UNCLICK_APP_ORIGIN = "https://unclick.world";
 const GITHUB_CANONICAL_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
 const HIGGSFIELD_MCP_TOKEN_URL = "https://mcp.higgsfield.ai/oauth2/token";
@@ -196,7 +198,14 @@ const PLATFORM_CONFIGS: Record<string, OAuthConfig> = {
       const accessToken = String(tokenResponse.access_token ?? "");
       if (!accessToken) throw new Error("No access_token in Dropbox token response.");
       const refreshToken = String(tokenResponse.refresh_token ?? "");
-      return refreshToken ? { access_token: accessToken, refresh_token: refreshToken } : { access_token: accessToken };
+      const expiresIn = Number(tokenResponse.expires_in ?? 0);
+      return {
+        access_token: accessToken,
+        ...(refreshToken ? { refresh_token: refreshToken } : {}),
+        ...(Number.isFinite(expiresIn) && expiresIn > 0
+          ? { expires_at: new Date(Date.now() + expiresIn * 1000).toISOString() }
+          : {}),
+      };
     },
   },
 
@@ -609,14 +618,17 @@ function redirectBack(
   statePayload: OAuthStatePayload | null,
   params: Record<string, string>
 ) {
-  const redirectPath = statePayload?.redirectPath?.startsWith("/connect/")
-    ? statePayload.redirectPath
-    : "/admin/apps";
+  const redirectPath = statePayload?.systemConnector === "dropbox"
+    ? "/admin/users"
+    : statePayload?.redirectPath?.startsWith("/connect/")
+      ? statePayload.redirectPath
+      : "/admin/apps";
   res.setHeader("Set-Cookie", [
     clearCookie(OAUTH_API_KEY_COOKIE),
     clearCookie(OAUTH_LANE_COOKIE),
     clearCookie(OAUTH_PKCE_VERIFIER_COOKIE),
     clearCookie(HIGGSFIELD_MCP_OAUTH_COOKIE),
+    clearCookie(SYSTEM_DROPBOX_OAUTH_COOKIE),
   ]);
   return res.redirect(302, appendQuery(redirectPath, params));
 }
@@ -763,6 +775,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return redirectBack(res, statePayload, { oauth_error: providerError });
       }
       if (!statePayload) throw new Error("Missing OAuth state. Please try again.");
+
+      if (statePayload.systemConnector === "dropbox") {
+        if (
+          statePayload.platform !== "dropbox" ||
+          statePayload.redirectPath !== "/admin/users" ||
+          !statePayload.systemConnectorActorId ||
+          !statePayload.systemConnectorNonce ||
+          readCookie(req, SYSTEM_DROPBOX_OAUTH_COOKIE) !== statePayload.systemConnectorNonce
+        ) {
+          throw new Error("Invalid project Dropbox authorization.");
+        }
+        const config = PLATFORM_CONFIGS.dropbox;
+        const credentials = await exchangeCode(config, code, process.env);
+        await storeMasterDropboxOAuthCredentials({
+          actorId: statePayload.systemConnectorActorId,
+          credentials,
+          env: process.env,
+        });
+        return redirectBack(res, statePayload, { master_connector: "dropbox", connected: "1" });
+      }
 
       await completeOAuthConnection({
         platform: statePayload.platform,

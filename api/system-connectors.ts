@@ -6,9 +6,11 @@
 import * as crypto from "crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import { createOAuthStateToken } from "./oauth-state.js";
 import { verifyMcpOAuthToken } from "./lib/mcp-oauth.js";
 import { decryptForAccount, encryptForAccount, type EncryptedCredential } from "./lib/chat-crypto.js";
 import { canManageSystemConnectors, deriveRole, envAdminEmails, envGodEmails, type AdminRole } from "./lib/admin-roles.js";
+import { needsRefresh, refreshOAuthCredentialResult } from "./lib/oauth-refresh.js";
 import {
   SYSTEM_CONNECTOR_PROVIDERS,
   SYSTEM_CONNECTOR_SPECS,
@@ -22,6 +24,8 @@ import {
 
 const MASTER_LANE = "unclick-system-connectors/v1";
 const BROKER_HEADER = "x-unclick-system-connector-broker";
+const SYSTEM_DROPBOX_OAUTH_COOKIE = "unclick_system_dropbox_oauth";
+const OAUTH_COOKIE_MAX_AGE_SECONDS = 10 * 60;
 
 type ActorKind = "session" | "api_key" | "mcp_oauth";
 type Actor = { id: string; email: string | null; role: AdminRole; kind: ActorKind };
@@ -133,6 +137,30 @@ async function resolveActor(
   };
 }
 
+function systemDropboxOauthCookie(nonce: string): string {
+  return [
+    `${SYSTEM_DROPBOX_OAUTH_COOKIE}=${encodeURIComponent(nonce)}`,
+    "Path=/api/oauth-callback",
+    `Max-Age=${OAUTH_COOKIE_MAX_AGE_SECONDS}`,
+    "HttpOnly",
+    "Secure",
+    "SameSite=Lax",
+  ].join("; ");
+}
+
+async function resolveManagedActorById(
+  id: string,
+  supabase: ReturnType<typeof createClient>,
+): Promise<Actor> {
+  const user = (await supabase.auth.admin.getUserById(id)).data.user;
+  if (!user) throw new Error("The master Dropbox authorization is no longer valid.");
+  const role = deriveRole(user.email ?? null, user.app_metadata ?? null);
+  if (!canManageSystemConnectors(role, envAdminEmails(), envGodEmails())) {
+    throw new Error("Only the master Superuser can connect project Dropbox access.");
+  }
+  return { id: user.id, email: user.email ?? null, role, kind: "session" };
+}
+
 async function readMasters(supabase: { from: (table: string) => any }): Promise<StoredMaster[]> {
   const { data, error } = await supabase
     .from("system_connector_credentials")
@@ -183,9 +211,10 @@ function statusFor(provider: SystemConnectorProvider, row: StoredMaster | undefi
     name: SYSTEM_CONNECTOR_SPECS[provider].name,
     source: credentials ? "master" : Object.keys(fallback).length ? "deployment_fallback" : "missing",
     configured: Object.keys(active).length > 0,
+    renewable: provider === "dropbox" && Boolean(active.refresh_token),
     updated_at: row?.updated_at ?? null,
     credential_version: row?.credential_version ?? null,
-    fields: SYSTEM_CONNECTOR_SPECS[provider].fields.map((field) => ({
+    fields: SYSTEM_CONNECTOR_SPECS[provider].fields.filter((field) => !field.systemManaged).map((field) => ({
       key: field.key,
       label: field.label,
       secret: field.secret,
@@ -194,6 +223,39 @@ function statusFor(provider: SystemConnectorProvider, row: StoredMaster | undefi
       placeholder: field.placeholder,
     })),
   };
+}
+
+/**
+ * Called only after a signed, God-initiated Dropbox OAuth callback. The refresh
+ * token stays in the encrypted master record; it is never returned to a browser
+ * or to the hosted MCP broker.
+ */
+export async function storeMasterDropboxOAuthCredentials(args: {
+  actorId: string;
+  credentials: Record<string, string>;
+  env?: NodeJS.ProcessEnv;
+}): Promise<void> {
+  const env = args.env ?? process.env;
+  const supabaseUrl = (env.SUPABASE_URL ?? "").trim();
+  const serviceRoleKey = (env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("Server not configured.");
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const actor = await resolveManagedActorById(args.actorId, supabase);
+  const rows = await readMasters(supabase);
+  const previous = rows.find((row) => row.provider === "dropbox");
+  const complete = completeSystemConnectorCredentials(
+    "dropbox",
+    previous ? parseCredentials("dropbox", previous as unknown as Record<string, unknown>) : {},
+    args.credentials,
+  );
+  if (!("credentials" in complete)) throw new Error(complete.error);
+  if (!complete.credentials.refresh_token) {
+    throw new Error("Dropbox did not provide a renewal token. Please try connecting again.");
+  }
+  await writeMaster(supabase, actor, "dropbox", complete.credentials, previous?.credential_version ?? null);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -208,6 +270,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const action = typeof req.query.action === "string" ? req.query.action : "";
+  const canUpdate = actor.kind === "session" && canManageSystemConnectors(actor.role, envAdminEmails(), envGodEmails());
 
   try {
     if (action === "status" && req.method === "GET") {
@@ -216,7 +279,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({
         viewer: {
           role: actor.role,
-          can_update: actor.kind === "session" && canManageSystemConnectors(actor.role, envAdminEmails(), envGodEmails()),
+          can_update: canUpdate,
         },
         connectors: SYSTEM_CONNECTOR_PROVIDERS.map((provider) => statusFor(provider, byProvider.get(provider))),
       });
@@ -232,13 +295,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const row = rows.find((candidate) => candidate.provider === provider);
       const credentials = row ? parseCredentials(provider, row as unknown as Record<string, unknown>) : null;
       const fallback = deploymentSystemConnectorDefaults(provider);
-      const resolved = credentials ?? fallback;
+      let resolved = credentials ?? fallback;
       if (Object.keys(resolved).length === 0) return res.status(404).json({ error: "No master connector configured." });
-      return res.status(200).json({ credentials: resolved });
+      if (provider === "dropbox" && credentials && needsRefresh("dropbox", credentials)) {
+        const refreshed = await refreshOAuthCredentialResult("dropbox", credentials, process.env);
+        if (refreshed.ok && refreshed.credentials) {
+          resolved = refreshed.credentials;
+          await writeMaster(supabase, { ...actor, id: row?.updated_by || actor.id }, "dropbox", resolved, row?.credential_version ?? null);
+        }
+      }
+      // The broker needs a usable Dropbox bearer token, never its renewable
+      // credential. Refreshing and persistence happen exclusively here.
+      return res.status(200).json({
+        credentials: provider === "dropbox" ? { access_token: resolved.access_token ?? "" } : resolved,
+      });
+    }
+
+    if (action === "oauth_init" && req.method === "POST") {
+      if (!canUpdate) {
+        return res.status(403).json({ error: "Only the master Superuser can connect project Dropbox access." });
+      }
+      const clientId = (process.env.DROPBOX_CLIENT_ID ?? "").trim();
+      const clientSecret = (process.env.DROPBOX_CLIENT_SECRET ?? "").trim();
+      const redirectUri = (process.env.DROPBOX_REDIRECT_URI ?? "").trim();
+      if (!clientId || !clientSecret || !redirectUri) {
+        return res.status(500).json({ error: "Dropbox OAuth is not configured on the server." });
+      }
+      const nonce = crypto.randomBytes(32).toString("base64url");
+      const state = createOAuthStateToken({
+        platform: "dropbox",
+        redirectPath: "/admin/users",
+        systemConnector: "dropbox",
+        systemConnectorActorId: actor.id,
+        systemConnectorNonce: nonce,
+        env: process.env,
+      });
+      res.setHeader("Set-Cookie", systemDropboxOauthCookie(nonce));
+      const authorize = new URL("https://www.dropbox.com/oauth2/authorize");
+      authorize.searchParams.set("client_id", clientId);
+      authorize.searchParams.set("response_type", "code");
+      authorize.searchParams.set("redirect_uri", redirectUri);
+      authorize.searchParams.set("state", state);
+      authorize.searchParams.set("token_access_type", "offline");
+      authorize.searchParams.set("scope", "account_info.read files.metadata.read files.content.read files.content.write");
+      return res.status(200).json({ authorization_url: authorize.toString() });
     }
 
     if ((action === "upsert" || action === "import_deployment_defaults") && req.method === "POST") {
-      if (actor.kind !== "session" || !canManageSystemConnectors(actor.role, envAdminEmails(), envGodEmails())) {
+      if (!canUpdate) {
         return res.status(403).json({ error: "Only the master Superuser can update project connectors." });
       }
       const rows = await readMasters(supabase);

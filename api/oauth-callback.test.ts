@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import handler, { resolveCredentialStorageBaseUrl } from "./oauth-callback.js";
 import { createOAuthStateToken } from "./oauth-state.js";
+import { storeMasterDropboxOAuthCredentials } from "./system-connectors.js";
+
+vi.mock("./system-connectors.js", () => ({
+  storeMasterDropboxOAuthCredentials: vi.fn(async () => undefined),
+}));
 
 function createResponse() {
   const headers = new Map<string, string | string[]>();
@@ -53,6 +58,7 @@ describe("oauth callback credential storage origin", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
     process.env = { ...previousEnv };
   });
 
@@ -374,6 +380,48 @@ describe("oauth callback credential storage origin", () => {
     expect(response.statusCode).toBe(200);
     expect(response.payload).toMatchObject({ success: true, platform: "gmail" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("stores a renewable Dropbox master connection only for the God who initiated it", async () => {
+    process.env.DROPBOX_CLIENT_ID = "dropbox-client";
+    process.env.DROPBOX_CLIENT_SECRET = "dropbox-secret";
+    process.env.DROPBOX_REDIRECT_URI = "https://unclick.world/api/oauth-callback";
+    const state = createOAuthStateToken({
+      platform: "dropbox",
+      redirectPath: "/admin/users",
+      systemConnector: "dropbox",
+      systemConnectorActorId: "god-user-id",
+      systemConnectorNonce: "browser-bound-nonce",
+      env: process.env,
+    });
+    const fetchMock = vi.fn(async (url: string | URL, init?: RequestInit) => {
+      expect(String(url)).toBe("https://api.dropboxapi.com/oauth2/token");
+      expect(String(init?.body)).toContain("grant_type=authorization_code");
+      expect(String(init?.body)).toContain("code=dropbox-code");
+      return { ok: true, json: async () => ({ access_token: "dropbox-access", refresh_token: "dropbox-refresh", expires_in: 14_400 }) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = createResponse();
+    await handler(
+      {
+        method: "GET",
+        headers: { cookie: "unclick_system_dropbox_oauth=browser-bound-nonce" },
+        query: { code: "dropbox-code", state },
+      } as never,
+      response.res as never,
+    );
+
+    expect(response.statusCode).toBe(302);
+    expect(response.redirectUrl).toBe("/admin/users?master_connector=dropbox&connected=1");
+    expect(storeMasterDropboxOAuthCredentials).toHaveBeenCalledWith(expect.objectContaining({
+      actorId: "god-user-id",
+      credentials: expect.objectContaining({
+        access_token: "dropbox-access",
+        refresh_token: "dropbox-refresh",
+        expires_at: expect.any(String),
+      }),
+    }));
   });
 });
 
