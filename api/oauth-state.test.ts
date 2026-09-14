@@ -115,4 +115,24 @@ describe("oauth state token", () => {
       });
     }
   });
+
+  it("binds a master Dropbox authorization to the initiating God account", () => {
+    const token = createOAuthStateToken({
+      platform: "dropbox",
+      redirectPath: "/admin/users",
+      systemConnector: "dropbox",
+      systemConnectorActorId: "god-user-id",
+      systemConnectorNonce: "browser-bound-nonce",
+      env,
+      nowSeconds: 1_000,
+    });
+
+    expect(verifyOAuthStateToken(token, env, 1_100)).toMatchObject({
+      platform: "dropbox",
+      redirectPath: "/admin/users",
+      systemConnector: "dropbox",
+      systemConnectorActorId: "god-user-id",
+      systemConnectorNonce: "browser-bound-nonce",
+    });
+  });
 });

@@ -7,6 +7,10 @@ export type SystemConnectorField = Readonly<{
   label: string;
   secret: boolean;
   placeholder: string;
+  /** OAuth maintenance fields remain server-side and are never rendered in the admin form. */
+  systemManaged?: boolean;
+  /** A field is required unless it is explicitly optional. */
+  required?: boolean;
 }>;
 
 export const SYSTEM_CONNECTOR_SPECS: Readonly<Record<SystemConnectorProvider, {
@@ -30,7 +34,11 @@ export const SYSTEM_CONNECTOR_SPECS: Readonly<Record<SystemConnectorProvider, {
   },
   dropbox: {
     name: "Dropbox workspace",
-    fields: [{ key: "access_token", label: "Workspace access token", secret: true, placeholder: "Leave blank to retain the master token" }],
+    fields: [
+      { key: "access_token", label: "Workspace access token", secret: true, placeholder: "Leave blank to retain the master token" },
+      { key: "refresh_token", label: "Renewal token", secret: true, placeholder: "Managed automatically", systemManaged: true, required: false },
+      { key: "expires_at", label: "Token expiry", secret: true, placeholder: "Managed automatically", systemManaged: true, required: false },
+    ],
   },
 };
 
@@ -67,7 +75,7 @@ export function completeSystemConnectorCredentials(
     ...acceptedSystemConnectorPatch(provider, patch),
   };
   const missing = SYSTEM_CONNECTOR_SPECS[provider].fields
-    .filter((field) => !credentials[field.key])
+    .filter((field) => field.required !== false && !credentials[field.key])
     .map((field) => field.label);
   return missing.length ? { error: `Missing required master value: ${missing.join(", ")}.` } : { credentials };
 }
@@ -79,7 +87,7 @@ export function publicSystemConnectorValues(
   const values = acceptedSystemConnectorPatch(provider, credentials);
   return Object.fromEntries(
     SYSTEM_CONNECTOR_SPECS[provider].fields
-      .filter((field) => !field.secret && values[field.key])
+      .filter((field) => !field.secret && !field.systemManaged && values[field.key])
       .map((field) => [field.key, values[field.key]]),
   );
 }

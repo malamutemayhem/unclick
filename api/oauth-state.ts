@@ -5,6 +5,10 @@ export interface OAuthStatePayload {
   redirectPath: string;
   exp: number;
   store?: string;
+  /** Present only for a God-initiated project connector OAuth flow. */
+  systemConnector?: "dropbox";
+  systemConnectorActorId?: string;
+  systemConnectorNonce?: string;
   v: 1;
 }
 
@@ -67,6 +71,9 @@ export function createOAuthStateToken(args: {
   env: NodeJS.ProcessEnv;
   nowSeconds?: number;
   store?: string;
+  systemConnector?: "dropbox";
+  systemConnectorActorId?: string;
+  systemConnectorNonce?: string;
 }): string {
   const secret = getPlatformSecret(args.platform, args.env);
   if (!secret) {
@@ -78,6 +85,9 @@ export function createOAuthStateToken(args: {
     redirectPath: args.redirectPath,
     exp: (args.nowSeconds ?? Math.floor(Date.now() / 1000)) + STATE_TTL_SECONDS,
     ...(args.store ? { store: args.store } : {}),
+    ...(args.systemConnector ? { systemConnector: args.systemConnector } : {}),
+    ...(args.systemConnectorActorId ? { systemConnectorActorId: args.systemConnectorActorId } : {}),
+    ...(args.systemConnectorNonce ? { systemConnectorNonce: args.systemConnectorNonce } : {}),
     v: 1,
   };
 
@@ -107,7 +117,11 @@ export function verifyOAuthStateToken(
     payload.v !== 1 ||
     typeof payload.platform !== "string" ||
     typeof payload.redirectPath !== "string" ||
-    typeof payload.exp !== "number"
+    typeof payload.exp !== "number" ||
+    (payload.systemConnector !== undefined && payload.systemConnector !== "dropbox") ||
+    (payload.systemConnector !== undefined && typeof payload.systemConnectorActorId !== "string") ||
+    (payload.systemConnector !== undefined && typeof payload.systemConnectorNonce !== "string") ||
+    (payload.systemConnectorActorId !== undefined && payload.systemConnector !== "dropbox")
   ) {
     throw new Error("Invalid OAuth state token.");
   }
