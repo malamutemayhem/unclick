@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.13",
-    "@hono/node-server": "^1.19.14",
+    "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^0.18.3",
     "@scalar/hono-api-reference": "^0.5.162",
     "@types/papaparse": "^5.5.2",
@@ -24,7 +24,7 @@
     "marked": "^17.0.6",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.4",
     "ulid": "^2.3.0",
     "zod": "^3.23.8"
   },
